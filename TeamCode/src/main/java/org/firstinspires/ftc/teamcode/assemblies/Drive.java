@@ -55,6 +55,7 @@ public class Drive {
     public double CRAWL_SPEED = 200;
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
+    public double VELOCITY_DECREASE_PER_CM = 10;
 
     public Drive() {
         teamUtil.log("Constructing Drive");
@@ -89,6 +90,7 @@ public class Drive {
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         imu.initialize(parameters);
+        setMotorsBrake();
         teamUtil.log("Initializing Drive - FINISHED");
     }
 
@@ -517,38 +519,40 @@ public class Drive {
         double distance = (260/3*(voltage-.55)+36)*2.54; // based on real world distances measured
         return distance;
     }
-    public void stopAtUltDistance(double cruiseVelocity, double distanceFromWall, double robotHeading, double driveHeading){
-        if(getUltrasonicDistance() <= distanceFromWall){
-            if (details) {
-                log("already within distance");
-            }
-            return;
-        }
+    public void stopAtUltDistance(double distanceFromWall, double robotHeading, double driveHeading){
+
         MotorData data = new MotorData();
         getDriveMotorData(data);
         setMotorsWithEncoder();
         double distance = getUltrasonicDistance();
-        double velocityChangeNeededAccel = cruiseVelocity - MIN_START_VELOCITY;
-        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
-        double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
-        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
-        double decelerationCms = decelerationDistance/COUNTS_PER_CENTIMETER;
 
         if(details){
             log("starting distance: "+distance);
             log("goal distance: "+distanceFromWall);
         }
-        while(distanceFromWall+decelerationCms<distance){
+        if(distance <= distanceFromWall){
+            if (details) {
+                log("already within distance");
+            }
+            return;
+        }
+        while(distanceFromWall<distance){
+            log("in while loop");
             distance = getUltrasonicDistance();
-            driveMotorsHeadingsFR(driveHeading,robotHeading, cruiseVelocity);
+            log("distance: "+distance);
+            double velocity = MIN_END_VELOCITY+Math.abs(distance-distanceFromWall)*VELOCITY_DECREASE_PER_CM;
+            log("Velocity: "+velocity);
+            driveMotorsHeadingsFR(driveHeading,robotHeading, velocity);
         }
         if(details){
-            log("distance after cruise: "+distance);
+            log("distance before pause: "+distance);
         }
-        decelerationPhase(cruiseVelocity, robotHeading, driveHeading);
+        stopMotors();
+        teamUtil.pause(1000);
+
         distance = getUltrasonicDistance();
         if(details){
-            log("distance after deceleration: "+distance);
+            log("distance at end: "+distance);
         }
     }
 }

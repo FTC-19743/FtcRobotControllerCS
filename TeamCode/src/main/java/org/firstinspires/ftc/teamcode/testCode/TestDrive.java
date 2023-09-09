@@ -30,13 +30,14 @@ public class TestDrive extends LinearOpMode {
             telemetry.addLine("Velocity (options):"+velocity);
             telemetry.addLine("Heading (right trigger): "+drive.getHeading());
             telemetry.addLine("Up and down move up and down, hold directional button when you press the other button");
+            telemetry.addLine("Ultrasonic Distance: "+drive.getUltrasonicDistance());
             telemetry.update();
 
             if(gamepad.wasRightBumperPressed()){
                 //drive.spinToHeading(90);
                 drive.setHeading(180);
                 //drive.decelerationPhase(1000, 180, 180);
-                drive.stopAtUltDistance(1000, 20, 180, 180);
+                drive.stopAtUltDistance(20, 180, 180);
                 //drive.universalMoveCm(velocity, 100, 180, 180);
                 //teamUtil.pause(1500);
                 //drive.universalMoveCm(velocity, 100, 0, 180);
