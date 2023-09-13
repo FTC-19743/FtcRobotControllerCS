@@ -56,7 +56,7 @@ public class Drive {
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
     public double VELOCITY_DECREASE_PER_CM = 10;
-
+    public double lastVelocity;
     public Drive() {
         teamUtil.log("Constructing Drive");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -95,6 +95,7 @@ public class Drive {
     }
 
     public void runMotors(double velocity) {
+        lastVelocity = velocity;
         fl.setVelocity(velocity);
         fr.setVelocity(velocity);
         bl.setVelocity(velocity);
@@ -133,6 +134,8 @@ public class Drive {
     }
 
     public void stopMotors() {
+
+        lastVelocity = 0;
         fl.setVelocity(0);
         fr.setVelocity(0);
         bl.setVelocity(0);
@@ -300,15 +303,30 @@ public class Drive {
         return (int) (Math.sqrt(Math.pow((ForwardVector * FORWARD_VECTOR_COEFFICIENT), 2) + (Math.pow((SideVector * SIDE_VECTOR_COEFFICIENT), 2))) / 4);
 
     }
+    public void moveCm(double centimeters, double driveHeading) {
+        moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), MIN_END_VELOCITY);
+    }
+    public void moveCm(double centimeters, double driveHeading, double endVelocity){
+        moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), endVelocity);
+    }
 
-    public void universalMoveCm(double cruiseVelocity, double centimeters, double driveHeading, double robotHeading) {
+    public void moveCm(double maxVelocity, double centimeters, double driveHeading, double endVelocity) {
+        moveCm(maxVelocity, centimeters, driveHeading, getHeading(), endVelocity);
+    }
+    public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity){
         MotorData data = new MotorData();
         getDriveMotorData(data);
 
+        double velocityChangeNeededAccel;
+        double velocityChangeNeededDecel;
         // tics^2/s
-        double velocityChangeNeededAccel = cruiseVelocity - MIN_START_VELOCITY;
-        double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
-
+        if (lastVelocity == 0) {
+            velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }else{
+            velocityChangeNeededAccel = maxVelocity - lastVelocity;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }
         setMotorsWithEncoder();
         // all are measured in tics
         double totalTics = centimeters * COUNTS_PER_CENTIMETER;
@@ -332,7 +350,11 @@ public class Drive {
 //acceleration
         while (distance < accelerationDistance) {
             distance = getEncoderDistance(data);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY);
+            if (lastVelocity == 0) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY);
+            }else{
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + lastVelocity);
+            }
         }
         if (details) {
             log("Heading:" + getHeading());
@@ -342,40 +364,39 @@ public class Drive {
         while (distance < postCruiseDistance) {
 
             distance = getEncoderDistance(data);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, cruiseVelocity);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
         }
         if (details) {
             log("Heading:" + getHeading());
             log("distance after cruise: " + distance);
         }
 
+
 //deceleration
         double startDecelerationDistance = distance;
+        double ticsUntilEnd = totalTics-distance;
         while (distance < totalTics) {
             distance = getEncoderDistance(data);
-            double ticsUntilEnd = decelerationDistance + distance - startDecelerationDistance;
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
+            ticsUntilEnd = totalTics-distance;
+            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + endVelocity);
+
         }
         if (details) {
             log("distance after deceleration: " + distance);
         }
-        runMotors(0);
-
-    }
-    public void accelerationPhase(double cruiseVelocity, double robotHeading, double driveHeading){
-        MotorData data = new MotorData();
-        getDriveMotorData(data);
-        setMotorsWithEncoder();
-        double velocityChangeNeededAccel = cruiseVelocity - MIN_START_VELOCITY;
-        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION); // divide by counts per cm for distance
-        double distance = getEncoderDistance(data);
-        while (distance < accelerationDistance) {
-            distance = getEncoderDistance(data);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY);
+        if(endVelocity <= MIN_END_VELOCITY){
+            runMotors(0);
+            if(details) {
+                log("Went below or was min end velocity");
+            }
         }
+        lastVelocity = endVelocity;
     }
 
-    public void decelerationPhase(double cruiseVelocity, double robotHeading, double driveHeading){
+
+
+    public void decelerationPhase(double robotHeading, double driveHeading){
+        double cruiseVelocity = lastVelocity;
         MotorData data = new MotorData();
         getDriveMotorData(data);
         setMotorsWithEncoder();
@@ -385,12 +406,12 @@ public class Drive {
         double startDecelerationDistance = distance;
         while (distance < decelerationDistance) {
             distance = getEncoderDistance(data);
-            double ticsUntilEnd = decelerationDistance + distance - startDecelerationDistance;
+            double ticsUntilEnd = decelerationDistance - distance;
             driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
         }
         runMotors(0);
     }
-    public void moveCm(double cruiseVelocity, double centimeters) {
+    public void oldMoveCm(double cruiseVelocity, double centimeters) {
         double startEncoderPosition = fl.getCurrentPosition();
 
 
@@ -443,8 +464,6 @@ public class Drive {
         if (details) {
             log("distance after deceleration: " + (fl.getCurrentPosition() - startEncoderPosition));
         }
-        runMotors(0);
-
     }
 
 

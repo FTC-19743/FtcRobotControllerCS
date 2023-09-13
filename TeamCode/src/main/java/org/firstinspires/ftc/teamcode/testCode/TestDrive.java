@@ -36,8 +36,9 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasRightBumperPressed()){
                 //drive.spinToHeading(90);
                 drive.setHeading(180);
-                //drive.decelerationPhase(1000, 180, 180);
-                drive.stopAtUltDistance(20, 180, 180);
+                drive.moveCm(1500, 30, 180, 180, 1250);
+                drive.moveCm(1250, 30, 180, 180, drive.MIN_END_VELOCITY);
+                //drive.stopAtUltDistance(20, 180, 180);
                 //drive.universalMoveCm(velocity, 100, 180, 180);
                 //teamUtil.pause(1500);
                 //drive.universalMoveCm(velocity, 100, 0, 180);
