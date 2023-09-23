@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+import java.util.List;
 
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
@@ -19,6 +22,7 @@ public class TestDrive extends LinearOpMode {
         gamepad.initilize(true);
         drive = new Drive();
         drive.initialize();
+        drive.setCamera(2);
         double velocity = drive.MAX_VELOCITY;
         waitForStart();
         while (opModeIsActive()) {
@@ -34,15 +38,10 @@ public class TestDrive extends LinearOpMode {
             telemetry.update();
 
             if(gamepad.wasRightBumperPressed()){
-                //drive.spinToHeading(90);
-                drive.setHeading(180);
-                drive.moveCm(1500, 30, 180, 180, 1250);
-                drive.moveCm(1250, 30, 180, 180, drive.MIN_END_VELOCITY);
-                //drive.stopAtUltDistance(20, 180, 180);
-                //drive.universalMoveCm(velocity, 100, 180, 180);
-                //teamUtil.pause(1500);
-                //drive.universalMoveCm(velocity, 100, 0, 180);
-                //drive.moveCm(1000,100);
+                drive.spinToHeading(180);
+                drive.setCamera(2);
+                drive.moveCm(1000, 20, 180, 180, 1000);
+                drive.centerOnAprilTag(8, 40, 0);
             }
             if(gamepad1.right_trigger >= .5){
                 drive.setHeading(260);
@@ -89,6 +88,21 @@ public class TestDrive extends LinearOpMode {
                 }
                 if(gamepad1.dpad_down){
                     drive.MIN_END_VELOCITY -= 10;
+                }
+            }
+            List<AprilTagDetection> currentDetections = drive.aprilTag.getDetections();
+            telemetry.addData("# AprilTags Detected", currentDetections.size());
+
+            // Step through the list of detections and display info for each one.
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.metadata != null) {
+                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                    telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                } else {
+                    telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                    telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
                 }
             }
         }

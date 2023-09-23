@@ -9,13 +9,21 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.assemblies.OLD.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 public class Drive {
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +46,12 @@ public class Drive {
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
     public AnalogInput ult = null;
+    public AprilTagProcessor aprilTag;
+    public VisionPortal visionPortal;
+    public CameraName camera1;
+    public CameraName camera2;
+    public WebcamName webcam1;
+    public WebcamName webcam2;
 
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
@@ -57,6 +71,7 @@ public class Drive {
     public boolean details = true;
     public double VELOCITY_DECREASE_PER_CM = 10;
     public double lastVelocity;
+    public double CMS_PER_INCH = 2.54;
     public Drive() {
         teamUtil.log("Constructing Drive");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -83,7 +98,7 @@ public class Drive {
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
         fr.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        initAprilTag();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         //These are the parameters that the imu uses in the code to name and keep track of the data
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -319,6 +334,9 @@ public class Drive {
 
         double velocityChangeNeededAccel;
         double velocityChangeNeededDecel;
+        if(endVelocity < MIN_END_VELOCITY){
+            endVelocity = MIN_END_VELOCITY;
+        }
         // tics^2/s
         if (lastVelocity == 0) {
             velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
@@ -573,6 +591,159 @@ public class Drive {
         if(details){
             log("distance at end: "+distance);
         }
+    }
+    private void initAprilTag() {
+
+        aprilTag = new AprilTagProcessor.Builder().build();
+
+        webcam1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        webcam2 = hardwareMap.get(WebcamName.class, "Webcam 2");
+        camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
+        CameraName switchableCamera = ClassFactory.getInstance()
+                .getCameraManager().nameForSwitchableCamera(webcam1, webcam2);
+
+        // Create the vision portal by using a builder.
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(switchableCamera)
+                .addProcessor(aprilTag)
+                .build();
+
+    }
+    public void setCamera(int camera) {
+        if (camera == 2) {
+                visionPortal.setActiveCamera(webcam2);
+        }else{
+            visionPortal.setActiveCamera(webcam1);
+        }
+    }
+
+    public void centerOnAprilTag(int id, double xOffset, double yOffset){
+        boolean seesId = false;
+        double maxVelocity = lastVelocity;
+        double forwardsDist = 0;
+        double rightDist = 0;
+        double angleOffset = 0; // left is positive
+        double distance = 0;
+        double startDistance;
+        double startDecelDist = 0;
+        List<AprilTagDetection> startDetections = aprilTag.getDetections();
+        for(AprilTagDetection detection : startDetections){
+            if(detection.id == id){
+                seesId = true;
+                forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                rightDist = detection.ftcPose.x*CMS_PER_INCH;
+                angleOffset = detection.ftcPose.yaw;
+                distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
+                startDistance = distance;
+                startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
+            }
+        }
+        if(seesId == false){
+            if(details){
+                log("did not detect apriltag");
+            }
+            return;
+        }
+        if(details){
+            log("Estimated start distance: "+distance);
+            log("Deceleration distance" + startDecelDist);
+            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+            log("Angle offset" + angleOffset);
+        }
+        List<AprilTagDetection> lastDetection = null;
+        while(startDecelDist<distance){
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if (currentDetections != lastDetection) {
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == id) {
+                        seesId = true;
+                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                        angleOffset = detection.ftcPose.yaw;
+                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                    }
+                }
+            }
+            lastDetection = currentDetections;
+            double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+            double driveHeading;
+            if(list[0] == 1){
+                driveHeading = getHeading()-list[1];
+            }else if(list[0] == 2){
+                driveHeading = getHeading()+list[1];
+            }else if(list[0] == 3){
+                driveHeading = adjustAngle(getHeading()-180)-list[1];
+            }else{
+                driveHeading = adjustAngle(getHeading()-180)+list[1];
+            }
+
+            double robotHeading = adjustAngle(getHeading()+angleOffset);
+            log("robot heading "+robotHeading);
+            log("list: "+list[0]+", "+list[1]);
+            log("drive heading "+driveHeading);
+            log("current heading"+getHeading());
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+        }
+        if(details){
+            log("ended cruise");
+            log("Estimated start distance: "+distance);
+            log("Deceleration distance" + startDecelDist);
+            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+            log("Angle offset" + angleOffset);
+        }
+        while(distance > 10){
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if(currentDetections!=lastDetection) {
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == id) {
+                        seesId = true;
+                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                        angleOffset = detection.ftcPose.yaw;
+                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                    }
+                }
+            }
+            lastDetection = currentDetections;
+            double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+            double driveHeading;
+            if(list[0] == 1){
+                driveHeading = getHeading()-list[1];
+            }else if(list[0] == 2){
+                driveHeading = getHeading()+list[1];
+            }else if(list[0] == 3){
+                driveHeading = adjustAngle(getHeading()-180)-list[1];
+            }else{
+                driveHeading = adjustAngle(getHeading()-180)+list[1];
+            }
+            double robotHeading = adjustAngle(getHeading()+angleOffset);
+            double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
+
+            log("robot heading "+robotHeading);
+            log("list: "+list[0]+", "+list[1]);
+            log("drive heading "+driveHeading);
+            log("current heading"+getHeading());
+            log("velocity "+velocity);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+        }
+        runMotors(0);
+        lastVelocity = 0;
+    }
+    public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
+        int quadrant; // the quad the goal point would be in if the current spot was the origin
+        if(rightDist<xOffset && forwardsDist > yOffset){
+            quadrant = 1;
+        }else if(rightDist > xOffset && forwardsDist > yOffset){
+            quadrant = 2;
+        }else if(rightDist > xOffset){
+            quadrant = 3;
+        }else{
+            quadrant = 4;
+        }
+        double angle = Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist));
+        double[] list = {quadrant, angle};
+        return list;
     }
 }
 
