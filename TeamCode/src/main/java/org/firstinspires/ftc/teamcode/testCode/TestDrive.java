@@ -38,17 +38,17 @@ public class TestDrive extends LinearOpMode {
             telemetry.update();
 
             if(gamepad.wasRightBumperPressed()){
-                drive.spinToHeading(180);
+                drive.setHeading(180);
                 drive.setCamera(2);
-                drive.moveCm(1000, 20, 180, 180, 1000);
-                drive.centerOnAprilTag(8, 40, 0);
+                //drive.moveCm(1000, 20, 180, 180, 1000);
+                drive.centerOnAprilTag(8, 40, 0, 180);
             }
             if(gamepad1.right_trigger >= .5){
                 drive.setHeading(260);
-            }
+            }/*
             if(gamepad.wasLeftBumperPressed()){
                 drive.findMaxVelocity();
-            }
+            }*/
 
             if(gamepad.wasOptionsPressed()){
                 if(gamepad1.dpad_up){

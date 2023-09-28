@@ -618,114 +618,135 @@ public class Drive {
         }
     }
 
-    public void centerOnAprilTag(int id, double xOffset, double yOffset){
+    public void centerOnAprilTag(int id, double xOffset, double yOffset, double heading){
+        //TODO: FIX THE CURVE AHHHHHH
         boolean seesId = false;
-        double maxVelocity = lastVelocity;
+        double maxVelocity;
+        if(lastVelocity<=MIN_END_VELOCITY){
+            maxVelocity = MIN_END_VELOCITY;
+        }else {
+            maxVelocity = lastVelocity;
+        }
         double forwardsDist = 0;
         double rightDist = 0;
-        double angleOffset = 0; // left is positive
         double distance = 0;
         double startDistance;
         double startDecelDist = 0;
+        double driveHeading = 0;
+        double robotHeading = 0;
         List<AprilTagDetection> startDetections = aprilTag.getDetections();
         for(AprilTagDetection detection : startDetections){
             if(detection.id == id){
                 seesId = true;
                 forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
                 rightDist = detection.ftcPose.x*CMS_PER_INCH;
-                angleOffset = detection.ftcPose.yaw;
                 distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
                 startDistance = distance;
                 startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
             }
-        }
+        } // TODO: do more tries
         if(seesId == false){
             if(details){
                 log("did not detect apriltag");
             }
+            runMotors(0);
             return;
         }
         if(details){
             log("Estimated start distance: "+distance);
             log("Deceleration distance" + startDecelDist);
             log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-            log("Angle offset" + angleOffset);
         }
         List<AprilTagDetection> lastDetection = null;
-        while(startDecelDist<distance){
+        while(startDecelDist<distance&&distance > 4){
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             if (currentDetections != lastDetection) {
+                boolean foundId= false;
                 for (AprilTagDetection detection : currentDetections) {
                     if (detection.id == id) {
                         seesId = true;
                         forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
                         rightDist = detection.ftcPose.x * CMS_PER_INCH;
-                        angleOffset = detection.ftcPose.yaw;
                         distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                        foundId = true;
+                        lastDetection = currentDetections;
+                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+
+                        if(rightDist<0 && forwardsDist >0){
+                            driveHeading = getHeading()+list[1];
+                        }else if(rightDist>0 && forwardsDist > 0){
+                            driveHeading = getHeading()-list[1];
+                        }else if(rightDist>0){
+                            driveHeading = adjustAngle(getHeading()-180)-list[1];
+                        }else{
+                            driveHeading = adjustAngle(getHeading()-180)+list[1];
+                        }
+                        log("robot heading "+robotHeading);
+                        log("list: "+list[0]+", "+list[1]);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                        robotHeading = heading;
+                        driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
                     }
                 }
+                if(!foundId){
+                    if(details){
+                        log("lost sight of apriltag");
+                    }
+                    moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
+                    return;
+                }
             }
-            lastDetection = currentDetections;
-            double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
-            double driveHeading;
-            if(list[0] == 1){
-                driveHeading = getHeading()-list[1];
-            }else if(list[0] == 2){
-                driveHeading = getHeading()+list[1];
-            }else if(list[0] == 3){
-                driveHeading = adjustAngle(getHeading()-180)-list[1];
-            }else{
-                driveHeading = adjustAngle(getHeading()-180)+list[1];
-            }
-
-            double robotHeading = adjustAngle(getHeading()+angleOffset);
-            log("robot heading "+robotHeading);
-            log("list: "+list[0]+", "+list[1]);
-            log("drive heading "+driveHeading);
-            log("current heading"+getHeading());
-            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
         }
         if(details){
             log("ended cruise");
             log("Estimated start distance: "+distance);
             log("Deceleration distance" + startDecelDist);
             log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-            log("Angle offset" + angleOffset);
         }
-        while(distance > 10){
+        while(distance > 4){
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             if(currentDetections!=lastDetection) {
+                boolean foundId = false;
                 for (AprilTagDetection detection : currentDetections) {
                     if (detection.id == id) {
                         seesId = true;
                         forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
                         rightDist = detection.ftcPose.x * CMS_PER_INCH;
-                        angleOffset = detection.ftcPose.yaw;
                         distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                        foundId = true;
+                        lastDetection = currentDetections;
+                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+                        if(rightDist<0 && forwardsDist >0){
+                            driveHeading = getHeading()+list[1];
+                        }else if(rightDist>0 && forwardsDist > 0){
+                            driveHeading = getHeading()-list[1];
+                        }else if(rightDist>0){
+                            driveHeading = adjustAngle(getHeading()-180)-list[1];
+                        }else{
+                            driveHeading = adjustAngle(getHeading()-180)+list[1];
+                        }
+                        log("robot heading "+robotHeading);
+                        log("list: "+list[0]+", "+list[1]);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                        robotHeading = heading;
+                        double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
+                        driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
                     }
                 }
+                if(!foundId){
+                    if(details){
+                        log("lost sight of apriltag");
+                        log("robot heading "+robotHeading);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                    }
+                    moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
+                    return;
+                }
             }
-            lastDetection = currentDetections;
-            double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
-            double driveHeading;
-            if(list[0] == 1){
-                driveHeading = getHeading()-list[1];
-            }else if(list[0] == 2){
-                driveHeading = getHeading()+list[1];
-            }else if(list[0] == 3){
-                driveHeading = adjustAngle(getHeading()-180)-list[1];
-            }else{
-                driveHeading = adjustAngle(getHeading()-180)+list[1];
-            }
-            double robotHeading = adjustAngle(getHeading()+angleOffset);
-            double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
 
-            log("robot heading "+robotHeading);
-            log("list: "+list[0]+", "+list[1]);
-            log("drive heading "+driveHeading);
-            log("current heading"+getHeading());
-            log("velocity "+velocity);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
         }
         runMotors(0);
         lastVelocity = 0;
@@ -741,7 +762,7 @@ public class Drive {
         }else{
             quadrant = 4;
         }
-        double angle = Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist));
+        double angle = Math.toDegrees(Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist)));
         double[] list = {quadrant, angle};
         return list;
     }
