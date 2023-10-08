@@ -78,7 +78,6 @@ public class Drive {
         teamUtil.log("Constructing Drive");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         telemetry = teamUtil.theOpMode.telemetry;
-        colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
     }
 
     public static void log(String logString) {
@@ -87,10 +86,10 @@ public class Drive {
 
     public void initialize() {
         teamUtil.log("Initializing Drive");
-        // Initialize the hardware variables. Note that the strings used here as parameters
+        //Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        /*
+
         fl = hardwareMap.get(DcMotorEx.class, "flm");
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
@@ -101,8 +100,10 @@ public class Drive {
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
         fr.setDirection(DcMotorSimple.Direction.REVERSE);
-        initAprilTag();
+
         imu = hardwareMap.get(BNO055IMU.class, "imu");
+        colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
+
         //These are the parameters that the imu uses in the code to name and keep track of the data
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -111,7 +112,8 @@ public class Drive {
         setMotorsBrake();
         teamUtil.log("Initializing Drive - FINISHED");
 
-         */
+
+        initAprilTag();
     }
 
     public void runMotors(double velocity) {
@@ -615,11 +617,12 @@ public class Drive {
                 .setCamera(switchableCamera)
                 .addProcessor(aprilTag)
                 .build();
-
+        teamUtil.pause(2000);
     }
     public void setCamera(int camera) {
+
         if (camera == 2) {
-                visionPortal.setActiveCamera(webcam2);
+            visionPortal.setActiveCamera(webcam2);
         }else if (camera == 1){
             visionPortal.setActiveCamera(webcam1);
         }else{
