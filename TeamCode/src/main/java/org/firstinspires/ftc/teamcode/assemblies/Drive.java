@@ -52,6 +52,8 @@ public class Drive {
     public CameraName camera2;
     public WebcamName webcam1;
     public WebcamName webcam2;
+    public CameraName camera3;
+    public WebcamName webcam3;
 
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
@@ -88,6 +90,7 @@ public class Drive {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
+        /*
         fl = hardwareMap.get(DcMotorEx.class, "flm");
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
@@ -107,6 +110,8 @@ public class Drive {
         imu.initialize(parameters);
         setMotorsBrake();
         teamUtil.log("Initializing Drive - FINISHED");
+
+         */
     }
 
     public void runMotors(double velocity) {
@@ -600,8 +605,10 @@ public class Drive {
         webcam2 = hardwareMap.get(WebcamName.class, "Webcam 2");
         camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
         camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
+        webcam3 = hardwareMap.get(WebcamName.class, "Webcam 3");
+        camera3 = hardwareMap.get(WebcamName.class, "Webcam 3");
         CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(webcam1, webcam2);
+                .getCameraManager().nameForSwitchableCamera(webcam1, webcam2, webcam3);
 
         // Create the vision portal by using a builder.
         visionPortal = new VisionPortal.Builder()
@@ -613,8 +620,10 @@ public class Drive {
     public void setCamera(int camera) {
         if (camera == 2) {
                 visionPortal.setActiveCamera(webcam2);
-        }else{
+        }else if (camera == 1){
             visionPortal.setActiveCamera(webcam1);
+        }else{
+            visionPortal.setActiveCamera(webcam3);
         }
     }
 
