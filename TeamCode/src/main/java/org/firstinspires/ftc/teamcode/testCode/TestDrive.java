@@ -21,7 +21,7 @@ public class TestDrive extends LinearOpMode {
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         drive = new Drive();
-        drive.initialize();
+        drive.initalize();
         drive.setCamera(2);
         double velocity = drive.MAX_VELOCITY;
         waitForStart();

@@ -19,13 +19,25 @@ public class Output {
 
     public static int PulleyTelescopeExtended = 1000; //tentative value
 
-    public static double GrabberRotatorStart = 0; //tentative value
+    public static double GrabberRotatorHorizontal = 0.29;
 
-    public static double GrabberRotatorFlipped= 1.0; //tentative value
+    public static double GrabberRotatorVertical= 0.345; //tentative value
 
-    public static double GrabberOpen = 1.0; //tentative value
+    public static double StraferRotatorDown = 0.155;
 
-    public static double GrabberClosed = 0; //tentative value
+    public static double StraferRotatorScoring = 0.85;
+
+    public static double StraferRight = 0.25;
+
+    public static double StraferLoad = 0.53;
+
+    public static double StraferLeft = 0.86;
+
+
+    public static double GrabberOpen = 0.55;
+
+    public static double GrabberClosed = 0.73;
+
 
 
     private DcMotorEx liftLeft;
@@ -52,9 +64,9 @@ public class Output {
 
     }
 
-    public void initialize(){
+    public void initalize(){
         teamUtil.log("Initializing Intake");
-
+        /*
         liftLeft = hardwareMap.get(DcMotorEx.class, "lift_left");
         liftRight = hardwareMap.get(DcMotorEx.class, "lift_right");
         liftLeft.setDirection(DcMotorSimple.Direction.REVERSE); //tentative (true direction unknown)
@@ -64,9 +76,11 @@ public class Output {
         grabberStrafer = hardwareMap.get(Servo.class,"grabber_strafer");
         flipper = hardwareMap.get(Servo.class,"flipper");
 
+         */
+
     }
 
-    public void resetLift(){ //reset and initialize arms method
+    public void calibrate(){ //reset and initialize arms method
 
     }
 
@@ -83,6 +97,9 @@ public class Output {
 
    }
 
+   public void goToLevel(int level){
+
+   }
 
 }
 

@@ -84,7 +84,7 @@ public class Drive {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
     }
 
-    public void initialize() {
+    public void initalize() {
         teamUtil.log("Initializing Drive");
         //Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
@@ -94,7 +94,7 @@ public class Drive {
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
-        ult = hardwareMap.analogInput.get("ult");
+        //ult = hardwareMap.analogInput.get("ult");
 
         // colorSensor.calibrate();
         fl.setDirection(DcMotor.Direction.REVERSE);
@@ -102,7 +102,7 @@ public class Drive {
         fr.setDirection(DcMotorSimple.Direction.REVERSE);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
+        //colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
 
         //These are the parameters that the imu uses in the code to name and keep track of the data
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -110,10 +110,11 @@ public class Drive {
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         imu.initialize(parameters);
         setMotorsBrake();
+        //initAprilTag();
         teamUtil.log("Initializing Drive - FINISHED");
 
 
-        initAprilTag();
+
     }
 
     public void runMotors(double velocity) {

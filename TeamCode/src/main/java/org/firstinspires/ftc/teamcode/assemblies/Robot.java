@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
+import org.firstinspires.ftc.teamcode.assemblies.OLD.FourWheelDrive;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Robot {
@@ -13,6 +14,10 @@ public class Robot {
     HardwareMap hardwareMap;
     Telemetry telemetry;
     public Drive drive;
+    public Intake intake;
+
+    public Output output;
+
 
     public static void log(String logString) {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
@@ -20,7 +25,28 @@ public class Robot {
     }
 
     public Robot(){
+        telemetry = teamUtil.theOpMode.telemetry;
+        hardwareMap = teamUtil.theOpMode.hardwareMap;
+        drive = new Drive();
+        output = new Output();
+        intake = new Intake();
 
+    }
+
+    public void initialize(){
+        drive.initalize();
+        intake.initalize();
+        output.initalize();
+
+
+    }
+
+    public void calibrate(){
+        //TODO
+    }
+
+    public void auto(){
+        //TODO
 
     }
 
