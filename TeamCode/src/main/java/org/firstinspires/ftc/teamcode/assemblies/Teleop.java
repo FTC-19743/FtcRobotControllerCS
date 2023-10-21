@@ -35,6 +35,7 @@ public class Teleop extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()){
             driverGamepad.loop();
+            armsGamepad.loop();
 
 
 
@@ -67,6 +68,7 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasRightPressed()){
                 robot.output.straferSubtractManualIncrement(0.01);
             }
+            /*
 
             //declaration of power and denominator variables for math
             double flPower;
@@ -83,7 +85,7 @@ public class Teleop extends LinearOpMode {
                 rx=0;
             }
 
-             */
+             /*
             //Orientation anglesCurrent = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
             double botHeading = -Math.toRadians((robot.drive.getHeading()-180)); //
             //double botHeading = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle; //removed negative
@@ -117,6 +119,9 @@ public class Teleop extends LinearOpMode {
             robot.drive.bl.setPower(-blPower*powerFactor);
             robot.drive.fr.setPower(-frPower*powerFactor);
             robot.drive.br.setPower(-brPower*powerFactor);
+
+             */
+
 
             robot.outputTelemetry();
             telemetry.update();

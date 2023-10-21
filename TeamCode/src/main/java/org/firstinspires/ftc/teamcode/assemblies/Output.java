@@ -82,13 +82,13 @@ public class Output {
         //elevLeft.setDirection(DcMotorSimple.Direction.REVERSE); //tentative (true direction unknown)
         lift = hardwareMap.get(DcMotorEx.class, "lift");
 
-        /*
-        grabber = hardwareMap.get(Servo.class,"direct_output_grabber");
-        grabberRotater = hardwareMap.get(Servo.class,"grabber_rotator");
-        grabberStrafer = hardwareMap.get(Servo.class,"grabber_strafer");
-        flipper = hardwareMap.get(Servo.class,"flipper");
 
-         */
+        grabber = hardwareMap.get(Servo.class,"grabber");
+        grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
+        grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
+        flipper = hardwareMap.get(Servo.class,"flipper");
+        grabberStrafer.setPosition(0.5);
+        grabberRotater.setPosition(0.5);
 
 
 
@@ -132,11 +132,11 @@ public class Output {
     }
 
     public void grabberRotatorAddManualIncrement(double increment){
-        grabberStrafer.setPosition(grabberRotater.getPosition()+increment);
+        grabberRotater.setPosition(grabberRotater.getPosition()+increment);
     }
 
     public void grabberRotatorSubtractManualIncrement(double increment){
-        grabberStrafer.setPosition(grabberRotater.getPosition()-increment);
+        grabberRotater.setPosition(grabberRotater.getPosition()-increment);
     }
 
     public void manualLiftChange(double velocity){
