@@ -13,21 +13,31 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 public class Intake {
     HardwareMap hardwareMap;
     Telemetry telemetry;
-    public CRServo drawbridgeSpinner;
-    public Servo drawbridge;
+    public Servo lKnocker;
+    public Servo rKnocker;
     public CRServo kicker;
     public CRServo sweeper;
-    public static double drawbridgeUp = 1.0; //tentative value
-    public static double drawbridgeDown = 0.0; //tentative value
     public static double[] pixelStackLevels = {.1,.2,.3,.4};
-    public double kickerDirection = -1; //tentative value
-    public double sweeperDirection = -1; //tentative value
-    public double drawbridgeSpinnerDirection = -1; //tentative value
+    public double kickerDirection = 1;
+    public double sweeperDirection = -1;
+
+    public double leftKnockerStore = 0.76;
+
+    public double leftKnockerCollect = 0.17;
+
+    public double leftKnockerVertical = 0.42;
+
+    public double rightKnockerStore = 0.06;
+
+    public double rightKnockerCollect = 0.64;
+
+    public double rightKnockerVertical = 0.38;
+
 
     public Intake(){
         teamUtil.log("Constructing Intake");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
-        Telemetry telemetry = teamUtil.theOpMode.telemetry;
+        telemetry = teamUtil.theOpMode.telemetry;
     }
 
     public static void log(String logString) {
@@ -36,37 +46,31 @@ public class Intake {
 
     public void initalize(){
         teamUtil.log("Initializing Arm");
-        drawbridgeSpinner = hardwareMap.get(CRServo.class,"drawbridge_spinner");
         sweeper = hardwareMap.get(CRServo.class,"sweeper");
         kicker = hardwareMap.get(CRServo.class,"kicker");
-        drawbridge = hardwareMap.get(Servo.class,"drawbridge");
-    }
-
-    public void lowerDrawbridge(){
-        drawbridge.setPosition(drawbridgeDown);
-    }
-
-    public void raiseDrawbridge(){
-        drawbridge.setPosition(drawbridgeUp);
-    }
-
-    public void drawbridgePixelStack(int level){
-        if(level < 2 || level > 5){
-            lowerDrawbridge();
-        }else{
-            drawbridge.setPosition(pixelStackLevels[level+1]);
-        }
+        rKnocker = hardwareMap.get(Servo.class,"rKnocker");
+        lKnocker = hardwareMap.get(Servo.class,"lKnocker");
     }
 
     public void startIntake(){
-        drawbridgeSpinner.setPower(1*drawbridgeSpinnerDirection);
         sweeper.setPower(1*sweeperDirection);
         kicker.setPower(1*kickerDirection);
     }
 
+    public void reverseIntake(){
+        sweeper.setPower(-1*sweeperDirection);
+        kicker.setPower(-1*kickerDirection);
+    }
+
     public void stopIntake(){
-        drawbridgeSpinner.setPower(0);
         sweeper.setPower(0);
         kicker.setPower(0);
+
+
+    }
+    public void outputTelemetry() {
+
+
+
     }
 }

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -38,11 +39,15 @@ public class Output {
 
     public static double GrabberClosed = 0.73;
 
+     // TODO extension for lift makes encoder go negative
 
 
-    private DcMotorEx liftLeft;
 
-    private DcMotorEx liftRight;
+    private DcMotorEx elevLeft;
+
+    private DcMotorEx elevRight;
+
+    private DcMotorEx lift;
 
     public Servo grabber;
 
@@ -60,17 +65,24 @@ public class Output {
     public Output(){
         teamUtil.log("Constructing Output");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
-        Telemetry telemetry = teamUtil.theOpMode.telemetry;
+        telemetry = teamUtil.theOpMode.telemetry;
 
     }
 
     public void initalize(){
         teamUtil.log("Initializing Intake");
-        /*
-        liftLeft = hardwareMap.get(DcMotorEx.class, "lift_left");
-        liftRight = hardwareMap.get(DcMotorEx.class, "lift_right");
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE); //tentative (true direction unknown)
 
+
+
+        elevLeft = hardwareMap.get(DcMotorEx.class, "elev_left");
+        elevRight = hardwareMap.get(DcMotorEx.class, "elev_right");
+        elevRight.setDirection(DcMotor.Direction.REVERSE);
+        elevLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        //elevLeft.setDirection(DcMotorSimple.Direction.REVERSE); //tentative (true direction unknown)
+        lift = hardwareMap.get(DcMotorEx.class, "lift");
+
+        /*
         grabber = hardwareMap.get(Servo.class,"direct_output_grabber");
         grabberRotater = hardwareMap.get(Servo.class,"grabber_rotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabber_strafer");
@@ -78,10 +90,14 @@ public class Output {
 
          */
 
+
+
+
     }
 
     public void calibrate(){ //reset and initialize arms method
-
+        elevRight.setVelocity(-100);
+        elevLeft.setVelocity(-100);
     }
 
     public void dropPixels(){
@@ -100,6 +116,44 @@ public class Output {
    public void goToLevel(int level){
 
    }
+
+   public void elevManualIncrement(int increment){
+        elevLeft.setTargetPosition(elevLeft.getCurrentPosition()+increment);
+        elevRight.setTargetPosition(elevRight.getCurrentPosition()+increment);
+
+   }
+
+   public void straferAddManualIncrement(double increment){
+        grabberStrafer.setPosition(grabberStrafer.getPosition()+increment);
+   }
+
+    public void straferSubtractManualIncrement(double increment){
+        grabberStrafer.setPosition(grabberStrafer.getPosition()-increment);
+    }
+
+    public void grabberRotatorAddManualIncrement(double increment){
+        grabberStrafer.setPosition(grabberRotater.getPosition()+increment);
+    }
+
+    public void grabberRotatorSubtractManualIncrement(double increment){
+        grabberStrafer.setPosition(grabberRotater.getPosition()-increment);
+    }
+
+    public void manualLiftChange(double velocity){
+       lift.setVelocity(velocity);
+    }
+
+
+
+    public void outputTelemetry() {
+        telemetry.addData("Output  ", "elevLeft: %d, elevRight: %d, lift: %d",
+                elevLeft.getCurrentPosition(), elevRight.getCurrentPosition(), lift.getCurrentPosition());
+
+
+    }
+
+
+
 
 }
 

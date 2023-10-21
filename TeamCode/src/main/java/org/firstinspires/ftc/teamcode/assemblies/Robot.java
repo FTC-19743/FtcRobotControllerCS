@@ -41,6 +41,11 @@ public class Robot {
 
     }
 
+    public void outputTelemetry(){
+        drive.outputTelemetry();
+        output.outputTelemetry();
+    }
+
     public void calibrate(){
         //TODO
     }

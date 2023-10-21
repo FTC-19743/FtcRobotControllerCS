@@ -5,27 +5,34 @@
     <Webcam name="Webcam 3" serialNumber="------" /> //tentative
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
-        <!--<LynxModule name="Expansion Hub 2" port="2">
-            <goBILDA5202SeriesMotor name="lift_left" port="0" />
-            <goBILDA5202SeriesMotor name="lift_right" port="1" />
-            <Servo name="grabber" port="3" />
-            <Servo name="grabberRotator" port="4" />
-            <Servo name="grabberStrafer" port="5" />
-            <Servo name="flipper" port="5" />-->
+        <LynxModule name="Expansion Hub 2" port="2">
+            <goBILDA5202SeriesMotor name="elev_right" port="1" />
+            <goBILDA5202SeriesMotor name="elev_left" port="2" />
+            <goBILDA5202SeriesMotor name="lift" port="3" />
+            <ContinuousRotationServo name="sweeper" port="2" />
+            <ContinuousRotationServo name="kicker" port="3" />
+            <Servo name="rKnocker" port="4" />
+            <Servo name="lKnocker" port="5" />
 
 
 
-        <!--</LynxModule>-->
+
+        </LynxModule>
         <LynxModule name="Control Hub" port="173">
             <goBILDA5202SeriesMotor name="flm" port="0" />
-            <goBILDA5202SeriesMotor name="frm" port="1" />
-            <goBILDA5202SeriesMotor name="blm" port="2" />
+            <goBILDA5202SeriesMotor name="blm" port="1" />
+            <goBILDA5202SeriesMotor name="frm" port="2" />
             <goBILDA5202SeriesMotor name="brm" port="3" />
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
-            <ContinuousRotationServo name="drawbridge_spinner" port="0" />
-            <Servo name="drawbridge" port="1" />
-            <ContinuousRotationServo name="kicker" port="2" />
-            <ContinuousRotationServo name="sweeper" port="3" />
+
+
+            <Servo name="grabber" port="3" />
+            <Servo name="grabberRotator" port="2" />
+            <Servo name="grabberStrafer" port="1" />
+            <Servo name="flipper" port="0" />
+
+
+
 
 
         </LynxModule>

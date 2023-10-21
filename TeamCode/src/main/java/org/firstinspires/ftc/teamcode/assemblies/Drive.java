@@ -99,7 +99,7 @@ public class Drive {
         // colorSensor.calibrate();
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
-        fr.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         //colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
@@ -779,5 +779,20 @@ public class Drive {
         double[] list = {quadrant, angle};
         return list;
     }
+    public void outputTelemetry() {
+        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(),  getHeading());
+        /*
+        telemetry.addData("Is On Line", "%b", colorSensor.isOnTape());
+        telemetry.addData("Red Value ", colorSensor.redValue());
+        telemetry.addData("Blue Value ", colorSensor.blueValue());
+        telemetry.addLine("Target Position Tolerance" + fl.getTargetPositionTolerance());
+
+         */
+
+    }
+
+
+
 }
 
