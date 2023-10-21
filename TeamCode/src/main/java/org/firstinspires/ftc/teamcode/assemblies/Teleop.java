@@ -68,6 +68,13 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasRightPressed()){
                 robot.output.straferSubtractManualIncrement(0.01);
             }
+
+            if(armsGamepad.wasBPressed()){
+                robot.output.dropPixels();
+            }
+            if(armsGamepad.wasXPressed()){
+                robot.output.dropPixels();
+            }
             /*
 
             //declaration of power and denominator variables for math

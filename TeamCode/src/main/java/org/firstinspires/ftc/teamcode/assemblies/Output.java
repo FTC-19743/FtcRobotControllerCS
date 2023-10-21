@@ -127,6 +127,8 @@ public class Output {
         grabberStrafer.setPosition(grabberStrafer.getPosition()+increment);
    }
 
+
+
     public void straferSubtractManualIncrement(double increment){
         grabberStrafer.setPosition(grabberStrafer.getPosition()-increment);
     }
