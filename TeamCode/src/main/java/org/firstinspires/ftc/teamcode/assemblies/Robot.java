@@ -47,7 +47,7 @@ public class Robot {
     }
 
     public void calibrate(){
-        //TODO
+        output.calibrate();
     }
 
     public void auto(){

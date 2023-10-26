@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.assemblies;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -35,9 +34,14 @@ public class Output {
     public static double StraferLeft = 0.86;
 
 
+
     public static double GrabberOpen = 0.55;
 
     public static double GrabberClosed = 0.73;
+    public static double liftArmUp = 0.5; //tenative value
+    public static double liftArmStowed = 0.0; // tenative value
+    public static double liftSpindleVelocity = 1500; // tenative value
+    public static int StallBuffer = 225;
 
      // TODO extension for lift makes encoder go negative
 
@@ -47,8 +51,7 @@ public class Output {
 
     private DcMotorEx elevRight;
 
-    private DcMotorEx lift;
-
+    private DcMotorEx liftSpindle;
     public Servo grabber;
 
     public Servo grabberRotater;
@@ -56,7 +59,7 @@ public class Output {
     public Servo grabberStrafer;
 
     public Servo flipper;
-
+    public Servo liftArm;
 
     Telemetry telemetry;
     HardwareMap hardwareMap;
@@ -74,30 +77,52 @@ public class Output {
 
 
 
-        elevLeft = hardwareMap.get(DcMotorEx.class, "elev_left");
-        elevRight = hardwareMap.get(DcMotorEx.class, "elev_right");
+        elevLeft = hardwareMap.get(DcMotorEx.class, "elevLeft");
+        elevRight = hardwareMap.get(DcMotorEx.class, "elevRight");
         elevRight.setDirection(DcMotor.Direction.REVERSE);
         elevLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        //elevLeft.setDirection(DcMotorSimple.Direction.REVERSE); //tentative (true direction unknown)
-        lift = hardwareMap.get(DcMotorEx.class, "lift");
+        liftSpindle = hardwareMap.get(DcMotorEx.class, "liftSpindle");
 
-
+        liftArm = hardwareMap.get(Servo.class,"liftArm");
         grabber = hardwareMap.get(Servo.class,"grabber");
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
         flipper = hardwareMap.get(Servo.class,"flipper");
-        grabberStrafer.setPosition(0.5);
-        grabberRotater.setPosition(0.5);
-
-
-
-
+//        grabberStrafer.setPosition(0.5);
+//        grabberRotater.setPosition(0.5);
     }
 
-    public void calibrate(){ //reset and initialize arms method
-        elevRight.setVelocity(-100);
-        elevLeft.setVelocity(-100);
+    public void calibrate(){ //reset and initialize arms
+        log("Output Calibrate called");
+        elevRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elevLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        log("Calibrate: Running down slowly");
+        elevRight.setPower(-.1);
+        elevLeft.setPower(-.1);
+        int lastLeftPosition = elevLeft.getCurrentPosition();
+        int lastRightPosition = elevRight.getCurrentPosition();
+        teamUtil.pause(250);
+        while(elevLeft.getCurrentPosition()!=lastLeftPosition || elevRight.getCurrentPosition()!=lastRightPosition){
+            lastLeftPosition = elevLeft.getCurrentPosition();
+            lastRightPosition = elevRight.getCurrentPosition();
+            log("Calibrate: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
+
+            teamUtil.pause(50);
+        }
+        elevRight.setPower(0);
+        elevLeft.setPower(0);
+        log("Calibrate: Stopped Motors");
+        elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevRight.setTargetPosition(elevRight.getCurrentPosition());
+        elevLeft.setTargetPosition(elevLeft.getCurrentPosition());
+        log("Calibrate Final: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
+        elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevRight.setVelocity(300); // TODO: Adjust this number to something appropriate
+        elevLeft.setVelocity(300);
+        log("Output Calibrate finished");
     }
 
     public void dropPixels(){
@@ -117,39 +142,30 @@ public class Output {
 
    }
 
-   public void elevManualIncrement(int increment){
-        elevLeft.setTargetPosition(elevLeft.getCurrentPosition()+increment);
-        elevRight.setTargetPosition(elevRight.getCurrentPosition()+increment);
+   public void elevManual(double increment){
+        elevLeft.setTargetPosition((int)(elevLeft.getCurrentPosition()+increment));
+        elevRight.setTargetPosition((int)(elevRight.getCurrentPosition()+increment));
 
    }
 
-   public void straferAddManualIncrement(double increment){
+   public void straferManual(double increment){
         grabberStrafer.setPosition(grabberStrafer.getPosition()+increment);
    }
 
 
-
-    public void straferSubtractManualIncrement(double increment){
-        grabberStrafer.setPosition(grabberStrafer.getPosition()-increment);
-    }
-
-    public void grabberRotatorAddManualIncrement(double increment){
+    public void grabberRotatorManual(double increment){
         grabberRotater.setPosition(grabberRotater.getPosition()+increment);
     }
 
-    public void grabberRotatorSubtractManualIncrement(double increment){
-        grabberRotater.setPosition(grabberRotater.getPosition()-increment);
-    }
-
-    public void manualLiftChange(double velocity){
-       lift.setVelocity(velocity);
+    public void moveLift(){
+       liftSpindle.setVelocity(liftSpindleVelocity);
     }
 
 
 
     public void outputTelemetry() {
         telemetry.addData("Output  ", "elevLeft: %d, elevRight: %d, lift: %d",
-                elevLeft.getCurrentPosition(), elevRight.getCurrentPosition(), lift.getCurrentPosition());
+                elevLeft.getCurrentPosition(), elevRight.getCurrentPosition(), liftSpindle.getCurrentPosition());
 
 
     }

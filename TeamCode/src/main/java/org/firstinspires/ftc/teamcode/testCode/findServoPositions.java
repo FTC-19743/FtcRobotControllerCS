@@ -13,18 +13,33 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 public class findServoPositions extends LinearOpMode {
     public static final double MAJOR_INCREMENT = 0.05;
     public static final double MINOR_INCREMENT = 0.01;
+    public static final double MINOR_MINOR_INCREMENT = 0.001;
     public static double INITIAL_POS = .5;
     public double currentPosition = INITIAL_POS;
     TeamGamepad gamepad;
     private Servo servo;
+    private int port = 0;
+    private boolean ch = true;
 
+    private void updateServo()
+    {
+        String name = "Servo";
+        if (ch) {
+            name = name+"CH";
+        } else {
+            name = name+"EH";
+        }
+        name = name + port;
+        servo = hardwareMap.servo.get(name);
+        servo.setPosition(INITIAL_POS);
+
+    }
 
     public void runOpMode() {
-        servo = hardwareMap.servo.get("servo");
-        servo.setPosition(INITIAL_POS);
         teamUtil.init(this);
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
+        updateServo();
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
@@ -35,7 +50,6 @@ public class findServoPositions extends LinearOpMode {
             if (gamepad.wasDownPressed() && (currentPosition > 0)) {
                 currentPosition = currentPosition - MAJOR_INCREMENT;
                 servo.setPosition(currentPosition);
-
             }
             if (gamepad.wasLeftPressed() && (currentPosition < 1)) {
                 currentPosition = currentPosition + MINOR_INCREMENT;
@@ -44,18 +58,36 @@ public class findServoPositions extends LinearOpMode {
             if (gamepad.wasRightPressed() && (currentPosition > 0)) {
                 currentPosition = currentPosition - MINOR_INCREMENT;
                 servo.setPosition(currentPosition);
-
+            }
+            if (gamepad.wasRightBumperPressed() && (currentPosition < 1)) {
+                currentPosition = currentPosition + MINOR_MINOR_INCREMENT;
+                servo.setPosition(currentPosition);
+            }
+            if (gamepad.wasLeftBumperPressed() && (currentPosition > 0)) {
+                currentPosition = currentPosition - MINOR_MINOR_INCREMENT;
+                servo.setPosition(currentPosition);
             }
             if (gamepad.wasXPressed() ){
-                servo.setPosition(0.38);
+                ch = !ch;
+                updateServo();
             }
             if (gamepad.wasYPressed() ){
-                servo.setPosition(0.543);
+                port++;
+                if (port == 6) {
+                    port = 0;
+                }
+                updateServo();
             }
-            if (gamepad.wasBPressed() ){
-                servo.setPosition(.71);
+            if (gamepad.wasAPressed() ){
+                port--;
+                if (port == -1) {
+                    port = 5;
+                }
+                updateServo();
             }
-            telemetry.addData("position: ", servo.getPosition());
+            telemetry.addLine("Hub: " + (ch ? "Control" : "Expansion"));
+            telemetry.addData("Port: ", port);
+            telemetry.addData("Position: ", servo.getPosition());
             telemetry.update();
         }
     }

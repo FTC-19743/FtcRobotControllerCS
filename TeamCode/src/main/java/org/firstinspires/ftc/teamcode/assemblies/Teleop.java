@@ -31,12 +31,13 @@ public class Teleop extends LinearOpMode {
         telemetry.addLine("Ready to start");
         telemetry.update();
         double powerFactor = 1;
+        double manualSpeedElevator = 1;
+        double manualSpeedStrafer = 0.01;
 
         waitForStart();
         while (opModeIsActive()){
             driverGamepad.loop();
             armsGamepad.loop();
-
 
 
             if(gamepad1.a){
@@ -51,29 +52,23 @@ public class Teleop extends LinearOpMode {
 
             }
 
-            robot.output.manualLiftChange(gamepad2.left_stick_y*1000);
-
-            if(armsGamepad.wasUpPressed()){
-                robot.output.grabberRotatorAddManualIncrement(0.01);
+            if(gamepad1.left_bumper&&gamepad1.right_bumper){
+                robot.output.moveLift();
             }
 
-            if(armsGamepad.wasDownPressed()){
-                robot.output.grabberRotatorSubtractManualIncrement(0.01);
+            if(Math.abs(gamepad2.left_stick_y) > .10){
+                robot.output.elevManual(-(gamepad2.left_stick_y)*manualSpeedElevator);
             }
 
-            if(armsGamepad.wasLeftPressed()){
-                robot.output.straferAddManualIncrement(0.01);
-            }
-
-            if(armsGamepad.wasRightPressed()){
-                robot.output.straferSubtractManualIncrement(0.01);
+            if(Math.abs(gamepad2.left_stick_x) > .10){
+                robot.output.elevManual(-(gamepad2.left_stick_x)*manualSpeedStrafer);
             }
 
             if(armsGamepad.wasBPressed()){
                 robot.output.dropPixels();
             }
             if(armsGamepad.wasXPressed()){
-                robot.output.dropPixels();
+                robot.output.grabPixels();
             }
             /*
 
