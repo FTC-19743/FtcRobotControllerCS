@@ -31,99 +31,60 @@ public class Teleop extends LinearOpMode {
         telemetry.addLine("Ready to start");
         telemetry.update();
         double powerFactor = 1;
-        double manualSpeedElevator = 1;
+        double manualSpeedElevator = 100;
         double manualSpeedStrafer = 0.01;
 
         waitForStart();
+
+
         while (opModeIsActive()){
             driverGamepad.loop();
             armsGamepad.loop();
 
+            ////////// Drive
+            robot.drive.universalDriveJoystick(
+                    driverGamepad.gamepad.left_stick_x,
+                    driverGamepad.gamepad.left_stick_y,
+                    driverGamepad.gamepad.right_stick_x,
+                    driverGamepad.gamepad.right_trigger>.5,
+                    robot.drive.getHeading());
 
+            ////////// Intake
             if(gamepad1.a){
                 robot.intake.startIntake();
             }
-
             if(gamepad1.x){
                 robot.intake.reverseIntake();
             }
             if(gamepad1.b){
                 robot.intake.stopIntake();
-
             }
 
+            ////////// Lift
             if(gamepad1.left_bumper&&gamepad1.right_bumper){
                 robot.output.moveLift();
             }
+            // TODO: Control for Lift Arm
 
-            if(Math.abs(gamepad2.left_stick_y) > .10){
-                robot.output.elevManual(-(gamepad2.left_stick_y)*manualSpeedElevator);
+            ////////// Output
+            if(armsGamepad.wasDownPressed()){
+                robot.output.goToLoadNoWait();
             }
+            // TODO: Need a grabAndDeployNoWait method here to grab the pixels and get the output system ready to place
 
             if(Math.abs(gamepad2.left_stick_x) > .10){
-                robot.output.elevManual(-(gamepad2.left_stick_x)*manualSpeedStrafer);
+                robot.output.straferManual(-(gamepad2.left_stick_x)*manualSpeedStrafer);
             }
-
             if(armsGamepad.wasBPressed()){
                 robot.output.dropPixels();
             }
             if(armsGamepad.wasXPressed()){
                 robot.output.grabPixels();
             }
-            /*
 
-            //declaration of power and denominator variables for math
-            double flPower;
-            double frPower;
-            double blPower;
-            double brPower;
-            double denominator;
-
-            double y = -gamepad1.left_stick_y; // Remember, this is reversed!
-            double x = gamepad1.left_stick_x*1.1 ; // Counteract imperfect strafing
-            double rx = -gamepad1.right_stick_x;
-            /*
-            if(Math.abs(rx)<0.15){
-                rx=0;
+            if(Math.abs(gamepad2.left_stick_y) > .10){
+                robot.output.elevManual(-(gamepad2.left_stick_y)*manualSpeedElevator);
             }
-
-             /*
-            //Orientation anglesCurrent = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
-            double botHeading = -Math.toRadians((robot.drive.getHeading()-180)); //
-            //double botHeading = -imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle; //removed negative
-            telemetry.addLine("botheading: " + Math.toDegrees(botHeading));
-            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
-            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
-            //telemetry.addLine("current cup level "+ String.valueOf(cupLevel));
-
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio, but only when
-            // at least one is out of the range [-1, 1]
-
-
-
-
-
-            //working field centric
-            denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-
-            flPower = (rotY + rotX + rx) / denominator;
-            blPower = (rotY - rotX + rx) / denominator;
-            frPower = (rotY - rotX - rx) / denominator;
-            brPower = (rotY + rotX - rx) / denominator;
-
-
-
-
-
-
-            robot.drive.fl.setPower(-flPower*powerFactor);
-            robot.drive.bl.setPower(-blPower*powerFactor);
-            robot.drive.fr.setPower(-frPower*powerFactor);
-            robot.drive.br.setPower(-brPower*powerFactor);
-
-             */
-
 
             robot.outputTelemetry();
             telemetry.update();

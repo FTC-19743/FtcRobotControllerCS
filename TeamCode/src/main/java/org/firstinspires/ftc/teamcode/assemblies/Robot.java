@@ -38,7 +38,6 @@ public class Robot {
         intake.initalize();
         output.initalize();
 
-
     }
 
     public void outputTelemetry(){
@@ -48,6 +47,7 @@ public class Robot {
 
     public void calibrate(){
         output.calibrate();
+        output.goToLoad(); // ready to load
     }
 
     public void auto(){

@@ -40,6 +40,8 @@ public class Drive {
 
     public BNO055IMU imu; //This variable is the imu
     public static double HEADING_OFFSET; // offset between IMU heading and field
+    public boolean holdingHeading = false;
+    public double heldHeading = 0;
 
     public DcMotorEx fl = null;
     public DcMotorEx fr = null;
@@ -778,6 +780,93 @@ public class Drive {
         double angle = Math.toDegrees(Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist)));
         double[] list = {quadrant, angle};
         return list;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Drive robot based on two joystick values
+    // Implements a deadband where joystick position will be ignored (translation and rotation)
+    // Uses a linear scale that starts at the edge of the dead band
+    // Attempts to hold the last heading that was commanded via a turn
+    public void driveJoyStick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast) {
+        boolean details = true;
+
+        float DEADBAND = 0.1f;
+        float SLOPE = 1 / (1-DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
+
+        float POWERFACTOR = 1; // MAKE LESS THAN 0 to cap upperlimit of power
+        float leftX ;
+        float leftY ;
+        float rotationAdjustment;
+
+        float scaleAmount = isFast ? 1f : 0.5f; // full power is "fast", half power is "slow"
+
+        float frontLeft, frontRight, backRight, backLeft;
+
+        // Ensure nothing happens if we are inside the deadband
+        if (Math.abs(leftJoyStickX)<DEADBAND) {leftJoyStickX = 0;}
+        if (Math.abs(leftJoyStickY)<DEADBAND) {leftJoyStickY = 0;}
+        if (Math.abs(rightJoyStickX)<DEADBAND) {rightJoyStickX = 0;}
+
+        if (leftJoyStickX > 0) {
+            leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+        } else if (leftJoyStickX < 0) {
+            leftX = (leftJoyStickX + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+        } else {
+            leftX = 0;
+        }
+        if (leftJoyStickY > 0) {
+            leftY = (leftJoyStickY - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+        } else if (leftJoyStickY < 0) {
+            leftY = (leftJoyStickY + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+        } else {
+            leftY = 0;
+        }
+
+        if (Math.abs(rightJoyStickX) > DEADBAND) { // driver is turning the robot
+            rotationAdjustment = (float) (rightJoyStickX * 0.525 * scaleAmount);
+            holdingHeading = false;
+        } else { // Need to automatically hold the current heading
+            if (!holdingHeading) { // start to hold current heading
+                heldHeading = getHeading();
+                holdingHeading = true;
+            }
+            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .1f; // auto rotate to held heading
+            rotationAdjustment = rotationAdjustment * Math.min(Math.max(Math.abs(leftX), Math.abs(leftY)), 0.7f); // make it proportional to speed
+        }
+
+        frontLeft = -(leftY - leftX - rotationAdjustment);
+        frontRight = (-leftY - leftX - rotationAdjustment);
+        backRight = (-leftY + leftX - rotationAdjustment);
+        backLeft = -(leftY + leftX - rotationAdjustment);
+
+        if (details) {
+            teamUtil.telemetry.addData("LEFTX:", leftX);
+            teamUtil.telemetry.addData("LEFTY:", leftY);
+            if (holdingHeading) {
+                teamUtil.telemetry.addData("HOLDING:", heldHeading);
+            }
+        }
+
+        fl.setPower(frontLeft);
+        fr.setPower(frontRight);
+        br.setPower(backRight);
+        bl.setPower(backLeft);
+
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Adds Field Relative driving to driveJoyStick
+    public void universalDriveJoystick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, double robotHeading) {
+        double angleInRadians = robotHeading * Math.PI / 180;
+        float leftX = leftJoyStickX;
+        float leftY = leftJoyStickY;
+        float rightX = rightJoyStickX;
+
+        //rotate to obtain new coordinates
+        float rotatedLeftX = (float) (Math.cos(angleInRadians) * leftX - Math.sin(angleInRadians) * leftY);
+        float rotatedLeftY = (float) (Math.sin(angleInRadians) * leftX + Math.cos(angleInRadians) * leftY);
+
+        driveJoyStick(rotatedLeftX, rotatedLeftY, rightX, isFast);
     }
     public void outputTelemetry() {
         telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
