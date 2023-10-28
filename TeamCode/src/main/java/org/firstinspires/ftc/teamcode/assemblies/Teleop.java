@@ -42,6 +42,9 @@ public class Teleop extends LinearOpMode {
             armsGamepad.loop();
 
             ////////// Drive
+            if (driverGamepad.gamepad.right_stick_button && driverGamepad.gamepad.left_stick_button) {
+                robot.drive.resetHeading();
+            }
             robot.drive.universalDriveJoystick(
                     driverGamepad.gamepad.left_stick_x,
                     driverGamepad.gamepad.left_stick_y,
@@ -50,41 +53,74 @@ public class Teleop extends LinearOpMode {
                     robot.drive.getHeading());
 
             ////////// Intake
-            if(gamepad1.a){
-                robot.intake.startIntake();
+            if(driverGamepad.gamepad.b){
+                robot.lift.toggleArm();
             }
-            if(gamepad1.x){
-                robot.intake.reverseIntake();
+
+            if(armsGamepad.wasLeftTriggerPressed()){
+                robot.intake.toggleIntake();
             }
-            if(gamepad1.b){
-                robot.intake.stopIntake();
+
+            if(armsGamepad.wasUpPressed()){
+                robot.intake.collect();
             }
+            if (armsGamepad.wasLeftPressed())
+            {
+                robot.intake.ready();
+            }
+            if(armsGamepad.wasDownPressed()){
+                robot.intake.store();
+            }
+
 
             ////////// Lift
             if(gamepad1.left_bumper&&gamepad1.right_bumper){
-                robot.output.moveLift();
+                robot.lift.raiseLift();
+            } else {
+                robot.lift.stopLift();
             }
-            // TODO: Control for Lift Arm
+            if (false) { // TODO: Control for Lift Arm
+                robot.lift.armUp();
+            }
+            if (false) { // TODO: Control for Lift Arm
+                robot.lift.stowArm();
+            }
 
             ////////// Output
-            if(armsGamepad.wasDownPressed()){
+            if(armsGamepad.wasAPressed()){ // Get ready to load the next pixels
                 robot.output.goToLoadNoWait();
             }
-            // TODO: Need a grabAndDeployNoWait method here to grab the pixels and get the output system ready to place
-
-            if(Math.abs(gamepad2.left_stick_x) > .10){
-                robot.output.straferManual(-(gamepad2.left_stick_x)*manualSpeedStrafer);
+            if(armsGamepad.wasYPressed()){ // Send output system to scoring position
+                robot.output.goToScoreNoWait();
             }
-            if(armsGamepad.wasBPressed()){
+
+            if(armsGamepad.wasLeftBumperPressed()){
+                robot.output.straferManual(true);
+            }
+
+            if(armsGamepad.wasRightBumperPressed()){
+                robot.output.straferManual(false);
+            }
+
+            if(Math.abs(armsGamepad.gamepad.left_stick_y) > .30){
+                robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
+            }
+            if (armsGamepad.gamepad.right_trigger> 0.5) {
                 robot.output.dropPixels();
             }
+
             if(armsGamepad.wasXPressed()){
-                robot.output.grabPixels();
+                robot.output.rotateGrabberCounterclockwise();
+            }
+            if(armsGamepad.wasBPressed()){
+                robot.output.rotateGrabberClockwise();
             }
 
-            if(Math.abs(gamepad2.left_stick_y) > .10){
-                robot.output.elevManual(-(gamepad2.left_stick_y)*manualSpeedElevator);
-            }
+
+
+
+
+
 
             robot.outputTelemetry();
             telemetry.update();

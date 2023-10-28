@@ -33,6 +33,8 @@ public class Intake {
 
     public double rightKnockerVertical = 0.38;
 
+    public boolean intakeRunning = false;
+
 
     public Intake(){
         teamUtil.log("Constructing Intake");
@@ -45,13 +47,28 @@ public class Intake {
     }
 
     public void initalize(){
-        teamUtil.log("Initializing Arm");
+        teamUtil.log("Initializing Intake");
         sweeper = hardwareMap.get(CRServo.class,"sweeper");
         kicker = hardwareMap.get(CRServo.class,"kicker");
         rKnocker = hardwareMap.get(Servo.class,"rKnocker");
         lKnocker = hardwareMap.get(Servo.class,"lKnocker");
+        store();
+        teamUtil.log("Intake Initialized ");
     }
 
+    public void store() {
+        lKnocker.setPosition(leftKnockerStore);
+        rKnocker.setPosition(rightKnockerStore);
+    }
+
+    public void ready() {
+        lKnocker.setPosition(leftKnockerVertical);
+        rKnocker.setPosition(rightKnockerVertical);
+    }
+    public void collect() {
+        lKnocker.setPosition(leftKnockerCollect);
+        rKnocker.setPosition(rightKnockerCollect);
+    }
     public void startIntake(){
         sweeper.setPower(1*sweeperDirection);
         kicker.setPower(1*kickerDirection);
@@ -68,9 +85,20 @@ public class Intake {
 
 
     }
+
+    public void toggleIntake(){
+        if(!intakeRunning){
+            intakeRunning=true;
+            sweeper.setPower(1*sweeperDirection);
+            kicker.setPower(1*kickerDirection);
+        }
+        else{
+            intakeRunning=false;
+            sweeper.setPower(0);
+            kicker.setPower(.25);
+        }
+    }
     public void outputTelemetry() {
-
-
 
     }
 }

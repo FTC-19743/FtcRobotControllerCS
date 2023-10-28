@@ -14,6 +14,7 @@
             <Servo name="rKnocker" port="4" />
             <Servo name="lKnocker" port="5" />
 
+
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
             <goBILDA5202SeriesMotor name="flm" port="0" />
@@ -22,11 +23,13 @@
             <goBILDA5202SeriesMotor name="brm" port="3" />
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
 
+            <Servo name = "launcher" port ="5"/>
             <Servo name="liftArm" port="4" />
             <Servo name="grabber" port="3" />
             <Servo name="grabberRotator" port="2" />
             <Servo name="grabberStrafer" port="1" />
             <Servo name="flipper" port="0" />
+
 
         </LynxModule>
     </LynxUsbDevice>

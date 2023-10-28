@@ -15,8 +15,8 @@ public class Robot {
     Telemetry telemetry;
     public Drive drive;
     public Intake intake;
-
     public Output output;
+    public Lift lift;
 
 
     public static void log(String logString) {
@@ -28,16 +28,17 @@ public class Robot {
         telemetry = teamUtil.theOpMode.telemetry;
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         drive = new Drive();
-        output = new Output();
         intake = new Intake();
+        output = new Output(intake);
 
+        lift = new Lift();
     }
 
     public void initialize(){
         drive.initalize();
         intake.initalize();
         output.initalize();
-
+        lift.initialize();
     }
 
     public void outputTelemetry(){

@@ -275,6 +275,14 @@ public class Drive {
         return adjustAngle(getRawHeading() - HEADING_OFFSET);
     }
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Make the current heading 0.
+    public void resetHeading() {
+        HEADING_OFFSET = getRawHeading();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //Make the current heading to specified number
     public void setHeading(int heading) {
         HEADING_OFFSET = getRawHeading() - heading;
     }

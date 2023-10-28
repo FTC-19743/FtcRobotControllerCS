@@ -22,12 +22,17 @@ public class Output {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
     }
 
+    public boolean loading = false;
     public static int elevatorMax = 2100; //Could maybe go to 2200 but playing it safe for now
     public static int elevatorMin = 0; //bottom
     public static int elevatorSafeFlipRotateLevel = 400;
     public static int elevatorSafeStrafeLevel = 700;
+    public static int elevatorMinScoreLevel = 275; // Lowest level for scoring horizontally
+    public static int elevatorScoreLevel3 = 690; // Lowest level for scoring horizontally
+    public static int elevatorScoreInc = elevatorScoreLevel3 - elevatorMinScoreLevel / 2; // amount to lower or raise elevator per level
+    public static int elevatorRotateInc = elevatorScoreInc / 2; // amount to lower or raise elevator when changing from horizontal to slanted placement
 
-    public static int elevatorMaxVelocity = 2500;
+    public static int elevatorMaxVelocity = 2500; //TODO: Could be a bit higher?
 
     public static double GrabberRotatorLowerLimit = 0.427;
     public static double GrabberRotatorHorizontal1 = 0.515;
@@ -35,8 +40,8 @@ public class Output {
     public static double GrabberRotatorHorizontal2 = 0.6216; // 180 from Horizontal1
     public static double GrabberRotatorHorizontal3 = 0.7317; // This is the limit in one direction
     public static double GrabberRotatorUpperLimit = GrabberRotatorHorizontal3;
-    public static double GrabberRotatorHorizontalToAngleIncrement = (GrabberRotatorHorizontal2 - GrabberRotatorHorizontal1) * 45/180;
-    public static double GrabberRotatorAngleToAngleIncrement = (GrabberRotatorHorizontal2 - GrabberRotatorHorizontal1) * 90/180;
+    public static double GrabberRotatorIncrement = (GrabberRotatorHorizontal2 - GrabberRotatorHorizontal1) * 60/180;
+
 
 
     public static double flipperLoad = 0.1516;
@@ -45,33 +50,35 @@ public class Output {
     public static double StraferLoad = 0.55;
     public static double StraferRight = 0.25;
     public static double StraferLeft = 0.86;
+
+    public static double StraferIncrement = 0.025;
     public static double GrabberOpen = 0.55;
     public static double GrabberClosed = 0.73;
-    public static double liftArmUp = 0.5; //tenative value
-    public static double liftArmStowed = 0.0; // tenative value
-    public static double liftSpindleVelocity = 1500; // tenative value
     public static int StallBuffer = 225;
-
-     // TODO extension for lift makes encoder go negative
-
-
 
     private DcMotorEx elevLeft;
     private DcMotorEx elevRight;
     public Servo grabber;
     public Servo grabberRotater;
+
+    public enum rotationPosition {
+        HORIZONTAL, PIOVERTHREE, TWOPIOVERTHREE, VERTICAL
+    }
+    public rotationPosition rotaterPosition;
     public Servo grabberStrafer;
     public Servo flipper;
 
-    public Servo liftArm;
-    private DcMotorEx liftSpindle;
+    public Intake intake;
+
 
     private AtomicBoolean moving;
 
-    public Output(){
+    public Output(Intake i){
         teamUtil.log("Constructing Output");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         telemetry = teamUtil.theOpMode.telemetry;
+        intake = i;
+
     }
 
     public void initalize(){
@@ -85,9 +92,6 @@ public class Output {
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
         flipper = hardwareMap.get(Servo.class,"flipper");
-
-        liftSpindle = hardwareMap.get(DcMotorEx.class, "liftSpindle");
-        liftArm = hardwareMap.get(Servo.class,"liftArm");
 
         teamUtil.log("Output Initialized ");
     }
@@ -120,55 +124,126 @@ public class Output {
         log("Calibrate Final: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
         elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        elevRight.setVelocity(elevatorMaxVelocity); // TODO: Adjust this number to something appropriate
+        elevRight.setVelocity(elevatorMaxVelocity);
         elevLeft.setVelocity(elevatorMaxVelocity);
         moving.set(false);
         log("Output Calibrate finished");
     }
 
     public void dropPixels(){
-        grabber.setPosition(GrabberOpen);
+        if (moving.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to drop pixels while output system is moving--ignored");
+            return;
+        } else {
+            grabber.setPosition(GrabberOpen);
+        }
     }
 
     public void grabPixels(){
-        grabber.setPosition(GrabberClosed);
-
+        if (moving.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to grab pixels while output system is moving--ignored");
+            return;
+        } else {
+            grabber.setPosition(GrabberClosed);
+        }
     }
 
    public void rotateGrabberStart(){
 
    }
 
-   public void goToLevel(int level){
+   public void rotateGrabberClockwise(){
+        if(loading == false) {
+            if (grabberRotater.getPosition() + GrabberRotatorIncrement <= GrabberRotatorUpperLimit) {
+                grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement);
+            }
+        }
+   }
+
+    public void rotateGrabberCounterclockwise(){
+        if(loading == false) {
+            if (grabberRotater.getPosition() - GrabberRotatorIncrement >= GrabberRotatorLowerLimit) {
+                grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement);
+            }
+        }
+    }
+
+
+    public void goToLevel(int level){
 
    }
 
    public void elevManual(double increment){
-        log("Elev Manual: " + increment);
-        elevLeft.setTargetPosition((int)(clamp(elevLeft.getCurrentPosition()+increment,elevatorMin,elevatorMax)));
-        elevRight.setTargetPosition((int)(clamp(elevRight.getCurrentPosition()+increment,elevatorMin,elevatorMax)));
+       if (moving.get() || loading) { // Output system is already moving in a long running operation
+           teamUtil.log("WARNING: Attempt to move elevator while output system is moving--ignored");
+           return;
+       } else {
+           log("Elev Manual: " + increment);
+           elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
+           elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
+       }
    }
+//    public void elevatorControl(joystick){
+//        if (moving.get() || loading) { // Output system is already moving in a long running operation
+//            teamUtil.log("WARNING: Attempt to move elevator while output system is moving--ignored");
+//            return;
+//        } else {
+//            log("Elev Manual: " + increment);
+//            elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
+//            elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
+//        }
+//    }
+   public void straferManual(boolean left){
 
-   public void straferManual(double increment){
-        //TODO: This implementation is cursed.  getPosition on a Servo will return the last position it was commanded to, NOT the actual position.
-        // TODO: So this will VERY quickly go to an extreme value.  ALSO, needs to be limited to the range limits.
-        //grabberStrafer.setPosition(grabberStrafer.getPosition()+increment);
+       if (moving.get() || loading) { // Output system is already moving in a long running operation
+           teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
+           return;
+       } else {
+           if(left){
+               if(grabberStrafer.getPosition()+StraferIncrement>StraferLeft){
+                   grabberStrafer.setPosition(StraferLeft);
+               }
+               else{
+                   grabberStrafer.setPosition(grabberStrafer.getPosition()+StraferIncrement);
+
+               }
+
+           }else{
+               if(grabberStrafer.getPosition()-StraferIncrement<StraferRight){
+                   grabberStrafer.setPosition(StraferRight);
+               }
+               else{
+                   grabberStrafer.setPosition(grabberStrafer.getPosition()-StraferIncrement);
+
+               }
+           }
+
+
+       }
    }
 
 
     public void grabberRotatorManual(double increment){
-        grabberRotater.setPosition(grabberRotater.getPosition()+increment);
+        if (moving.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
+            return;
+        } else {
+            // TODO: This implementation is cursed.  getPosition on a Servo will return the last position it was commanded to, NOT the actual position.
+            // TODO: So this will VERY quickly go to an extreme value and probably overshoot what the operator wants.
+            // TODO: Maybe this is about button pushes where each button push rotates one direction or another a fixed amount?
+            // TODO: Amount to rotate from horizontal to diagonal is less than from diagonal to diagonal.
+            //  TODO: ALSO, needs to be limited to the range limits.
+            grabberRotater.setPosition(grabberRotater.getPosition() + increment);
+        }
     }
 
-    public void moveLift(){
-       liftSpindle.setVelocity(liftSpindleVelocity);
-    }
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
         moving.set(true);
 
         log("Go To Load");
+        intake.stopIntake();
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             // we don't know where the servos are so we need to go up to a safe level to move them
             log("Go To Load: Raising to safe level");
@@ -178,10 +253,11 @@ public class Output {
             }
         }
         // Move servos to correct position and wait for them to complete
-        // TODO: The timing on this can be optimized depending on the starting position of the lift
+        // TODO LATER: The timing on this can be optimized depending on the starting position of the lift
         log("Go To Load: Positioning Servos");
         grabberStrafer.setPosition(StraferLoad);
         grabberRotater.setPosition(GrabberRotatorLoad);
+        rotaterPosition = rotaterPosition.VERTICAL;
         flipper.setPosition(flipperLoad);
         grabber.setPosition(GrabberOpen);
 
@@ -190,10 +266,11 @@ public class Output {
         // Take elevator to the bottom
         log("Go To Load: Running to Bottom");
         elevRight.setTargetPosition(elevatorMin);
-        elevLeft.setTargetPosition(elevatorMin); // TODO: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
+        elevLeft.setTargetPosition(elevatorMin); // TODO LATER: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
 
         log("Go To Load-Finished");
         moving.set(false);
+        loading = true;
 
     }
 
@@ -214,11 +291,47 @@ public class Output {
         }
     }
 
+    // Grab the pixels and get into scoring position
+    public void goToScore() {
+        moving.set(true);
+
+        log("Go To Score");
+        grabber.setPosition(GrabberClosed);
+        teamUtil.pause(250);
+        elevLeft.setTargetPosition(elevatorScoreLevel3);
+        elevRight.setTargetPosition(elevatorScoreLevel3);
+        while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
+        }
+        flipper.setPosition(flipperScore);
+        grabberRotater.setPosition(GrabberRotatorHorizontal2);
+        rotaterPosition = rotaterPosition.HORIZONTAL;
+
+
+        log("Go To Score-Finished");
+        moving.set(false);
+        loading = false;
+    }
+    public void goToScoreNoWait() {
+        if (moving.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
+            return;
+        } else {
+            moving.set(true);
+            teamUtil.log("Launching Thread to Stow Output System");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    goToScore();
+                }
+            });
+            thread.start();
+        }
+    }
+
     public void outputTelemetry() {
         telemetry.addData("Output  ", "ElevL: %d, ElevR: %d", elevLeft.getCurrentPosition(), elevRight.getCurrentPosition());
         telemetry.addData("Output  ", "Flip: %f, Strafe: %f, Rotate: %f, Grab: %f",
                 flipper.getPosition(), grabberStrafer.getPosition(), grabberRotater.getPosition(), grabber.getPosition());
-        telemetry.addData("Lift  ", "Motor: %d, Arm: %f", liftSpindle.getCurrentPosition(), liftArm.getPosition());
     }
 }
 
