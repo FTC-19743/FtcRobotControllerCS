@@ -28,11 +28,10 @@ public class Teleop extends LinearOpMode {
         robot = new Robot();
         robot.initialize();
         robot.calibrate();
+        robot.output.goToLoad();
         telemetry.addLine("Ready to start");
         telemetry.update();
-        double powerFactor = 1;
         double manualSpeedElevator = 100;
-        double manualSpeedStrafer = 0.01;
 
         waitForStart();
 
@@ -53,10 +52,6 @@ public class Teleop extends LinearOpMode {
                     robot.drive.getHeading());
 
             ////////// Intake
-            if(driverGamepad.gamepad.b){
-                robot.lift.toggleArm();
-            }
-
             if(armsGamepad.wasLeftTriggerPressed()){
                 robot.intake.toggleIntake();
             }
@@ -74,13 +69,13 @@ public class Teleop extends LinearOpMode {
 
 
             ////////// Lift
-            if(gamepad1.left_bumper&&gamepad1.right_bumper){
+            if(driverGamepad.gamepad.left_bumper && driverGamepad.gamepad.right_bumper){
                 robot.lift.raiseLift();
             } else {
                 robot.lift.stopLift();
             }
-            if (false) { // TODO: Control for Lift Arm
-                robot.lift.armUp();
+            if (driverGamepad.wasBPressed()) { // TODO: Control for Lift Arm
+                robot.lift.toggleArm();
             }
             if (false) { // TODO: Control for Lift Arm
                 robot.lift.stowArm();

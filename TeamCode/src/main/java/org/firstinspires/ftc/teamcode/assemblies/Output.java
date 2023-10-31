@@ -217,33 +217,34 @@ public class Output {
 
                }
            }
-
-
        }
    }
 
-
-    public void grabberRotatorManual(double increment){
-        if (moving.get()) { // Output system is already moving in a long running operation
-            teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
-            return;
-        } else {
-            // TODO: This implementation is cursed.  getPosition on a Servo will return the last position it was commanded to, NOT the actual position.
-            // TODO: So this will VERY quickly go to an extreme value and probably overshoot what the operator wants.
-            // TODO: Maybe this is about button pushes where each button push rotates one direction or another a fixed amount?
-            // TODO: Amount to rotate from horizontal to diagonal is less than from diagonal to diagonal.
-            //  TODO: ALSO, needs to be limited to the range limits.
-            grabberRotater.setPosition(grabberRotater.getPosition() + increment);
-        }
+    public void setServosToLoad() {
+        grabberStrafer.setPosition(StraferLoad);
+        grabberRotater.setPosition(GrabberRotatorLoad);
+        rotaterPosition = rotaterPosition.VERTICAL;
+        flipper.setPosition(flipperLoad);
+        grabber.setPosition(GrabberOpen);
+        teamUtil.pause(1000); // Wait long enough for all servos to be in a safe position to go to load
+        // TODO LATER: The timing on this can be optimized depending on the starting position of the lift
     }
 
+    public void goToLoadNoElevator() {
+        moving.set(true);
+        log("Go To Load No Elevator");
+         // Move servos to correct position and wait for them to complete
+        setServosToLoad();
+        log("Go To Load No Elevator-Finished");
+        moving.set(false);
+        loading = true;
+    }
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
         moving.set(true);
 
         log("Go To Load");
-        intake.stopIntake();
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             // we don't know where the servos are so we need to go up to a safe level to move them
             log("Go To Load: Raising to safe level");
@@ -253,15 +254,8 @@ public class Output {
             }
         }
         // Move servos to correct position and wait for them to complete
-        // TODO LATER: The timing on this can be optimized depending on the starting position of the lift
         log("Go To Load: Positioning Servos");
-        grabberStrafer.setPosition(StraferLoad);
-        grabberRotater.setPosition(GrabberRotatorLoad);
-        rotaterPosition = rotaterPosition.VERTICAL;
-        flipper.setPosition(flipperLoad);
-        grabber.setPosition(GrabberOpen);
-
-        teamUtil.pause(1000); // Wait long enough for all servos to be in a safe position to go to load
+        setServosToLoad();
 
         // Take elevator to the bottom
         log("Go To Load: Running to Bottom");
@@ -298,6 +292,8 @@ public class Output {
         log("Go To Score");
         grabber.setPosition(GrabberClosed);
         teamUtil.pause(250);
+        intake.stopIntake();
+
         elevLeft.setTargetPosition(elevatorScoreLevel3);
         elevRight.setTargetPosition(elevatorScoreLevel3);
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {

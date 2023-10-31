@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
@@ -33,23 +34,30 @@ public class Lift {
         liftSpindle = hardwareMap.get(DcMotorEx.class, "liftSpindle");
         liftArm = hardwareMap.get(Servo.class,"liftArm");
         liftArm.setPosition(liftArmStowed);
+        armUp = false;
         teamUtil.log("Lift Initialized ");
     }
     public void toggleArm(){
         if(!armUp){
+            teamUtil.log("Lift: Arm Up");
             liftArm.setPosition(liftArmUp);
             armUp=true;
         }
         else{
+            teamUtil.log("Lift: Arm Down");
             liftArm.setPosition(liftArmStowed);
             armUp=false;
         }
     }
     public void armUp() {
+        teamUtil.log("Lift: Arm Up");
         liftArm.setPosition(liftArmUp);
+        armUp=true;
     }
     public void stowArm(){
+        teamUtil.log("Lift: Arm Down");
         liftArm.setPosition(liftArmStowed);
+        armUp=false;
     }
     public void raiseLift(){
         liftSpindle.setVelocity(liftSpindleVelocity);

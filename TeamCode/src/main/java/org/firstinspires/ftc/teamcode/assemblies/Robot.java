@@ -17,6 +17,7 @@ public class Robot {
     public Intake intake;
     public Output output;
     public Lift lift;
+    public Launcher launcher;
 
 
     public static void log(String logString) {
@@ -30,7 +31,7 @@ public class Robot {
         drive = new Drive();
         intake = new Intake();
         output = new Output(intake);
-
+        launcher = new Launcher();
         lift = new Lift();
     }
 
@@ -39,6 +40,8 @@ public class Robot {
         intake.initalize();
         output.initalize();
         lift.initialize();
+        launcher.initialize();
+
     }
 
     public void outputTelemetry(){

@@ -95,7 +95,7 @@ public class Intake {
         else{
             intakeRunning=false;
             sweeper.setPower(0);
-            kicker.setPower(.25);
+            kicker.setPower(.1);
         }
     }
     public void outputTelemetry() {
