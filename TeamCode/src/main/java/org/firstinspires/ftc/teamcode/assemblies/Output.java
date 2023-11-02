@@ -262,6 +262,10 @@ public class Output {
         elevRight.setTargetPosition(elevatorMin);
         elevLeft.setTargetPosition(elevatorMin); // TODO LATER: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
 
+        while (elevLeft.getCurrentPosition() > elevatorMin+10 || elevRight.getCurrentPosition() > elevatorMin+10) {
+        }
+        elevLeft.setVelocity(0);
+        elevRight.setVelocity(0);
         log("Go To Load-Finished");
         moving.set(false);
         loading = true;
@@ -288,7 +292,8 @@ public class Output {
     // Grab the pixels and get into scoring position
     public void goToScore() {
         moving.set(true);
-
+        elevLeft.setVelocity(elevatorMaxVelocity);
+        elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
         grabber.setPosition(GrabberClosed);
         teamUtil.pause(250);

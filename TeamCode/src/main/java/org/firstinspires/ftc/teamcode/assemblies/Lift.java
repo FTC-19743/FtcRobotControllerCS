@@ -19,7 +19,9 @@ public class Lift {
     public static double liftArmStowed = 0.30;
     public static double liftSpindleVelocity = 3000; // Max Speed
     public Servo liftArm;
-    private DcMotorEx liftSpindle;
+    public DcMotorEx liftSpindle;
+
+    public boolean startedLifting = false;
 
     public boolean armUp = false;
 
@@ -60,6 +62,8 @@ public class Lift {
         armUp=false;
     }
     public void raiseLift(){
+        liftSpindle.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        startedLifting = true;
         liftSpindle.setVelocity(liftSpindleVelocity);
     }
     public void lowerLift(){
@@ -69,7 +73,11 @@ public class Lift {
     { // TODO: Might want to switch to Run TO Position and set target to current position.
         liftSpindle.setVelocity(0);
     }
-
+    public void holdLift(){
+        liftSpindle.setTargetPosition(liftSpindle.getCurrentPosition());
+        liftSpindle.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftSpindle.setVelocity(3000);
+    }
     public void outputTelemetry() {
         telemetry.addData("Lift  ", "Motor: %d, Arm: %f", liftSpindle.getCurrentPosition(), liftArm.getPosition());
     }

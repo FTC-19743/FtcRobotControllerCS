@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.assemblies;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 
@@ -28,7 +29,6 @@ public class Teleop extends LinearOpMode {
         robot = new Robot();
         robot.initialize();
         robot.calibrate();
-        robot.output.goToLoad();
         telemetry.addLine("Ready to start");
         telemetry.update();
         double manualSpeedElevator = 100;
@@ -71,13 +71,13 @@ public class Teleop extends LinearOpMode {
             ////////// Lift
             if(driverGamepad.gamepad.left_bumper && driverGamepad.gamepad.right_bumper){
                 robot.lift.raiseLift();
-            } else {
-                robot.lift.stopLift();
+            } else if (robot.lift.startedLifting){
+                robot.lift.holdLift();
             }
-            if (driverGamepad.wasBPressed()) { // TODO: Control for Lift Arm
+            if (driverGamepad.wasBPressed()) {
                 robot.lift.toggleArm();
             }
-            if (false) { // TODO: Control for Lift Arm
+            if (false) {
                 robot.lift.stowArm();
             }
 
@@ -109,6 +109,9 @@ public class Teleop extends LinearOpMode {
             }
             if(armsGamepad.wasBPressed()){
                 robot.output.rotateGrabberClockwise();
+            }
+            if(armsGamepad.wasOptionsPressed()){
+                robot.launcher.toggleRelease();
             }
 
 

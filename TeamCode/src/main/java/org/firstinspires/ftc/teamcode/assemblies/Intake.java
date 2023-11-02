@@ -80,6 +80,7 @@ public class Intake {
     }
 
     public void stopIntake(){
+        intakeRunning = false;
         sweeper.setPower(0);
         kicker.setPower(0);
 
