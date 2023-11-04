@@ -32,7 +32,7 @@
             <Servo name="grabberStrafer" port="1" />
             <Servo name="flipper" port="0" />
 
-
+            <AnalogInput name="ult" port="2"/>
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

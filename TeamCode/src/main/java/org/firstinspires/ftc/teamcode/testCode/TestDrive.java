@@ -6,14 +6,30 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-
-import java.util.List;
 
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
     Drive drive;
     TeamGamepad gamepad;
+    int currentCam = 0;
+    public void toggleCamera() {
+        currentCam++;
+        if (currentCam > 3) {
+            currentCam = 1;
+        }
+        switch(currentCam) {
+            case 1:
+                drive.activateCamera(drive.frontCam);
+                break;
+            case 2:
+                drive.activateCamera(drive.backCam);
+                break;
+            case 3:
+                drive.activateCamera(drive.rightCam);
+                break;
+            default:
+        }
+    }
 
     @Override
     public void runOpMode(){
@@ -22,11 +38,18 @@ public class TestDrive extends LinearOpMode {
         gamepad.initilize(true);
         drive = new Drive();
         drive.initalize();
-        drive.setCamera(2);
+        drive.initVisionPortals();
         double velocity = drive.MAX_VELOCITY;
+        telemetry.addLine("Ready");
+        telemetry.update();
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
+            drive.aprilTagTelemetry();
+            telemetry.addLine("Ultrasonic Distance: "+drive.getUltrasonicDistance());
+            //teamUtil.log("largest area: "+drive.findLine.LinePipe.getLargestArea());
+
+            /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);
             telemetry.addLine("Deceleration (b): "+drive.MAX_DECELERATION);
             telemetry.addLine("Minimum Start (x):"+drive.MIN_START_VELOCITY);
@@ -35,23 +58,31 @@ public class TestDrive extends LinearOpMode {
             telemetry.addLine("Heading (right trigger): "+drive.getHeading());
             telemetry.addLine("Up and down move up and down, hold directional button when you press the other button");
             telemetry.addLine("Ultrasonic Distance: "+drive.getUltrasonicDistance());
-            telemetry.update();
+            */
 
             if(gamepad.wasRightBumperPressed()){
+                toggleCamera();
                 //drive.setHeading(180);
-                drive.setCamera(2);
                 //drive.moveCm(1000, 20, 180, 180, 1000);
                 //drive.centerOnAprilTag(8, 40, 0, 180);
             }
-            if(gamepad1.right_trigger >= .5){
-                drive.setCamera(1);
-            }/*
+            if(gamepad.gamepad.right_trigger > .5){
+                drive.setHeading(0);
+                //drive.moveCm(1000, 20, 180, 180, 1000);
+                //drive.localizeWithAprilTag(9, 0, 30, 0);
+
+                drive.stopAtUltDistance(30,0,0);
+                drive.correctAndHug(9,0);
+
+                // Start with robot back on line in front of goal, pointed straight at far wall, centered on the pass through
+                //drive.moveCm(2500, 220, 0, 0, 500);
+                //drive.stopAtUltDistance(30,0,0);
+            }
+            /*
             if(gamepad.wasLeftBumperPressed()){
                 drive.findMaxVelocity();
-            }*/
-            if(gamepad.wasLeftBumperPressed()){
-                drive.setCamera(3);
             }
+            */
 
             if(gamepad.wasOptionsPressed()){
                 if(gamepad1.dpad_up){
@@ -93,21 +124,7 @@ public class TestDrive extends LinearOpMode {
                     drive.MIN_END_VELOCITY -= 10;
                 }
             }
-            List<AprilTagDetection> currentDetections = drive.aprilTag.getDetections();
-            telemetry.addData("# AprilTags Detected", currentDetections.size());
-
-            // Step through the list of detections and display info for each one.
-            for (AprilTagDetection detection : currentDetections) {
-                if (detection.metadata != null) {
-                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                    telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-                } else {
-                    telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                    telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
-                }
-            }
+            telemetry.update();
         }
     }
 }

@@ -2,10 +2,8 @@ package org.firstinspires.ftc.teamcode.assemblies;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -48,15 +46,17 @@ public class Drive {
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
     public AnalogInput ult = null;
-    public AprilTagProcessor aprilTag;
-    public VisionPortal visionPortal;
-    public CameraName camera1;
-    public CameraName camera2;
-    public WebcamName webcam1;
-    public WebcamName webcam2;
-    public CameraName camera3;
-    public WebcamName webcam3;
 
+    // April Tage Processor and Cameras
+    public AprilTagProcessor aprilTag;
+    public OpenCVFindLine findLine;
+    public VisionPortal aprilTagPortal;
+    public VisionPortal openCvPortal;
+    boolean aprilTagProcessorRunning = false;
+    public WebcamName frontCam;
+    public WebcamName backCam;
+    public WebcamName rightCam;
+    //public WebcamName leftCam;
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
     public double COUNTS_PER_CENTIMETER = 17.923;
@@ -96,12 +96,11 @@ public class Drive {
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
-        //ult = hardwareMap.analogInput.get("ult");
+        ult = hardwareMap.analogInput.get("ult");
 
         // colorSensor.calibrate();
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
-
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         //colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
@@ -112,13 +111,34 @@ public class Drive {
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         imu.initialize(parameters);
         setMotorsBrake();
-        //initAprilTag();
         teamUtil.log("Initializing Drive - FINISHED");
-
-
-
     }
 
+    public void initVisionPortals() {
+
+        aprilTag = new AprilTagProcessor.Builder().build();
+        findLine = new OpenCVFindLine();
+
+        frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
+        backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
+        rightCam = hardwareMap.get(WebcamName.class, "Webcam Right");
+        //camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        //camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
+        //camera3 = hardwareMap.get(WebcamName.class, "Webcam 3");
+        CameraName switchableCamera = ClassFactory.getInstance()
+                .getCameraManager().nameForSwitchableCamera(frontCam, backCam, rightCam);
+
+        // Create the vision portal by using a builder.
+        aprilTagPortal = new VisionPortal.Builder()
+                .setCamera(switchableCamera)
+                .addProcessor(aprilTag)
+                .build();
+        openCvPortal = VisionPortal.easyCreateWithDefaults(frontCam, findLine);
+
+        teamUtil.pause(2000);
+        aprilTagProcessorRunning = true;
+
+    }
     public void runMotors(double velocity) {
         lastVelocity = velocity;
         fl.setVelocity(velocity);
@@ -133,7 +153,12 @@ public class Drive {
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-
+    public void setMotorsFloat(){
+        fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    }
 
 
     public void setMotorPower(double power){
@@ -575,10 +600,12 @@ public class Drive {
         return distance;
     }
     public void stopAtUltDistance(double distanceFromWall, double robotHeading, double driveHeading){
-
+        boolean details = true;
         MotorData data = new MotorData();
         getDriveMotorData(data);
         setMotorsWithEncoder();
+        distanceFromWall = distanceFromWall+15; // adjust for moving average computed by sensor
+
         double distance = getUltrasonicDistance();
 
         if(details){
@@ -592,17 +619,19 @@ public class Drive {
             return;
         }
         while(distanceFromWall<distance){
-            log("in while loop");
+            //log("in while loop");
             distance = getUltrasonicDistance();
             log("distance: "+distance);
-            double velocity = MIN_END_VELOCITY+Math.abs(distance-distanceFromWall)*VELOCITY_DECREASE_PER_CM;
-            log("Velocity: "+velocity);
-            driveMotorsHeadingsFR(driveHeading,robotHeading, velocity);
+            //double velocity = MIN_END_VELOCITY+Math.abs(distance-distanceFromWall)*VELOCITY_DECREASE_PER_CM;
+            //log("Velocity: "+velocity);
+            driveMotorsHeadingsFR(driveHeading,robotHeading, 500); // TODO: Tested at 500, could be faster?
         }
         if(details){
             log("distance before pause: "+distance);
         }
         stopMotors();
+        setMotorsBrake();
+
         teamUtil.pause(1000);
 
         distance = getUltrasonicDistance();
@@ -610,38 +639,192 @@ public class Drive {
             log("distance at end: "+distance);
         }
     }
-    private void initAprilTag() {
 
-        aprilTag = new AprilTagProcessor.Builder().build();
 
-        webcam1 = hardwareMap.get(WebcamName.class, "Webcam 1");
-        webcam2 = hardwareMap.get(WebcamName.class, "Webcam 2");
-        camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
-        camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
-        webcam3 = hardwareMap.get(WebcamName.class, "Webcam 3");
-        camera3 = hardwareMap.get(WebcamName.class, "Webcam 3");
-        CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(webcam1, webcam2, webcam3);
 
-        // Create the vision portal by using a builder.
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(switchableCamera)
-                .addProcessor(aprilTag)
-                .build();
-        teamUtil.pause(2000);
+    public void activateCamera(WebcamName camera) {
+        log("Activating "+ camera.getSerialNumber());
+        aprilTagPortal.setActiveCamera(camera);
     }
-    public void setCamera(int camera) {
 
-        if (camera == 2) {
-            visionPortal.setActiveCamera(webcam2);
-        }else if (camera == 1){
-            visionPortal.setActiveCamera(webcam1);
+    public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
+        int quadrant; // the quad the goal point would be in if the current spot was the origin
+        if(rightDist<xOffset && forwardsDist > yOffset){
+            quadrant = 1;
+        }else if(rightDist > xOffset && forwardsDist > yOffset){
+            quadrant = 2;
+        }else if(rightDist > xOffset){
+            quadrant = 3;
         }else{
-            visionPortal.setActiveCamera(webcam3);
+            quadrant = 4;
         }
+        double angle = Math.toDegrees(Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist)));
+        double[] list = {quadrant, angle};
+        return list;
+    }
+
+    public void correctAndHug(int aprilTagID, double robotHeading) {
+        log("CorrectAndHub w/AprilTag ID:" + aprilTagID);
+        // Robot is currently traveling forward at velocity 500!
+        boolean details = true;
+        boolean seesId = false;
+
+        // Get a reading from the AprilTag if we can
+        List<AprilTagDetection> startDetections = aprilTag.getDetections();
+        for(AprilTagDetection detection : startDetections){
+            if(detection.id == aprilTagID){
+                seesId = true;
+                double xFix = detection.ftcPose.x*CMS_PER_INCH+1; // offset 1cm for robot build
+                double cmsToGoAt45 = Math.sqrt(Math.pow(xFix, 2)*2);
+                if (details) {
+                    log ("xFix: " + xFix);
+                    log("Correcting cms at 45: "+ cmsToGoAt45);
+                }
+                moveCm(500, cmsToGoAt45, xFix < 0 ? 45 : -45, robotHeading,500);
+                break;
+            }
+        }
+        if(seesId == false){ // TODO: Need a better failsafe?
+            if(details){
+                log("did not detect apriltag");
+            }
+            runMotors(0);
+            return;
+        }
+        // Now squish to wall
+        driveMotorsHeadingsFR(0,robotHeading,500);
+        teamUtil.pause(500);
+        setMotorsFloat(); // coast to wall
+        runMotors(0);
+        log("CorrectAndHub - Finished");
+    }
+
+
+    public void localizeWithAprilTag(int aprilTagID, double xOffset, double yOffset, double robotHeading){
+        log("Localize w/AprilTag ID:" + aprilTagID);
+        boolean details = true;
+        MIN_END_VELOCITY = 700;
+        boolean seesId = false;
+        double maxVelocity;
+        if(lastVelocity<=MIN_END_VELOCITY){
+            maxVelocity = MIN_END_VELOCITY;
+        }else {
+            maxVelocity = lastVelocity;
+        }
+        double forwardsDist = 0;
+        double rightDist = 0;
+        double distance = 0;
+        double startDecelDist = 0;
+        double driveHeading = 0;
+        List<AprilTagDetection> startDetections = aprilTag.getDetections();
+        for(AprilTagDetection detection : startDetections){
+            if(detection.id == aprilTagID){
+                seesId = true;
+                forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                rightDist = detection.ftcPose.x*CMS_PER_INCH;
+                distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
+                startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
+            }
+        }
+        if(seesId == false){ // TODO: do more tries?
+            if(details){
+                log("did not detect apriltag");
+            }
+            runMotors(0);
+            return;
+        }
+        if(details){
+            log("Distance to Target: "+distance);
+            log("Deceleration Phase Start" + startDecelDist);
+            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+        }
+        List<AprilTagDetection> lastDetections = null;
+        while(startDecelDist<distance && distance > 4){
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if (currentDetections != lastDetections) { // Did we get new data?
+                boolean foundId= false;
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == aprilTagID) { // Did we find the one we are looking for?
+                        foundId = true;
+                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH - yOffset;
+                        rightDist = detection.ftcPose.x * CMS_PER_INCH - xOffset;
+                        distance = Math.sqrt(Math.pow(forwardsDist, 2) + Math.pow(rightDist, 2));
+                        lastDetections = currentDetections;
+                        driveHeading = adjustAngle(-Math.toDegrees(Math.atan(rightDist/forwardsDist)));
+
+                        log("robot heading "+robotHeading);
+                        log("drive heading "+driveHeading);
+                        log("Forwards:"+forwardsDist+" Right: "+rightDist+" Distance: "+distance);
+                        driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+                    }
+                }
+                if(!foundId){
+                    if(details){
+                        log("lost sight of apriltag");
+                    }
+                    moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
+                    return;
+                }
+            }
+        }
+        if(details){
+            log("ended cruise");
+            log("Estimated start distance: "+distance);
+            log("Deceleration distance" + startDecelDist);
+            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+        }
+        /*
+        while(distance > 4){
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if(currentDetections!=lastDetection) {
+                boolean foundId = false;
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == id) {
+                        seesId = true;
+                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                        foundId = true;
+                        lastDetection = currentDetections;
+                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+                        if(rightDist<0 && forwardsDist >0){
+                            driveHeading = getHeading()+list[1];
+                        }else if(rightDist>0 && forwardsDist > 0){
+                            driveHeading = getHeading()-list[1];
+                        }else if(rightDist>0){
+                            driveHeading = adjustAngle(getHeading()-180)-list[1];
+                        }else{
+                            driveHeading = adjustAngle(getHeading()-180)+list[1];
+                        }
+                        log("robot heading "+robotHeading);
+                        log("list: "+list[0]+", "+list[1]);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                        robotHeading = heading;
+                        double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
+                        driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+                    }
+                }
+                if(!foundId){
+                    if(details){
+                        log("lost sight of apriltag");
+                        log("robot heading "+robotHeading);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                    }
+                    moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
+                    return;
+                }
+            }
+
+         */
+
+        runMotors(0);
+        lastVelocity = 0;
     }
 
     public void centerOnAprilTag(int id, double xOffset, double yOffset, double heading){
+        boolean details = true;
         //TODO: FIX THE CURVE AHHHHHH
         boolean seesId = false;
         double maxVelocity;
@@ -681,7 +864,7 @@ public class Drive {
             log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
         }
         List<AprilTagDetection> lastDetection = null;
-        while(startDecelDist<distance&&distance > 4){
+        while(startDecelDist<distance && distance > 4){
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             if (currentDetections != lastDetection) {
                 boolean foundId= false;
@@ -774,22 +957,17 @@ public class Drive {
         runMotors(0);
         lastVelocity = 0;
     }
-    public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
-        int quadrant; // the quad the goal point would be in if the current spot was the origin
-        if(rightDist<xOffset && forwardsDist > yOffset){
-            quadrant = 1;
-        }else if(rightDist > xOffset && forwardsDist > yOffset){
-            quadrant = 2;
-        }else if(rightDist > xOffset){
-            quadrant = 3;
-        }else{
-            quadrant = 4;
-        }
-        double angle = Math.toDegrees(Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist)));
-        double[] list = {quadrant, angle};
-        return list;
-    }
 
+
+    public void aprilTagTelemetry () {
+        if (aprilTagProcessorRunning) {
+            telemetry.addLine(aprilTagPortal.getActiveCamera().getSerialNumber() + ":" + aprilTagPortal.getCameraState());
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            for (AprilTagDetection detection : currentDetections) {
+                telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
+            }
+        }
+    }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values
     // Implements a deadband where joystick position will be ignored (translation and rotation)
