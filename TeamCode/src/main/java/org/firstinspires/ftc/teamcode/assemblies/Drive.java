@@ -7,9 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -51,8 +49,8 @@ public class Drive {
     public AprilTagProcessor aprilTag;
     public OpenCVFindLine findLine;
     public VisionPortal aprilTagPortal;
-    public VisionPortal openCvPortal;
     boolean aprilTagProcessorRunning = false;
+    boolean findLineProcessorRunning = false;
     public WebcamName frontCam;
     public WebcamName backCam;
     public WebcamName rightCam;
@@ -114,30 +112,27 @@ public class Drive {
         teamUtil.log("Initializing Drive - FINISHED");
     }
 
-    public void initVisionPortals() {
+    public void initCV() {
 
+        // Set up the rear facing aprilTag Vision Portal
         aprilTag = new AprilTagProcessor.Builder().build();
-        findLine = new OpenCVFindLine();
-
-        frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
-        rightCam = hardwareMap.get(WebcamName.class, "Webcam Right");
-        //camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
-        //camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
-        //camera3 = hardwareMap.get(WebcamName.class, "Webcam 3");
-        CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(frontCam, backCam, rightCam);
-
-        // Create the vision portal by using a builder.
         aprilTagPortal = new VisionPortal.Builder()
-                .setCamera(switchableCamera)
+                .setCamera(backCam)
                 .addProcessor(aprilTag)
                 .build();
-        openCvPortal = VisionPortal.easyCreateWithDefaults(frontCam, findLine);
+        aprilTagPortal.stopStreaming(); // Not yet!
+        aprilTagProcessorRunning = false;
+
+        // Set up the front facing line finder
+        findLine = new OpenCVFindLine("Webcam Front");
+        findLine.stopStreaming(); // not yet
+        findLineProcessorRunning = false;
+
+        // Set up the side view Team Prop Finder
+        //rightCam = hardwareMap.get(WebcamName.class, "Webcam Right");
 
         teamUtil.pause(2000);
-        aprilTagProcessorRunning = true;
-
     }
     public void runMotors(double velocity) {
         lastVelocity = velocity;
@@ -641,12 +636,6 @@ public class Drive {
     }
 
 
-
-    public void activateCamera(WebcamName camera) {
-        log("Activating "+ camera.getSerialNumber());
-        aprilTagPortal.setActiveCamera(camera);
-    }
-
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin
         if(rightDist<xOffset && forwardsDist > yOffset){
@@ -959,6 +948,7 @@ public class Drive {
     }
 
 
+
     public void aprilTagTelemetry () {
         if (aprilTagProcessorRunning) {
             telemetry.addLine(aprilTagPortal.getActiveCamera().getSerialNumber() + ":" + aprilTagPortal.getCameraState());
@@ -966,6 +956,11 @@ public class Drive {
             for (AprilTagDetection detection : currentDetections) {
                 telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
             }
+        }
+    }
+    public void LineFinderTelemetry () {
+        if (findLineProcessorRunning) {
+            findLine.outputTelemetry();
         }
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

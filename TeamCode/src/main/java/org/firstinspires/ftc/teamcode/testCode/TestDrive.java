@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
+import org.firstinspires.ftc.teamcode.assemblies.OpenCVFindLine;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -12,20 +13,19 @@ public class TestDrive extends LinearOpMode {
     Drive drive;
     TeamGamepad gamepad;
     int currentCam = 0;
-    public void toggleCamera() {
+    public void toggleFBCamera() {
         currentCam++;
-        if (currentCam > 3) {
+        if (currentCam > 2) {
             currentCam = 1;
         }
         switch(currentCam) {
             case 1:
-                drive.activateCamera(drive.frontCam);
+                drive.aprilTagPortal.stopStreaming();
+                drive.findLine.startStreaming();
                 break;
             case 2:
-                drive.activateCamera(drive.backCam);
-                break;
-            case 3:
-                drive.activateCamera(drive.rightCam);
+                drive.findLine.stopStreaming();
+                drive.aprilTagPortal.resumeStreaming();
                 break;
             default:
         }
@@ -38,10 +38,22 @@ public class TestDrive extends LinearOpMode {
         gamepad.initilize(true);
         drive = new Drive();
         drive.initalize();
-        drive.initVisionPortals();
+        drive.initCV();
         double velocity = drive.MAX_VELOCITY;
         telemetry.addLine("Ready");
         telemetry.update();
+        while (!opModeIsActive()) {
+            gamepad.loop();
+            if(gamepad.wasRightBumperPressed()){
+                toggleFBCamera();
+            }
+            if(gamepad.wasUpPressed()) {
+                drive.findLine.viewingPipeline = !drive.findLine.viewingPipeline;
+            }
+            drive.aprilTagTelemetry();
+            drive.findLine.outputTelemetry();
+            telemetry.update();
+        }
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
@@ -61,7 +73,7 @@ public class TestDrive extends LinearOpMode {
             */
 
             if(gamepad.wasRightBumperPressed()){
-                toggleCamera();
+                toggleFBCamera();
                 //drive.setHeading(180);
                 //drive.moveCm(1000, 20, 180, 180, 1000);
                 //drive.centerOnAprilTag(8, 40, 0, 180);
