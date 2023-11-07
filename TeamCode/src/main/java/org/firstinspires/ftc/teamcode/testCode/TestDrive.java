@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
-import org.firstinspires.ftc.teamcode.assemblies.OpenCVFindLine;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -13,19 +12,23 @@ public class TestDrive extends LinearOpMode {
     Drive drive;
     TeamGamepad gamepad;
     int currentCam = 0;
-    public void toggleFBCamera() {
+    public void toggleCamera() {
         currentCam++;
-        if (currentCam > 2) {
+        if (currentCam > 3) {
             currentCam = 1;
         }
         switch(currentCam) {
             case 1:
-                drive.aprilTagPortal.stopStreaming();
-                drive.findLine.startStreaming();
+                teamUtil.log("Toggling LineFinder On");
+                drive.runFrontLineFinderProcessor();
                 break;
             case 2:
-                drive.findLine.stopStreaming();
-                drive.aprilTagPortal.resumeStreaming();
+                teamUtil.log("Toggling AprilTag Finder On");
+                drive.runRearAprilTagProcessor();
+                break;
+            case 3:
+                teamUtil.log("Toggling TeamProp Finder On");
+                drive.runSideTeamPropFinderProcessor();
                 break;
             default:
         }
@@ -45,20 +48,22 @@ public class TestDrive extends LinearOpMode {
         while (!opModeIsActive()) {
             gamepad.loop();
             if(gamepad.wasRightBumperPressed()){
-                toggleFBCamera();
+                toggleCamera();
             }
             if(gamepad.wasUpPressed()) {
-                drive.findLine.viewingPipeline = !drive.findLine.viewingPipeline;
+                drive.findLineProcesser.viewingPipeline = !drive.findLineProcesser.viewingPipeline;
             }
-            drive.aprilTagTelemetry();
-            drive.findLine.outputTelemetry();
+            if(gamepad.wasDownPressed()) {
+                drive.findLineProcesser.nextView(); ;
+            }
+            drive.visionTelemetry();
+            drive.sensorTelemetry();
             telemetry.update();
         }
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
-            drive.aprilTagTelemetry();
-            telemetry.addLine("Ultrasonic Distance: "+drive.getUltrasonicDistance());
+
             //teamUtil.log("largest area: "+drive.findLine.LinePipe.getLargestArea());
 
             /*
@@ -73,7 +78,7 @@ public class TestDrive extends LinearOpMode {
             */
 
             if(gamepad.wasRightBumperPressed()){
-                toggleFBCamera();
+                toggleCamera();
                 //drive.setHeading(180);
                 //drive.moveCm(1000, 20, 180, 180, 1000);
                 //drive.centerOnAprilTag(8, 40, 0, 180);
@@ -136,6 +141,9 @@ public class TestDrive extends LinearOpMode {
                     drive.MIN_END_VELOCITY -= 10;
                 }
             }
+            drive.sensorTelemetry();
+            drive.visionTelemetry();
+            drive.driveMotorTelemetry();
             telemetry.update();
         }
     }

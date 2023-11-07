@@ -16,6 +16,10 @@
             <Servo name="rKnocker" port="4" />
             <Servo name="lKnocker" port="5" />
 
+            <RevColorSensorV3 name="bottomColor1" port="0" bus="0" />
+            <RevColorSensorV3 name="bottomColor2" port="2" bus="1" />
+
+
 
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
@@ -24,15 +28,18 @@
             <goBILDA5202SeriesMotor name="frm" port="2" />
             <goBILDA5202SeriesMotor name="brm" port="3" />
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <RevColorSensorV3 name="pixelColor" port="0" bus="1" />
 
-            <!--<Servo name = "launcher" port ="5"/>-->
             <Servo name="liftArm" port="4" />
             <Servo name="grabber" port="3" />
             <Servo name="grabberRotator" port="2" />
             <Servo name="grabberStrafer" port="1" />
             <Servo name="flipper" port="0" />
 
-            <AnalogInput name="ult" port="2"/>
+            <AnalogInput name="ult" port="0"/>
+
+            <DigitalDevice name="prx_right" port="1" />
+            <!--<DigitalDevice name="prx" port="3" />/>-->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

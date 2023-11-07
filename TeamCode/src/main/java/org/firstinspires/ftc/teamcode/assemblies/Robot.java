@@ -5,8 +5,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.assemblies.Drive;
-import org.firstinspires.ftc.teamcode.assemblies.OLD.FourWheelDrive;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Robot {
@@ -45,7 +43,7 @@ public class Robot {
     }
 
     public void outputTelemetry(){
-        drive.outputTelemetry();
+        drive.driveMotorTelemetry();
         output.outputTelemetry();
     }
 

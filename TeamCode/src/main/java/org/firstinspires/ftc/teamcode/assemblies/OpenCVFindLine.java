@@ -12,8 +12,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.libs.OpenCVProcesser;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -30,41 +29,48 @@ import java.util.List;
 public class OpenCVFindLine extends OpenCVProcesser {
     HardwareMap hardwareMap;
     Telemetry telemetry;
-    String webcamString;
-    public WebcamName cam;
-    public VisionPortal visionPortal;
     public boolean viewingPipeline = false;
-    public OpenCVFindLine (String webcamName) {
-        webcamString = webcamName;
+    enum Stage {
+        RAW_IMAGE,
+        BLURRED,
+        HSV,
+        THRESHOLD,
+        EDGES
+    }
+    private Stage stageToRenderToViewport = Stage.RAW_IMAGE;
+    private Stage[] stages = Stage.values();
+
+    public OpenCVFindLine () {
+        hardwareMap = teamUtil.theOpMode.hardwareMap;
+        telemetry = teamUtil.telemetry;
     }
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
         teamUtil.log("Initializing OpenCVFindLine processor");
-        hardwareMap = teamUtil.theOpMode.hardwareMap;
-        telemetry = teamUtil.telemetry;
-        cam = hardwareMap.get(WebcamName.class, webcamString);
-        visionPortal = VisionPortal.easyCreateWithDefaults( cam, this);
-        teamUtil.log("Initialized OpenCVFindLine processor");
+
+        teamUtil.log("Initializing OpenCVFindLine processor - FINISHED");
     }
     public void outputTelemetry () {
-        telemetry.addLine(visionPortal.getActiveCamera().getSerialNumber() + ":" + visionPortal.getCameraState()+ " FPS:" + getFPS());
         telemetry.addLine("MidPoint: " + midpoint + " Area:" + largestArea);
     }
-    public void stopStreaming() {
-        visionPortal.stopStreaming();
+
+    public void nextView() {
+
+        int currentStageNum = stageToRenderToViewport.ordinal();
+        int nextStageNum = currentStageNum + 1;
+        if (nextStageNum >= stages.length) {
+            nextStageNum = 0;
+        }
+        stageToRenderToViewport = stages[nextStageNum];
     }
-    public void startStreaming() {
-        visionPortal.resumeStreaming();
-    }
+
     public double getLargestArea() {
         return largestArea;
     }
     public double getMidpoint() {
         return midpoint;
     }
-    public float getFPS() {
-        return visionPortal.getFps();
-    }
+
     Mat HSVMat = new Mat();
     Scalar lowHSV = new Scalar(0, 0, 200); // lower bound HSV for white
     Scalar highHSV = new Scalar(255, 50, 255); // higher bound HSV for white
@@ -102,9 +108,6 @@ public class OpenCVFindLine extends OpenCVProcesser {
                     midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
                 }
             }
-            if (viewingPipeline) {
-                Core.copyTo(HSVMat,frame,null); // replace the input frame with the pipeline image
-            }
             return boundRect; // return the array of bounding rectangles we found
         }
         return null;
@@ -113,11 +116,18 @@ public class OpenCVFindLine extends OpenCVProcesser {
     @Override
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
         // draw rectangles around the objects we found
-        if (viewingPipeline && false) {
+        if (viewingPipeline) {
             Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(HSVMat, bmp);
+            switch (stageToRenderToViewport) {
+                case BLURRED: { Utils.matToBitmap(blurredMat, bmp); break;}
+                case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
+                case THRESHOLD: { Utils.matToBitmap(thresholdMat, bmp); break;}
+                case EDGES: { Utils.matToBitmap(edges, bmp); break;}
+                default: {}
+            }
             canvas.drawBitmap(bmp, 0,0,null);
         }
+
         if (userContext != null) {
             Rect[] boundRects = (Rect[]) userContext;
             Paint rectPaint = new Paint();

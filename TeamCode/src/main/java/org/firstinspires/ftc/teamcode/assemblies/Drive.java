@@ -1,13 +1,18 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -31,7 +36,8 @@ public class Drive {
     // constants
     HardwareMap hardwareMap;
     Telemetry telemetry;
-    public bottomColorSensor colorSensor;
+    public bottomColorSensor tapeSensor1, tapeSensor2;
+    public DigitalChannelController proxmityBackRight;
 
 
     public BNO055IMU imu; //This variable is the imu
@@ -43,18 +49,25 @@ public class Drive {
     public DcMotorEx fr = null;
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
-    public AnalogInput ult = null;
+    public AnalogInput ultLeft = null;
+    public DigitalChannel prxLeft  = null;
+    public DigitalChannel prxRight  = null;
 
-    // April Tage Processor and Cameras
+    //TODO: Add proximity sensor as a digital device
+
+    // Image Processors and Cameras
     public AprilTagProcessor aprilTag;
-    public OpenCVFindLine findLine;
-    public VisionPortal aprilTagPortal;
+    public OpenCVFindLine findLineProcesser;
+    public OpenCVPropFinder findTeamPropProcesser;
+    public VisionPortal visionPortal;
+
+
     boolean aprilTagProcessorRunning = false;
     boolean findLineProcessorRunning = false;
+    boolean findTeamPropProcessorRunning = false;
     public WebcamName frontCam;
     public WebcamName backCam;
-    public WebcamName rightCam;
-    //public WebcamName leftCam;
+    public WebcamName sideCam;
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
     public double COUNTS_PER_CENTIMETER = 17.923;
@@ -94,14 +107,21 @@ public class Drive {
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
-        ult = hardwareMap.analogInput.get("ult");
+        ultLeft = hardwareMap.analogInput.get("ult");
+        //prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
+        prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
+        //prxLeft.setMode(DigitalChannel.Mode.INPUT);
+        prxRight.setMode(DigitalChannel.Mode.INPUT);
 
         // colorSensor.calibrate();
         fl.setDirection(DcMotor.Direction.REVERSE);
         bl.setDirection(DcMotor.Direction.REVERSE);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        //colorSensor = new bottomColorSensor(hardwareMap.get(ColorSensor.class, "bottomColor"));
+        tapeSensor1 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor1"));
+        tapeSensor2 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor2"));
+        tapeSensor1.calibrate();
+        tapeSensor2.calibrate();
 
         //These are the parameters that the imu uses in the code to name and keep track of the data
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -113,27 +133,75 @@ public class Drive {
     }
 
     public void initCV() {
+        teamUtil.log("Initializing Drive CV");
 
-        // Set up the rear facing aprilTag Vision Portal
+        // Setup a single VisionPortal with all cameras and all processers
+        // We will switch betwen cameras and processers as needed
         aprilTag = new AprilTagProcessor.Builder().build();
+        findLineProcesser = new OpenCVFindLine();
+        findTeamPropProcesser = new OpenCVPropFinder();
+
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
-        aprilTagPortal = new VisionPortal.Builder()
-                .setCamera(backCam)
+        frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
+        sideCam = hardwareMap.get(WebcamName.class, "Webcam Right"); // TODO: Depends on Alliance Color!
+
+        CameraName switchableCamera = ClassFactory.getInstance()
+                .getCameraManager().nameForSwitchableCamera(backCam, frontCam, sideCam);
+
+        // Create the vision portal by using a builder.
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(switchableCamera)
                 .addProcessor(aprilTag)
+                .addProcessor(findLineProcesser)
+                .addProcessor(findTeamPropProcesser)
                 .build();
-        aprilTagPortal.stopStreaming(); // Not yet!
-        aprilTagProcessorRunning = false;
 
-        // Set up the front facing line finder
-        findLine = new OpenCVFindLine("Webcam Front");
-        findLine.stopStreaming(); // not yet
-        findLineProcessorRunning = false;
+        teamUtil.pause(2000); // give initial camera a chance to get going
 
-        // Set up the side view Team Prop Finder
-        //rightCam = hardwareMap.get(WebcamName.class, "Webcam Right");
-
-        teamUtil.pause(2000);
+        teamUtil.log("Initializing Drive CV - FINISHED");
     }
+    public void runRearAprilTagProcessor() {
+        visionPortal.setActiveCamera(backCam);
+        visionPortal.setProcessorEnabled(findLineProcesser,false);
+        findLineProcessorRunning=false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
+        findTeamPropProcessorRunning=false;
+        visionPortal.setProcessorEnabled(aprilTag,true);
+        aprilTagProcessorRunning=true;
+    }
+    public void runFrontLineFinderProcessor() {
+        visionPortal.setActiveCamera(frontCam);
+        visionPortal.setProcessorEnabled(aprilTag ,false);
+        aprilTagProcessorRunning=false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
+        findTeamPropProcessorRunning=false;
+        visionPortal.setProcessorEnabled(findLineProcesser,true);
+        findLineProcessorRunning=true;
+    }
+    public void runSideTeamPropFinderProcessor() {
+        visionPortal.setActiveCamera(sideCam);
+        visionPortal.setProcessorEnabled(aprilTag ,false);
+        aprilTagProcessorRunning=false;
+        visionPortal.setProcessorEnabled(findLineProcesser,false);
+        findLineProcessorRunning=false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser,true);
+        findTeamPropProcessorRunning=true;
+    }
+
+    public void visionTelemetry () {
+        if (aprilTagProcessorRunning) {
+            telemetry.addLine("RearCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            for (AprilTagDetection detection : currentDetections) {
+                telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
+            }
+        } else if (findLineProcessorRunning) {
+            telemetry.addLine("FrontCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+            findLineProcesser.outputTelemetry();
+        }
+        //TODO: Add in stuff for sidecam and prop detection
+    }
+
     public void runMotors(double velocity) {
         lastVelocity = velocity;
         fl.setVelocity(velocity);
@@ -590,7 +658,7 @@ public class Drive {
         setMotorPower(0);
     }
     public double getUltrasonicDistance(){
-        double voltage = ult.getVoltage();
+        double voltage = ultLeft.getVoltage();
         double distance = (260/3*(voltage-.55)+36)*2.54; // based on real world distances measured
         return distance;
     }
@@ -635,6 +703,14 @@ public class Drive {
         }
     }
 
+    public boolean getProximity(boolean left){
+        if(!left){
+            return prxRight.getState();
+        }else{
+            //return prxLeft.getState();
+            return false; // TODO: REMOVE ME WHEN ADD NEW THING
+        }
+    }
 
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin
@@ -949,20 +1025,7 @@ public class Drive {
 
 
 
-    public void aprilTagTelemetry () {
-        if (aprilTagProcessorRunning) {
-            telemetry.addLine(aprilTagPortal.getActiveCamera().getSerialNumber() + ":" + aprilTagPortal.getCameraState());
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            for (AprilTagDetection detection : currentDetections) {
-                telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
-            }
-        }
-    }
-    public void LineFinderTelemetry () {
-        if (findLineProcessorRunning) {
-            findLine.outputTelemetry();
-        }
-    }
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values
     // Implements a deadband where joystick position will be ignored (translation and rotation)
@@ -1049,17 +1112,18 @@ public class Drive {
 
         driveJoyStick(rotatedLeftX, rotatedLeftY, rightX, isFast);
     }
-    public void outputTelemetry() {
+    public void driveMotorTelemetry() {
         telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
-                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(),  getHeading());
-        /*
-        telemetry.addData("Is On Line", "%b", colorSensor.isOnTape());
-        telemetry.addData("Red Value ", colorSensor.redValue());
-        telemetry.addData("Blue Value ", colorSensor.blueValue());
-        telemetry.addLine("Target Position Tolerance" + fl.getTargetPositionTolerance());
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
+    }
+    public void sensorTelemetry() {
+        telemetry.addData("On Line:"," %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
+        telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
+        telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
 
-         */
-
+        telemetry.addLine("UltrasonicLeft Distance: "+ getUltrasonicDistance());
+        telemetry.addLine("Right proximity sensor: "+getProximity(false));
+        telemetry.addLine("Left proximity sensor: "+getProximity(true));
     }
 
 
