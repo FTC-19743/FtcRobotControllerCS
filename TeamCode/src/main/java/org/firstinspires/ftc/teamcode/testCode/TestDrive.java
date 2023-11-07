@@ -4,12 +4,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
+import org.firstinspires.ftc.teamcode.assemblies.Intake;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
     Drive drive;
+    Intake intake;
     TeamGamepad gamepad;
     int currentCam = 0;
     public void toggleCamera() {
@@ -37,11 +39,15 @@ public class TestDrive extends LinearOpMode {
     @Override
     public void runOpMode(){
         teamUtil.init(this);
+        teamUtil.alliance = teamUtil.Alliance.RED;
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
+        intake = new Intake();
+        intake.initalize();
         drive = new Drive();
         drive.initalize();
         drive.initCV();
+        drive.runSideTeamPropFinderProcessor();
         double velocity = drive.MAX_VELOCITY;
         telemetry.addLine("Ready");
         telemetry.update();
@@ -56,8 +62,9 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasDownPressed()) {
                 drive.findLineProcesser.nextView(); ;
             }
-            drive.visionTelemetry();
+            intake.outputTelemetry();
             drive.sensorTelemetry();
+            drive.visionTelemetry();
             telemetry.update();
         }
         waitForStart();
@@ -141,9 +148,10 @@ public class TestDrive extends LinearOpMode {
                     drive.MIN_END_VELOCITY -= 10;
                 }
             }
+            drive.driveMotorTelemetry();
+            intake.outputTelemetry();
             drive.sensorTelemetry();
             drive.visionTelemetry();
-            drive.driveMotorTelemetry();
             telemetry.update();
         }
     }

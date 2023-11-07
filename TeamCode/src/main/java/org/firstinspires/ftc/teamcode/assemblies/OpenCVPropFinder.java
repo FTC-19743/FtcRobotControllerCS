@@ -42,48 +42,57 @@ public class OpenCVPropFinder extends OpenCVProcesser {
         teamUtil.log("Initialized OpenCVPropFinder processor");
     }
     public void outputTelemetry () {
+        telemetry.addData("Saturation L/R/M: ", "%.1f/%.1f/%.1f",satRectLeft, satRectMiddle, satRectRight);
         telemetry.addLine("Prop Location: " + propPosition);
     }
 
     Mat HSVMat = new Mat();
-    public Rect rectLeft = new Rect(90, 90, 110, 50);
+    public Rect rectLeft = new Rect(90, 90, 110, 50); // TODO: These probably depend on alliance side, so move to init?
     public Rect rectMiddle = new Rect(400, 50, 110, 60);
-
+    public Rect rectRight = new Rect(490, 90, 110, 50);
 
     List<MatOfPoint> contours = new ArrayList<>();
     double propPosition;
+    double satRectLeft, satRectRight, satRectMiddle;
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
         propPosition = 2;
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
-        double satRectLeft = getAvgSaturation(HSVMat, rectLeft);
-        double satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
-
-        telemetry.addLine("SatLeft: "+ satRectLeft+ " SatMid:"+ satRectMiddle);
-
-        if (Math.abs(satRectMiddle/middleThreshold - satRectLeft/leftThreshold)>percentageError) {
-             if(satRectMiddle/middleThreshold>satRectLeft/leftThreshold){
-                 propPosition = 2;
-             }else{
-                 propPosition = 1;
-             }
-        } else {
+        if (teamUtil.alliance == teamUtil.Alliance.RED) {
+            satRectRight = getAvgSaturation(HSVMat, rectRight);
+            satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
+            satRectLeft = 0;
+            if (Math.abs(satRectMiddle/middleThreshold - satRectLeft/leftThreshold)>percentageError) {
+                if(satRectMiddle/middleThreshold>satRectLeft/leftThreshold){
+                    propPosition = 2;
+                }else{
+                    propPosition = 1;
+                }
+            } else {
                 propPosition = 3;
+            }
+        } else {
+            satRectLeft = getAvgSaturation(HSVMat, rectLeft);
+            satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
+            satRectRight = 0;
+            propPosition = 2;
         }
 
-
-        return satRectLeft; // maybe we don't need to return anything...
+        return null; // No need to pass data to OnDrawFrame
 
     }
 
     @Override
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
-        if (userContext != null) {
-            Paint rectPaint = new Paint();
-            rectPaint.setColor(Color.RED);
-            rectPaint.setStyle(Paint.Style.STROKE);
-            rectPaint.setStrokeWidth(scaleCanvasDensity * 4);
+        Paint rectPaint = new Paint();
+        rectPaint.setColor(Color.RED);
+        rectPaint.setStyle(Paint.Style.STROKE);
+        rectPaint.setStrokeWidth(scaleCanvasDensity * 4);
+        if (teamUtil.alliance == teamUtil.Alliance.RED) {
+            canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
+            canvas.drawRect(makeGraphicsRect(rectRight, scaleBmpPxToCanvasPx), rectPaint);
+        } else {
             canvas.drawRect(makeGraphicsRect(rectLeft, scaleBmpPxToCanvasPx), rectPaint);
             canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
         }

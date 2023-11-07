@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.assemblies.OLD.bottomColorSensor;
+import org.firstinspires.ftc.teamcode.libs.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -50,8 +50,7 @@ public class Drive {
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
     public AnalogInput ultLeft = null;
-    public DigitalChannel prxLeft  = null;
-    public DigitalChannel prxRight  = null;
+    public DigitalChannel prxLeft  = null, prxRight  = null;
 
     //TODO: Add proximity sensor as a digital device
 
@@ -108,9 +107,9 @@ public class Drive {
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
         ultLeft = hardwareMap.analogInput.get("ult");
-        //prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
+        prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
         prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
-        //prxLeft.setMode(DigitalChannel.Mode.INPUT);
+        prxLeft.setMode(DigitalChannel.Mode.INPUT);
         prxRight.setMode(DigitalChannel.Mode.INPUT);
 
         // colorSensor.calibrate();
@@ -143,7 +142,11 @@ public class Drive {
 
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
         frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
-        sideCam = hardwareMap.get(WebcamName.class, "Webcam Right"); // TODO: Depends on Alliance Color!
+        if (teamUtil.alliance == teamUtil.Alliance.RED) {
+            sideCam = hardwareMap.get(WebcamName.class, "Webcam Right");
+        } else {
+            sideCam = hardwareMap.get(WebcamName.class, "Webcam Right"); // TODO: Should be left once webcam is installed
+        }
 
         CameraName switchableCamera = ClassFactory.getInstance()
                 .getCameraManager().nameForSwitchableCamera(backCam, frontCam, sideCam);
@@ -188,6 +191,31 @@ public class Drive {
         findTeamPropProcessorRunning=true;
     }
 
+    public double getUltrasonicDistance(){
+        double voltage = ultLeft.getVoltage();
+        double distance = (260/3*(voltage-.55)+36)*2.54; // based on real world distances measured
+        return distance;
+    }
+    public boolean getProximity(boolean left){
+        if(!left){
+            return !prxRight.getState();
+        }else{
+            return !prxLeft.getState();
+        }
+    }
+    public void driveMotorTelemetry() {
+        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
+    }
+    public void sensorTelemetry() {
+        telemetry.addData("On Line:"," %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
+        telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
+        telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
+
+        telemetry.addData("UltrasonicLeft Distance: ", "%.1f", getUltrasonicDistance());
+        telemetry.addLine("Right proximity sensor: "+getProximity(false));
+        telemetry.addLine("Left proximity sensor: "+getProximity(true));
+    }
     public void visionTelemetry () {
         if (aprilTagProcessorRunning) {
             telemetry.addLine("RearCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
@@ -199,7 +227,10 @@ public class Drive {
             telemetry.addLine("FrontCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
             findLineProcesser.outputTelemetry();
         }
-        //TODO: Add in stuff for sidecam and prop detection
+        else if (findTeamPropProcessorRunning) {
+            telemetry.addLine("SideCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+            findTeamPropProcesser.outputTelemetry();
+        }
     }
 
     public void runMotors(double velocity) {
@@ -657,11 +688,7 @@ public class Drive {
         setMotorsBrake();
         setMotorPower(0);
     }
-    public double getUltrasonicDistance(){
-        double voltage = ultLeft.getVoltage();
-        double distance = (260/3*(voltage-.55)+36)*2.54; // based on real world distances measured
-        return distance;
-    }
+
     public void stopAtUltDistance(double distanceFromWall, double robotHeading, double driveHeading){
         boolean details = true;
         MotorData data = new MotorData();
@@ -703,14 +730,7 @@ public class Drive {
         }
     }
 
-    public boolean getProximity(boolean left){
-        if(!left){
-            return !prxRight.getState();
-        }else{
-            //return !prxLeft.getState();
-            return false; // TODO: REMOVE ME WHEN ADD NEW THING
-        }
-    }
+
 
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin
@@ -1112,19 +1132,7 @@ public class Drive {
 
         driveJoyStick(rotatedLeftX, rotatedLeftY, rightX, isFast);
     }
-    public void driveMotorTelemetry() {
-        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
-                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
-    }
-    public void sensorTelemetry() {
-        telemetry.addData("On Line:"," %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
-        telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
-        telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
 
-        telemetry.addLine("UltrasonicLeft Distance: "+ getUltrasonicDistance());
-        telemetry.addLine("Right proximity sensor: "+getProximity(false));
-        telemetry.addLine("Left proximity sensor: "+getProximity(true));
-    }
 
 
 

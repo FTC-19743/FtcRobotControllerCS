@@ -1,13 +1,17 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.CRServoImpl;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Intake {
@@ -17,7 +21,10 @@ public class Intake {
     public Servo rKnocker;
     public CRServo kicker;
     public CRServo sweeper;
-    public static double[] pixelStackLevels = {.1,.2,.3,.4};
+
+    private ColorSensor pixelSensor;
+    //public DistanceSensor pixelDistance;
+
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
@@ -53,6 +60,9 @@ public class Intake {
         rKnocker = hardwareMap.get(Servo.class,"rKnocker");
         lKnocker = hardwareMap.get(Servo.class,"lKnocker");
         store();
+        pixelSensor = hardwareMap.get(RevColorSensorV3.class, "pixelSensor");
+        //pixelDistance = hardwareMap.get(DistanceSensor.class, "pixelSensor");
+
         teamUtil.log("Intake Initialized ");
     }
 
@@ -100,6 +110,8 @@ public class Intake {
         }
     }
     public void outputTelemetry() {
-
+        telemetry.addData("PixelSensor  ", "RGBA: %d %d %d %d ",
+                pixelSensor.red(), pixelSensor.green(), pixelSensor.blue(), pixelSensor.alpha());
+        //telemetry.addData("PixelDistance ", "Distance:%.3f", pixelDistance.getDistance(DistanceUnit.MM));
     }
 }
