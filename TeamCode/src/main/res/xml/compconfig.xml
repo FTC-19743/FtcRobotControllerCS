@@ -39,7 +39,7 @@
             <AnalogInput name="ult" port="0"/>
 
             <DigitalDevice name="prx_right" port="1" />
-            <!--<DigitalDevice name="prx" port="3" />/>-->
+            <!--<DigitalDevice name="prx_left" port="3" />/>-->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

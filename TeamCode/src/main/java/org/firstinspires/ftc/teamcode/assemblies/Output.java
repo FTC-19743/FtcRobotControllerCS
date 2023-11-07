@@ -54,6 +54,7 @@ public class Output {
     public static double StraferIncrement = 0.025;
     public static double GrabberOpen = 0.55;
     public static double GrabberClosed = 0.73;
+    public static double GrabberOnePixel = .81;
     public static int StallBuffer = 225;
 
     private DcMotorEx elevLeft;
@@ -145,6 +146,15 @@ public class Output {
             return;
         } else {
             grabber.setPosition(GrabberClosed);
+        }
+    }
+
+    public void grabOnePixel(){
+        if (moving.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to grab pixels while output system is moving--ignored");
+            return;
+        } else {
+            grabber.setPosition(GrabberOnePixel);
         }
     }
 

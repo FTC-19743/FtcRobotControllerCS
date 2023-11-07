@@ -705,9 +705,9 @@ public class Drive {
 
     public boolean getProximity(boolean left){
         if(!left){
-            return prxRight.getState();
+            return !prxRight.getState();
         }else{
-            //return prxLeft.getState();
+            //return !prxLeft.getState();
             return false; // TODO: REMOVE ME WHEN ADD NEW THING
         }
     }
