@@ -75,7 +75,7 @@ public class Robot {
             drive.moveCm(5,270);
             drive.moveCm(60,0,350);//TODO:change to min end when callibrated
             teamUtil.pause(500);
-            while (!drive.tapeSensor1.isOnTape()){ // TODO:change this to either
+            while (!drive.tapeSensor1.isOnTape()||!drive.tapeSensor2.isOnTape()){ // TODO:change this to either
             }
             drive.setMotorsActiveBrake();
 
