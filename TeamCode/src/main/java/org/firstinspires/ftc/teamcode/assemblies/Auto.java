@@ -27,10 +27,10 @@ public class Auto extends LinearOpMode {
             robot.drive.visionTelemetry();
         }
         waitForStart();
-        while (opModeIsActive()) {
+        robot.auto(2,false);
 
 
-        }
+
     }
 }
 

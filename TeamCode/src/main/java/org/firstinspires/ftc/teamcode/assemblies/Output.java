@@ -339,6 +339,31 @@ public class Output {
         }
     }
 
+    public void goToScoreLevel(int level) {
+        moving.set(true);
+        elevLeft.setVelocity(elevatorMaxVelocity);
+        elevRight.setVelocity(elevatorMaxVelocity);
+        log("Go To Score");
+        grabber.setPosition(GrabberClosed);
+        teamUtil.pause(250);
+        intake.stopIntake();
+
+        elevLeft.setTargetPosition(elevatorScoreLevel3);
+        elevRight.setTargetPosition(elevatorScoreLevel3);
+        while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
+        }
+        flipper.setPosition(flipperScore);
+        grabberRotater.setPosition(GrabberRotatorHorizontal2);
+        rotaterPosition = rotaterPosition.HORIZONTAL;
+
+
+        log("Go To Score-Finished");
+        moving.set(false);
+        loading = false;
+    }
+
+
+
     public void outputTelemetry() {
         telemetry.addData("Output  ", "ElevL: %d, ElevR: %d", elevLeft.getCurrentPosition(), elevRight.getCurrentPosition());
         telemetry.addData("Output  ", "Flip: %f, Strafe: %f, Rotate: %f, Grab: %f",

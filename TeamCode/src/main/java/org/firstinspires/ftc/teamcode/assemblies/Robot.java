@@ -52,8 +52,33 @@ public class Robot {
         output.goToLoad(); // ready to load
     }
 
-    public void auto(){
-        //TODO
+    public void auto(int path, boolean left){
+        drive.setHeading(180);
+        if(path==1&&left){
+
+        }
+        else if(path==2&&left){
+
+        }
+        else if(path==3&&left){
+
+        }
+        else if(!left&&path==1){
+            //out 32.5 inches
+            drive.moveCm(82.55,180);
+        }
+
+        else if(!left&&path==2){
+            //out 32.5 inches
+            drive.moveCm(82.55,180);
+            drive.moveCm(5,0);
+            drive.driveMotorsHeadings(90,180,1000);
+            teamUtil.pause(500);
+            while (!drive.tapeSensor1.isOnTape()){
+            }
+            drive.stopMotors();
+
+        }
 
     }
 
