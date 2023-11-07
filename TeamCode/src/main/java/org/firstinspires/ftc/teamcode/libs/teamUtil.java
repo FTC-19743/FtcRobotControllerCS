@@ -9,10 +9,15 @@ public class teamUtil {
     public static LinearOpMode theOpMode;
     public static boolean inInitialization = true;
     public static Telemetry telemetry;
-    public static boolean LEFT;
-    public enum Alliance {RED, BLUE}
+    public static boolean justRanAuto = false;
 
+    public enum Alliance {RED, BLUE}
     public static Alliance alliance = Alliance.RED;
+    public enum Side {WING, SCORE}
+    public static Side SIDE = Side.WING;
+
+    public static boolean LEFT = true; // Don't use this anymore!
+
 
     public static void init (LinearOpMode opMode) {
         theOpMode = opMode;

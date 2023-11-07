@@ -28,7 +28,9 @@ public class Teleop extends LinearOpMode {
         armsGamepad.initilize(false);
         robot = new Robot();
         robot.initialize();
-        robot.calibrate();
+        if (!teamUtil.justRanAuto) { // Auto already took care of this, so save time.
+            robot.calibrate();
+        }
         telemetry.addLine("Ready to start");
         telemetry.update();
         double manualSpeedElevator = 100;

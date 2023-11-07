@@ -52,8 +52,6 @@ public class Drive {
     public AnalogInput ultLeft = null;
     public DigitalChannel prxLeft  = null, prxRight  = null;
 
-    //TODO: Add proximity sensor as a digital device
-
     // Image Processors and Cameras
     public AprilTagProcessor aprilTag;
     public OpenCVFindLine findLineProcesser;
@@ -730,7 +728,17 @@ public class Drive {
         }
     }
 
-
+    // drive until either sensor sees some tape or we time out.
+    // Returns true if it was successful, false if it timed out
+    // Does NOT stop motors at end!
+    public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout ) {
+        log ("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+        }
+        return System.currentTimeMillis() < timeOutTime;
+    }
 
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin

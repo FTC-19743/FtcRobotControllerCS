@@ -70,7 +70,7 @@ public class Lift {
         liftSpindle.setVelocity(-liftSpindleVelocity);
     }
     public void stopLift()
-    { // TODO: Might want to switch to Run TO Position and set target to current position.
+    {
         liftSpindle.setVelocity(0);
     }
     public void holdLift(){

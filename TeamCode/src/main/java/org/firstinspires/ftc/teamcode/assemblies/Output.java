@@ -82,17 +82,18 @@ public class Output {
 
     }
 
-    public void initalize(){
+    public void initialize(){
         teamUtil.log("Initializing Output");
         elevLeft = hardwareMap.get(DcMotorEx.class, "elevLeft");
         elevRight = hardwareMap.get(DcMotorEx.class, "elevRight");
         elevLeft.setDirection(DcMotor.Direction.REVERSE); // Positive is UP on both motors
         moving = new AtomicBoolean(false);
 
+        flipper = hardwareMap.get(Servo.class,"flipper");
+        flipper.setPosition(flipperLoad);
         grabber = hardwareMap.get(Servo.class,"grabber");
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
-        flipper = hardwareMap.get(Servo.class,"flipper");
 
         teamUtil.log("Output Initialized ");
     }
@@ -305,8 +306,10 @@ public class Output {
         elevLeft.setVelocity(elevatorMaxVelocity);
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
-        grabber.setPosition(GrabberClosed);
-        teamUtil.pause(250);
+        if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
+            grabber.setPosition(GrabberClosed);
+            teamUtil.pause(250);
+        }
         intake.stopIntake();
 
         elevLeft.setTargetPosition(elevatorScoreLevel3);

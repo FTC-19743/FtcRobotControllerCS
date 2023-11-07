@@ -28,6 +28,12 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     HardwareMap hardwareMap;
     Telemetry telemetry;
 
+
+    Mat HSVMat = new Mat();
+    public Rect rectLeft, rectMiddle, rectRight;
+
+    double propPosition;
+    double satRectLeft, satRectRight, satRectMiddle;
     double middleThreshold = 300; // tenative
     double leftThreshold = 300; // tenative
     double percentageError = 0.05;
@@ -38,7 +44,15 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
         teamUtil.log("Initializing OpenCVPropFinder processor");
-
+        if (teamUtil.alliance== teamUtil.Alliance.RED) {
+            rectLeft = new Rect(0, 0, 1, 1);
+            rectMiddle = new Rect(200, 100, 100, 100);
+            rectRight = new Rect(550, 100, 90, 100);
+        } else { // TODO: Need to set up the correct Rectangles for the Blue Side
+            rectLeft = new Rect(0, 0, 1, 1);
+            rectMiddle = new Rect(200, 100, 100, 100);
+            rectRight = new Rect(550, 100, 90, 100);
+        }
         teamUtil.log("Initialized OpenCVPropFinder processor");
     }
     public void outputTelemetry () {
@@ -46,14 +60,6 @@ public class OpenCVPropFinder extends OpenCVProcesser {
         telemetry.addLine("Prop Location: " + propPosition);
     }
 
-    Mat HSVMat = new Mat();
-    public Rect rectLeft = new Rect(90, 90, 110, 50); // TODO: These probably depend on alliance side, so move to init?
-    public Rect rectMiddle = new Rect(400, 50, 110, 60);
-    public Rect rectRight = new Rect(490, 90, 110, 50);
-
-    List<MatOfPoint> contours = new ArrayList<>();
-    double propPosition;
-    double satRectLeft, satRectRight, satRectMiddle;
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
@@ -85,10 +91,21 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     @Override
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
+
+        // draw a grid on the view
+        Paint linePaint = new Paint();
+        linePaint.setColor(Color.WHITE);
+        //linePaint.setStyle(Paint.Style.STROKE);
+        //linePaint.setStrokeWidth(scaleCanvasDensity * 4);
+        for (int i=100;i<onscreenHeight;i=i+100){ canvas.drawLine(0,i,onscreenWidth ,i,linePaint);  }
+        for (int i=100;i<onscreenWidth;i=i+100){ canvas.drawLine(i,0,i,onscreenHeight,linePaint);  }
+
+        //Add the rectangles that we are sampling within
         Paint rectPaint = new Paint();
         rectPaint.setColor(Color.RED);
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setStrokeWidth(scaleCanvasDensity * 4);
+
         if (teamUtil.alliance == teamUtil.Alliance.RED) {
             canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
             canvas.drawRect(makeGraphicsRect(rectRight, scaleBmpPxToCanvasPx), rectPaint);
