@@ -28,6 +28,9 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     HardwareMap hardwareMap;
     Telemetry telemetry;
 
+    double middleThreshold = 300; // tenative
+    double leftThreshold = 300; // tenative
+    double percentageError = 0.05;
     public OpenCVPropFinder () {
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         telemetry = teamUtil.telemetry;
@@ -58,7 +61,17 @@ public class OpenCVPropFinder extends OpenCVProcesser {
         double satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
 
         telemetry.addLine("SatLeft: "+ satRectLeft+ " SatMid:"+ satRectMiddle);
-        // TODO: logic goes here
+
+        if (Math.abs(satRectMiddle/middleThreshold - satRectLeft/leftThreshold)>percentageError) {
+             if(satRectMiddle/middleThreshold>satRectLeft/leftThreshold){
+                 propPosition = 2;
+             }else{
+                 propPosition = 1;
+             }
+        } else {
+                propPosition = 3;
+        }
+
 
         return satRectLeft; // maybe we don't need to return anything...
 
