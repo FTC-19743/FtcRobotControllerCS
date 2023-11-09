@@ -58,6 +58,8 @@ public class Drive {
     public OpenCVPropFinder findTeamPropProcesser;
     public VisionPortal visionPortal;
 
+    public double noAprilTag = 999.0;
+
 
     boolean aprilTagProcessorRunning = false;
     boolean findLineProcessorRunning = false;
@@ -736,6 +738,7 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+
         }
         return System.currentTimeMillis() < timeOutTime;
     }
@@ -1052,7 +1055,25 @@ public class Drive {
     }
 
 
+    public double returnAprilTagIDOffset(int id, long timeout){
 
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        while(teamUtil.keepGoing(timeOutTime)){
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+
+            for(AprilTagDetection detection : detections){
+                if(detection.id == id){
+                    log("April Tag Detected");
+
+                    return  detection.ftcPose.x*CMS_PER_INCH;
+                }
+            } // TODO: do more tries
+        }
+        log("No April Tag Seen");
+        return noAprilTag;
+
+
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values

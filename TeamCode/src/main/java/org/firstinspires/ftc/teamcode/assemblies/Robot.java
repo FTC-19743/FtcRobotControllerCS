@@ -77,10 +77,12 @@ public class Robot {
 
         else if(!left&&path==2){
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(82.55,fieldSide());
-            drive.moveCm(5,driverSide());
-            drive.moveCm(60,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
-            teamUtil.pause(500); // TODO: Why?
+            drive.moveCm(86,fieldSide());
+            drive.moveCm(8.5,driverSide());
+            output.goToScoreNoWait(1);
+            drive.moveCm(40,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
+            double aprilTagOffset = drive.returnAprilTagIDOffset(5,500);
+            log("aprilTagOffset"+aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
@@ -90,8 +92,25 @@ public class Robot {
 
             drive.setMotorsActiveBrake();
 
+
+            if(aprilTagOffset>Math.abs(3.25)){
+                if(aprilTagOffset<0){
+                    drive.moveCm(3.25,driverSide());
+                }
+                else{
+                    drive.moveCm(3.25,fieldSide());
+                }
+            }
+            output.dropPixels();
+            teamUtil.pause(1000);
+            output.goToLoadNoWait();
+            drive.moveCm(60,fieldSide());
+
+
+
+
         }
-        teamUtil.pause(1000); // TODO: Remove this for competition, just helps with debugging auto as it is developed
+        teamUtil.pause(5000); // TODO: Remove this for competition, just helps with debugging auto as it is developed
 
     }
 

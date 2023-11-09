@@ -88,7 +88,7 @@ public class Teleop extends LinearOpMode {
                 robot.output.goToLoadNoWait();
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
-                robot.output.goToScoreNoWait();
+                robot.output.goToScoreNoWait(3);
             }
 
             if(armsGamepad.wasLeftBumperPressed()){

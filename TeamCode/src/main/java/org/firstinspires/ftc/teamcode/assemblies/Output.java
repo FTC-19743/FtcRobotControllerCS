@@ -180,9 +180,6 @@ public class Output {
     }
 
 
-    public void goToLevel(int level){
-
-   }
 
    public void elevManual(double increment){
        if (moving.get() || loading) { // Output system is already moving in a long running operation
@@ -301,8 +298,9 @@ public class Output {
     }
 
     // Grab the pixels and get into scoring position
-    public void goToScore() {
+    public void goToScore(int level) {
         moving.set(true);
+        int elevDestination = elevatorMinScoreLevel + (level-1)*elevatorScoreInc;
         elevLeft.setVelocity(elevatorMaxVelocity);
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
@@ -312,20 +310,27 @@ public class Output {
         }
         intake.stopIntake();
 
-        elevLeft.setTargetPosition(elevatorScoreLevel3);
-        elevRight.setTargetPosition(elevatorScoreLevel3);
+        elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
+        elevRight.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
+
+
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
         }
         flipper.setPosition(flipperScore);
         grabberRotater.setPosition(GrabberRotatorHorizontal2);
         rotaterPosition = rotaterPosition.HORIZONTAL;
+        elevLeft.setTargetPosition(elevDestination);
+        elevRight.setTargetPosition(elevDestination);
+        //TODO add while loop that makes sure that lift finishes
 
+        while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
+        }
 
         log("Go To Score-Finished");
         moving.set(false);
         loading = false;
     }
-    public void goToScoreNoWait() {
+    public void goToScoreNoWait(int level) {
         if (moving.get()) { // Output system is already moving in a long running operation
             teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
             return;
@@ -335,35 +340,14 @@ public class Output {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    goToScore();
+                    goToScore(level);
                 }
             });
             thread.start();
         }
     }
 
-    public void goToScoreLevel(int level) {
-        moving.set(true);
-        elevLeft.setVelocity(elevatorMaxVelocity);
-        elevRight.setVelocity(elevatorMaxVelocity);
-        log("Go To Score");
-        grabber.setPosition(GrabberClosed);
-        teamUtil.pause(250);
-        intake.stopIntake();
 
-        elevLeft.setTargetPosition(elevatorScoreLevel3);
-        elevRight.setTargetPosition(elevatorScoreLevel3);
-        while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
-        }
-        flipper.setPosition(flipperScore);
-        grabberRotater.setPosition(GrabberRotatorHorizontal2);
-        rotaterPosition = rotaterPosition.HORIZONTAL;
-
-
-        log("Go To Score-Finished");
-        moving.set(false);
-        loading = false;
-    }
 
 
 
