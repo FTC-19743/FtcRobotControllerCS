@@ -304,10 +304,21 @@ public class Output {
         elevLeft.setVelocity(elevatorMaxVelocity);
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
-        if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
-            grabber.setPosition(GrabberClosed);
-            teamUtil.pause(250);
+
+        if (intake.twoPixelsPresent() == true){
+            if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
+                grabPixels();
+                teamUtil.pause(250);
+            }
         }
+        else{
+            if(grabber.getPosition()< GrabberOpen + .1) {
+                grabOnePixel();
+                teamUtil.pause(250);
+            }
+            //In theory this would grab either one or two pixels depending on whether or not twoPixelsPresent() is true
+        }
+
         intake.stopIntake();
 
         elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
