@@ -110,6 +110,16 @@ public class Intake {
         }
     }
 
+    public void autoOff(){
+        if(intakeRunning) {
+            if(twoPixelsPresent() == true){
+                intakeRunning=false;
+                sweeper.setPower(0);
+                kicker.setPower(.1);
+            }
+        }
+    }
+
     public boolean twoPixelsPresent(){
         if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
             return true;
