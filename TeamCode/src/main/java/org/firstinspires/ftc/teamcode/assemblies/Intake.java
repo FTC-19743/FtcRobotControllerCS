@@ -25,6 +25,10 @@ public class Intake {
     private ColorSensor pixelSensor;
     //public DistanceSensor pixelDistance;
 
+    private long lastTimePixelSeen = 0;
+
+    public static double PIXELSENSORTIME = 300;
+
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
@@ -113,9 +117,17 @@ public class Intake {
     public void autoOff(){
         if(intakeRunning) {
             if(twoPixelsPresent() == true){
-                intakeRunning=false;
-                sweeper.setPower(0);
-                kicker.setPower(.1);
+                if(lastTimePixelSeen == 0) {
+                    lastTimePixelSeen = System.currentTimeMillis();
+                }
+                else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
+                    intakeRunning = false;
+                    sweeper.setPower(0);
+                    kicker.setPower(.1);
+                }
+            }
+            else{
+                lastTimePixelSeen = 0;
             }
         }
     }
