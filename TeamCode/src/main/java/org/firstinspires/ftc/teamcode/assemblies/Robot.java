@@ -94,23 +94,19 @@ public class Robot {
             drive.setMotorsActiveBrake();
 
 
-            if(Math.abs(aprilTagOffset)>3.25){
-                if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
-                }
-                else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
 
-                }
 
+
+            if(aprilTagOffset>Math.abs(3.25)){
+                if(aprilTagOffset<0){
+                    drive.moveCm(aprilTagOffset,driverSide());
+                }
                 else{
-                    drive.moveCm(15,fieldSide());
+                    drive.moveCm(aprilTagOffset,fieldSide());
                 }
             }
             output.dropPixels();
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
-
             output.goToLoadNoWait();
             drive.moveCm(60,fieldSide());
 
