@@ -296,7 +296,6 @@ public class Output {
             thread.start();
         }
     }
-
     // Grab the pixels and get into scoring position
     public void goToScore(int level) {
         moving.set(true);
