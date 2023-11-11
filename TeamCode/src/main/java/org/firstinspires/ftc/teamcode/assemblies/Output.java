@@ -309,13 +309,13 @@ public class Output {
 
         //if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
-                grabPixels();
+                grabber.setPosition(GrabberClosed);
                 teamUtil.pause(250);
             }
         //}
         //else{
             if(grabber.getPosition()< GrabberOpen + .1) {
-                grabOnePixel();
+                grabber.setPosition(GrabberOnePixel);
                 teamUtil.pause(250);
             }
             //In theory this would grab either one or two pixels depending on whether or not twoPixelsPresent() is true
