@@ -109,9 +109,19 @@ public class Intake {
             kicker.setPower(.1);
         }
     }
+
+    public boolean twoPixelsPresent(){
+        if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     public void outputTelemetry() {
         telemetry.addData("PixelSensor  ", "RGBA: %d %d %d %d ",
                 pixelSensor.red(), pixelSensor.green(), pixelSensor.blue(), pixelSensor.alpha());
+        telemetry.addData("TwoPixelsPresent  ", "TF: %b ", twoPixelsPresent());
         //telemetry.addData("PixelDistance ", "Distance:%.3f", pixelDistance.getDistance(DistanceUnit.MM));
     }
 }
