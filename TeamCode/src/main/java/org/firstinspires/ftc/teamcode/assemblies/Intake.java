@@ -114,6 +114,16 @@ public class Intake {
         }
     }
 
+    public void grabTwoPixels(){
+        collect();
+        teamUtil.pause(500); // TENATIVE VALUE
+        ready();
+        teamUtil.pause(300);// TENATIVE VALUE
+        collect();
+        teamUtil.pause(300);// TENATIVE VALUE
+        store();
+    }
+
     public void autoOff(){
         if(intakeRunning) {
             if(twoPixelsPresent() == true){

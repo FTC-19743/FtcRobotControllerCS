@@ -736,8 +736,21 @@ public class Drive {
     public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout ) {
         log ("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
-        while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
-            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+        if(tapeSensor1.isOnTape()){
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+
+            }
+        }else if(tapeSensor2.isOnTape()){
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+
+            }
+        }else {
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+
+            }
 
         }
         return System.currentTimeMillis() < timeOutTime;

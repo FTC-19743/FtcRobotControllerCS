@@ -56,6 +56,7 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
+            teamUtil.log("Alliance chosen:" + teamUtil.alliance);
         }
         while(!gamepad.wasAPressed()){
             gamepad.loop();
@@ -69,6 +70,7 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
+            teamUtil.log("Side chosen: "+teamUtil.SIDE);
         }
         teamUtil.telemetry.addLine("Initializing Cameras and Starting Stream");
         teamUtil.telemetry.addLine("Please wait");
@@ -95,10 +97,12 @@ public class Auto extends LinearOpMode {
         while(!opModeIsActive()){
             telemetry.addLine("Ready to Go!");
             telemetry.addLine("Path: "+robot.drive.findTeamPropProcesser.propPosition);
+            telemetry.addLine("Side: "+teamUtil.SIDE.toString());
             telemetry.update();
         }
+
         waitForStart();
-        robot.auto(robot.drive.findTeamPropProcesser.propPosition,false); // TODO: Fix Left to Use configured option
+        robot.auto(robot.drive.findTeamPropProcesser.propPosition,teamUtil.SIDE);
 
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }

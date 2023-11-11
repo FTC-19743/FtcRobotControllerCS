@@ -61,6 +61,7 @@ public class Output {
     private DcMotorEx elevRight;
     public Servo grabber;
     public Servo grabberRotater;
+    public int lastLevel = 2;
 
     public enum rotationPosition {
         HORIZONTAL, PIOVERTHREE, TWOPIOVERTHREE, VERTICAL
@@ -250,6 +251,7 @@ public class Output {
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
+        lastLevel = ((elevLeft.getCurrentPosition()+elevRight.getCurrentPosition())/2-elevatorMinScoreLevel)/elevatorScoreInc;
         moving.set(true);
 
         log("Go To Load");
@@ -305,19 +307,19 @@ public class Output {
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
 
-        if (intake.twoPixelsPresent() == true){
+        //if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
                 grabPixels();
                 teamUtil.pause(250);
             }
-        }
-        else{
+        //}
+        //else{
             if(grabber.getPosition()< GrabberOpen + .1) {
                 grabOnePixel();
                 teamUtil.pause(250);
             }
             //In theory this would grab either one or two pixels depending on whether or not twoPixelsPresent() is true
-        }
+        //}
 
         intake.stopIntake();
 
