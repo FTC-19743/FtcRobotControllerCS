@@ -54,6 +54,8 @@ public class Teleop extends LinearOpMode {
                     robot.drive.getHeading());
 
             ////////// Intake
+            robot.intake.autoOff();
+
             if(armsGamepad.wasLeftTriggerPressed()){
                 robot.intake.toggleIntake();
             }
@@ -68,6 +70,13 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasDownPressed()){
                 robot.intake.store();
             }
+            /*
+            if(driverGamepad.wasDownPressed()){
+                robot.auto(1,false);
+            }
+
+
+             */
 
 
             ////////// Lift

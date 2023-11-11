@@ -78,11 +78,13 @@ public class Auto extends LinearOpMode {
 
         while(!gamepad.wasAPressed()){
             gamepad.loop();
+
             if(gamepad.wasLeftPressed()){ robot.output.dropPixels();}
             if(gamepad.wasRightPressed()){robot.output.grabOnePixel();}
 
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
+            teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.propPosition);
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad to grab/release)");
             teamUtil.telemetry.addLine("------------------------------------");
@@ -96,7 +98,7 @@ public class Auto extends LinearOpMode {
             telemetry.update();
         }
         waitForStart();
-        robot.auto(2,false); // TODO: Hook up to TeamProp Detector for correct Path
+        robot.auto(robot.drive.findTeamPropProcesser.propPosition,false); // TODO: Fix Left to Use configured option
 
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }

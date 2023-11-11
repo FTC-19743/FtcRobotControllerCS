@@ -32,10 +32,10 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     Mat HSVMat = new Mat();
     public Rect rectLeft, rectMiddle, rectRight;
 
-    double propPosition;
+    int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
-    double middleThreshold = 300; // tenative
-    double leftThreshold = 300; // tenative
+    double middleThreshold = 50; // tenative
+    double leftThreshold = 50; // tenative
     double percentageError = 0.05;
     public OpenCVPropFinder () {
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -47,7 +47,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
         if (teamUtil.alliance== teamUtil.Alliance.RED) {
             rectLeft = new Rect(0, 0, 1, 1);
             rectMiddle = new Rect(200, 100, 100, 100);
-            rectRight = new Rect(550, 100, 90, 100);
+            rectRight = new Rect(500, 125, 110, 100);
         } else { // TODO: Need to set up the correct Rectangles for the Blue Side
             rectLeft = new Rect(0, 0, 1, 1);
             rectMiddle = new Rect(200, 100, 100, 100);
@@ -69,15 +69,19 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             satRectRight = getAvgSaturation(HSVMat, rectRight);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
             satRectLeft = 0;
-            if (Math.abs(satRectMiddle/middleThreshold - satRectLeft/leftThreshold)>percentageError) {
-                if(satRectMiddle/middleThreshold>satRectLeft/leftThreshold){
-                    propPosition = 2;
-                }else{
-                    propPosition = 1;
-                }
-            } else {
+
+            if(satRectRight> 50){
                 propPosition = 3;
             }
+            else if(satRectMiddle>50){
+                propPosition = 2;
+            }
+            else{
+                propPosition = 1;
+            }
+
+
+
         } else {
             satRectLeft = getAvgSaturation(HSVMat, rectLeft);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);

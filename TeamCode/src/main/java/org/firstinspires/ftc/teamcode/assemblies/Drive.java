@@ -145,7 +145,7 @@ public class Drive {
         if (teamUtil.alliance == teamUtil.Alliance.RED) {
             sideCam = hardwareMap.get(WebcamName.class, "Webcam Right");
         } else {
-            sideCam = hardwareMap.get(WebcamName.class, "Webcam Right"); // TODO: Should be left once webcam is installed
+            sideCam = hardwareMap.get(WebcamName.class, "Webcam Left");
         }
 
         CameraName switchableCamera = ClassFactory.getInstance()

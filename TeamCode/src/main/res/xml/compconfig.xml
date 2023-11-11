@@ -3,6 +3,8 @@
     <Webcam name="Webcam Rear" serialNumber="BB3B2F40" />
     <Webcam name="Webcam Front" serialNumber="72807370" />
     <Webcam name="Webcam Right" serialNumber="12D5F020" />
+    <Webcam name="Webcam Left" serialNumber="SN0001" />
+
     <!---<Webcam name="Webcam Left" serialNumber="989ECEC0" /> -->
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
