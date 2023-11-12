@@ -90,7 +90,7 @@ public class Intake {
 
     public void reverseIntake(){
         sweeper.setPower(-1*sweeperDirection);
-        kicker.setPower(-1*kickerDirection);
+        kicker.setPower(.1*kickerDirection);
     }
 
     public void stopIntake(){
