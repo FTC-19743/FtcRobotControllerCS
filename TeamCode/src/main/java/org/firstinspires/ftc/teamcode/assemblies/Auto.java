@@ -56,7 +56,6 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
-            teamUtil.log("Alliance chosen:" + teamUtil.alliance);
         }
         while(!gamepad.wasAPressed()){
             gamepad.loop();
@@ -70,7 +69,6 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
-            teamUtil.log("Side chosen: "+teamUtil.SIDE);
         }
         teamUtil.telemetry.addLine("Initializing Cameras and Starting Stream");
         teamUtil.telemetry.addLine("Please wait");

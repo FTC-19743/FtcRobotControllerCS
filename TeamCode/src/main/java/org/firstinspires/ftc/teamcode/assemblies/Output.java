@@ -71,6 +71,7 @@ public class Output {
     public Servo flipper;
 
     public Intake intake;
+    boolean details = true;
 
 
     private AtomicBoolean moving;
@@ -306,19 +307,25 @@ public class Output {
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
 
-        //if (intake.twoPixelsPresent() == true){
+        if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
-                grabPixels();
+                grabber.setPosition(GrabberClosed);
                 teamUtil.pause(250);
+                if(details){
+                    log("Grabbing 2 pixels");
+                }
             }
-        //}
-        //else{
+        }
+        else{
             if(grabber.getPosition()< GrabberOpen + .1) {
-                grabOnePixel();
-                teamUtil.pause(250);
+                grabber.setPosition(GrabberOnePixel);
+                teamUtil.pause(300);
+                if(details){
+                    log("Grabbing 1 pixel");
+                }
             }
             //In theory this would grab either one or two pixels depending on whether or not twoPixelsPresent() is true
-        //}
+        }
 
         intake.stopIntake();
 

@@ -34,7 +34,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
-    double middleThreshold = 50; // tenative
+    double middleThreshold = 70; // tenative
     double leftThreshold = 50; // tenative
     double percentageError = 0.05;
     public OpenCVPropFinder () {
