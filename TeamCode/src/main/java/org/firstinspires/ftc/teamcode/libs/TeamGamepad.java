@@ -44,6 +44,9 @@ public class TeamGamepad {
     boolean optionsWasPressedLastTime = false;
     boolean optionsWasPressed = false;
     boolean optionsBumpToDo = false;
+    boolean startWasPressedLastTime = false;
+    boolean startWasPressed = false;
+    boolean startBumpToDo = false;
 
     public TeamGamepad(){
 
@@ -118,6 +121,9 @@ public class TeamGamepad {
         }
         if (optionsWasPressed == false && optionsWasPressedLastTime == true) {
             optionsBumpToDo = true;
+        }
+        if (startWasPressed == false && startWasPressedLastTime == true) {
+            startBumpToDo = true;
         }
     }
     public boolean wasAPressed(){
@@ -200,6 +206,13 @@ public class TeamGamepad {
     public boolean wasOptionsPressed(){
         if(optionsBumpToDo){
             optionsBumpToDo = false;
+            return true;
+        }
+        return false;
+    }
+    public boolean wasStartPressed(){
+        if(startBumpToDo){
+            startBumpToDo = false;
             return true;
         }
         return false;

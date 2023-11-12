@@ -57,8 +57,8 @@ public class Output {
     public static double GrabberOnePixel = .81;
     public static int StallBuffer = 225;
 
-    private DcMotorEx elevLeft;
-    private DcMotorEx elevRight;
+    public DcMotorEx elevLeft;
+    public DcMotorEx elevRight;
     public Servo grabber;
     public Servo grabberRotater;
     public int lastLevel = 2;
@@ -252,7 +252,7 @@ public class Output {
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
-        lastLevel = ((elevLeft.getCurrentPosition()+elevRight.getCurrentPosition())/2-elevatorMinScoreLevel)/elevatorScoreInc;
+        lastLevel = (elevLeft.getCurrentPosition()-elevatorMinScoreLevel)/elevatorScoreInc-1;
         moving.set(true);
 
         log("Go To Load");
@@ -340,7 +340,6 @@ public class Output {
         rotaterPosition = rotaterPosition.HORIZONTAL;
         elevLeft.setTargetPosition(elevDestination);
         elevRight.setTargetPosition(elevDestination);
-        //TODO add while loop that makes sure that lift finishes
 
         while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
         }
@@ -349,6 +348,8 @@ public class Output {
         moving.set(false);
         loading = false;
     }
+
+
     public void goToScoreNoWait(int level) {
         if (moving.get()) { // Output system is already moving in a long running operation
             teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");

@@ -34,6 +34,7 @@ public class Teleop extends LinearOpMode {
         telemetry.addLine("Ready to start");
         telemetry.update();
         double manualSpeedElevator = 100;
+        robot.output.lastLevel = 2;
 
         waitForStart();
 
@@ -97,7 +98,8 @@ public class Teleop extends LinearOpMode {
                 robot.output.goToLoadNoWait();
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
-                robot.output.goToScoreNoWait(3);
+                //robot.output.goToScoreNoWait(3);
+                robot.output.goToScoreNoWait(robot.output.lastLevel);
             }
 
             if(armsGamepad.wasLeftBumperPressed()){
@@ -123,6 +125,9 @@ public class Teleop extends LinearOpMode {
             }
             if(armsGamepad.wasOptionsPressed()){
                 robot.launcher.toggleRelease();
+            }
+            if(armsGamepad.wasStartPressed()){
+                robot.intake.reverseIntake();
             }
 
 
