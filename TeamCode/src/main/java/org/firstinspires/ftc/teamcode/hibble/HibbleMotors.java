@@ -30,17 +30,9 @@ public class HibbleMotors {
         motorOne.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void motorsUp(double velocity){
-
-        motorZero.setVelocity(velocity);
-        motorOne.setVelocity(velocity);
-
-
+    public void moveMotors(double power){
+        motorZero.setPower(power);
+        motorOne.setPower(power);
     }
-    public void motorsDown(double velocity){
 
-        motorZero.setVelocity(-velocity);
-        motorOne.setVelocity(-velocity);
-
-    }
 }

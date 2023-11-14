@@ -24,7 +24,12 @@ public class HibbleOpMode extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
-            hibbleMotors.motorsDown(gamepad1.left_stick_y*2500);
+            if(Math.abs(gamepad1.left_stick_y) < .1){
+                hibbleMotors.moveMotors(0);
+            }
+            else{
+                hibbleMotors.moveMotors(gamepad1.left_stick_y);
+            }
         }
     }
 }
