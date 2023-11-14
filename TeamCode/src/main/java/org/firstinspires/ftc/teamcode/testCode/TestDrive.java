@@ -39,7 +39,7 @@ public class TestDrive extends LinearOpMode {
     @Override
     public void runOpMode(){
         teamUtil.init(this);
-        teamUtil.alliance = teamUtil.Alliance.RED;
+        teamUtil.alliance = teamUtil.Alliance.BLUE;
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         intake = new Intake();

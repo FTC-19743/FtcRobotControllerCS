@@ -34,8 +34,10 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
-    double middleThreshold = 70; // tenative
-    double leftThreshold = 50; // tenative
+    double middleRedThreshold = 70; //
+    double rightRedThreshold = 50; //
+    double middleBlueThreshold = 100; //112
+    double leftBlueThreshold = 100; //
     double percentageError = 0.05;
     public OpenCVPropFinder () {
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -49,14 +51,14 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             rectMiddle = new Rect(200, 100, 100, 100);
             rectRight = new Rect(500, 125, 110, 100);
         } else { // TODO: Need to set up the correct Rectangles for the Blue Side
-            rectLeft = new Rect(0, 0, 1, 1);
-            rectMiddle = new Rect(200, 100, 100, 100);
-            rectRight = new Rect(550, 100, 90, 100);
+            rectLeft = new Rect(50, 260, 100, 100);
+            rectMiddle = new Rect(330, 210, 100, 80);
+            rectRight = new Rect(0, 0, 1, 1);
         }
         teamUtil.log("Initialized OpenCVPropFinder processor");
     }
     public void outputTelemetry () {
-        telemetry.addData("Saturation L/R/M: ", "%.1f/%.1f/%.1f",satRectLeft, satRectMiddle, satRectRight);
+        telemetry.addData("Saturation L/M/R: ", "%.1f/%.1f/%.1f",satRectLeft, satRectMiddle, satRectRight);
         telemetry.addLine("Prop Location: " + propPosition);
     }
 
@@ -70,10 +72,10 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
             satRectLeft = 0;
 
-            if(satRectRight> 50){
+            if(satRectRight> rightRedThreshold){
                 propPosition = 3;
             }
-            else if(satRectMiddle>50){
+            else if(satRectMiddle>middleRedThreshold){
                 propPosition = 2;
             }
             else{
@@ -86,7 +88,16 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             satRectLeft = getAvgSaturation(HSVMat, rectLeft);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
             satRectRight = 0;
-            propPosition = 2;
+
+            if(satRectLeft> leftBlueThreshold){
+                propPosition = 3;
+            }
+            else if(satRectMiddle>middleBlueThreshold){
+                propPosition = 2;
+            }
+            else{
+                propPosition = 1;
+            }
         }
 
         return null; // No need to pass data to OnDrawFrame

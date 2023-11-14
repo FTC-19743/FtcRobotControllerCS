@@ -747,7 +747,7 @@ public class Drive {
 
             }
         }else {
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() || !tapeSensor2.isOnTape() && teamUtil.keepGoing(timeOutTime)) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
 
             }
