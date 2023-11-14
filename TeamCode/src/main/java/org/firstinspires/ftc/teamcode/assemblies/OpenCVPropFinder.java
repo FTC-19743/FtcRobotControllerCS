@@ -50,9 +50,9 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             rectLeft = new Rect(0, 0, 1, 1);
             rectMiddle = new Rect(200, 100, 100, 100);
             rectRight = new Rect(500, 125, 110, 100);
-        } else { // TODO: Need to set up the correct Rectangles for the Blue Side
-            rectLeft = new Rect(50, 260, 100, 100);
-            rectMiddle = new Rect(330, 210, 100, 80);
+        } else {
+            rectLeft = new Rect(50, 80, 110, 120);
+            rectMiddle = new Rect(350, 50, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
         }
         teamUtil.log("Initialized OpenCVPropFinder processor");

@@ -46,6 +46,18 @@ public class TestDrive extends LinearOpMode {
         intake.initalize();
         drive = new Drive();
         drive.initalize();
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
+            if(gamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
+            if(gamepad.wasRightPressed()){ teamUtil.alliance = teamUtil.Alliance.BLUE;}
+
+            teamUtil.telemetry.addLine("RED or BLUE? (use Game Pad 1 DPad)");
+            teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+
         drive.initCV();
         drive.runSideTeamPropFinderProcessor();
         double velocity = drive.MAX_VELOCITY;
