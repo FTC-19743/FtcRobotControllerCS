@@ -79,7 +79,13 @@ public class Robot {
             output.goToScoreNoWait(1);
             drive.moveCm(90, driverSide()); // strafe
             teamUtil.pause(500);
-            double aprilTagOffset = drive.returnAprilTagIDOffset(4,500);
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(4, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(1, 500);
+            }
+            log("aprilTagOffset: "+aprilTagOffset);
             log("aprilTagOffset"+aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
@@ -93,15 +99,30 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
@@ -125,7 +146,13 @@ public class Robot {
             output.goToScoreNoWait(1);
             drive.moveCm(100, driverSide()); // strafe
             teamUtil.pause(500);
-            double aprilTagOffset = drive.returnAprilTagIDOffset(5,500);
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(5, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(2, 500);
+            }
+            log("aprilTagOffset: "+aprilTagOffset);
 
             log("aprilTagOffset"+aprilTagOffset);
 
@@ -143,15 +170,30 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
@@ -177,7 +219,13 @@ public class Robot {
             output.goToScoreNoWait(1);
             drive.moveCm(100, driverSide()); // strafe
             teamUtil.pause(500);
-            double aprilTagOffset = drive.returnAprilTagIDOffset(6,500);
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(6, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(3, 500);
+            }
+            log("aprilTagOffset: "+aprilTagOffset);
             log("aprilTagOffset"+aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
@@ -191,15 +239,30 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
@@ -225,9 +288,13 @@ public class Robot {
 
 
             output.goToScoreNoWait(1);
-            drive.moveCm(50,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
-            double aprilTagOffset = drive.returnAprilTagIDOffset(4,500);
-            drive.moveCm(40,0,350);
+            drive.moveCm(40,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(4, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(1, 500);
+            }
 
             log("aprilTagOffset"+aprilTagOffset);
 
@@ -242,15 +309,30 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
@@ -269,7 +351,12 @@ public class Robot {
             drive.moveCm(8.5,driverSide());
             output.goToScoreNoWait(1);
             drive.moveCm(40,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
-            double aprilTagOffset = drive.returnAprilTagIDOffset(5,500);
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(5, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(2, 500);
+            }
             log("aprilTagOffset: "+aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
@@ -281,21 +368,39 @@ public class Robot {
             drive.setMotorsActiveBrake();
 
             //TODO fix 3.25
+
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
+
             teamUtil.pause(1000);
+            drive.moveCm(5,180);
             output.goToLoadNoWait();
             drive.moveCm(60,fieldSide());
 
@@ -315,8 +420,14 @@ public class Robot {
 
             output.goToScoreNoWait(1);
             drive.moveCm(10,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
-            double aprilTagOffset = drive.returnAprilTagIDOffset(6,500);
+            double aprilTagOffset;
+            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                aprilTagOffset = drive.returnAprilTagIDOffset(6, 500);
+            }else{
+                aprilTagOffset = drive.returnAprilTagIDOffset(3, 500);
+            }
             drive.moveCm(40,0,350);
+            log("aprilTagOffset: "+aprilTagOffset);
 
             log("aprilTagOffset"+aprilTagOffset);
 
@@ -331,15 +442,30 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,fieldSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+
+                    }
                 }
                 else if(aprilTagOffset<0){
-                    drive.moveCm(Math.abs(aprilTagOffset)+3.25,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
+                    }else{
+                        drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
+                    }
                 }
 
                 else{
-                    drive.moveCm(15,driverSide());
+                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                        drive.moveCm(15,driverSide());
+                    }
+                    else{
+                        drive.moveCm(15,fieldSide());
+
+                    }
                 }
             }
             output.dropPixels();
