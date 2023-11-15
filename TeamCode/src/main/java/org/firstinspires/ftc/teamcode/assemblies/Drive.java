@@ -25,6 +25,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Drive {
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +43,11 @@ public class Drive {
 
     public BNO055IMU imu; //This variable is the imu
     public static double HEADING_OFFSET; // offset between IMU heading and field
+    public double lastVelocity;
     public boolean holdingHeading = false;
     public double heldHeading = 0;
+    public AtomicBoolean movingAutonomously = new AtomicBoolean(false); // true under autonomous operation in teleop
+    public AtomicBoolean manualInterrupt = new AtomicBoolean(true); // used to interrupt autonomous operations with manual driving control
 
     public DcMotorEx fl = null;
     public DcMotorEx fr = null;
@@ -55,10 +59,13 @@ public class Drive {
     // Image Processors and Cameras
     public AprilTagProcessor aprilTag;
     public OpenCVFindLine findLineProcesser;
+    //public OpenCVYellowPixelDetector findPixelProcesser;
+
     public OpenCVPropFinder findTeamPropProcesser;
     public VisionPortal visionPortal;
 
     public double noAprilTag = 999.0;
+    public float TAG_CENTER_TO_CENTER = 15.2f;
 
 
     boolean aprilTagProcessorRunning = false;
@@ -84,7 +91,6 @@ public class Drive {
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
     public double VELOCITY_DECREASE_PER_CM = 10;
-    public double lastVelocity;
     public double CMS_PER_INCH = 2.54;
     public Drive() {
         teamUtil.log("Constructing Drive");
@@ -137,6 +143,7 @@ public class Drive {
         // Setup a single VisionPortal with all cameras and all processers
         // We will switch betwen cameras and processers as needed
         aprilTag = new AprilTagProcessor.Builder().build();
+        //findPixelProcesser = new OpenCVYellowPixelDetector();
         findLineProcesser = new OpenCVFindLine();
         findTeamPropProcesser = new OpenCVPropFinder();
 
@@ -155,6 +162,7 @@ public class Drive {
         visionPortal = new VisionPortal.Builder()
                 .setCamera(switchableCamera)
                 .addProcessor(aprilTag)
+                //.addProcessor(findPixelProcesser)
                 .addProcessor(findLineProcesser)
                 .addProcessor(findTeamPropProcesser)
                 .build();
@@ -170,11 +178,13 @@ public class Drive {
         visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
         findTeamPropProcessorRunning=false;
         visionPortal.setProcessorEnabled(aprilTag,true);
+        //visionPortal.setProcessorEnabled(findPixelProcesser,true);
         aprilTagProcessorRunning=true;
     }
     public void runFrontLineFinderProcessor() {
         visionPortal.setActiveCamera(frontCam);
         visionPortal.setProcessorEnabled(aprilTag ,false);
+        //visionPortal.setProcessorEnabled(findPixelProcesser,false);
         aprilTagProcessorRunning=false;
         visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
         findTeamPropProcessorRunning=false;
@@ -184,6 +194,7 @@ public class Drive {
     public void runSideTeamPropFinderProcessor() {
         visionPortal.setActiveCamera(sideCam);
         visionPortal.setProcessorEnabled(aprilTag ,false);
+        //visionPortal.setProcessorEnabled(findPixelProcesser,false);
         aprilTagProcessorRunning=false;
         visionPortal.setProcessorEnabled(findLineProcesser,false);
         findLineProcessorRunning=false;
@@ -203,6 +214,12 @@ public class Drive {
             return !prxLeft.getState();
         }
     }
+    public boolean getLeftProximity(){
+        return !prxLeft.getState();
+    }
+    public boolean getRightProximity(){
+        return !prxRight.getState();
+    }
     public void driveMotorTelemetry() {
         telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
                 fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
@@ -218,6 +235,8 @@ public class Drive {
     }
     public void visionTelemetry () {
         if (aprilTagProcessorRunning) {
+            //findPixelProcesser.outputTelemetry();
+            telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
             telemetry.addLine("RearCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
@@ -397,13 +416,16 @@ public class Drive {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Make the current heading 0.
     public void resetHeading() {
+
         HEADING_OFFSET = getRawHeading();
+        heldHeading = getHeading();
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Make the current heading to specified number
     public void setHeading(int heading) {
         HEADING_OFFSET = getRawHeading() - heading;
+        heldHeading = getHeading();
     }
 
     public void logMotorPositions() {
@@ -756,6 +778,74 @@ public class Drive {
         return System.currentTimeMillis() < timeOutTime;
     }
 
+    // drive until either color sensor is triggered, OR we are interrupted, OR we time out.
+    // Returns true if it was successful, false if it timed out
+    // Does NOT stop motors at end!
+    public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout ) {
+        log ("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            //teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
+        }
+        stopMotors();
+        //setMotorsActiveBrake();
+        //teamUtil.pause(500);
+        //setMotorsWithEncoder();
+        movingAutonomously.set(false);
+        return System.currentTimeMillis() < timeOutTime;
+    }
+    public void driveToTapeTelopNoWait(double driveHeading, double robotHeading, double velocity, long timeout ) {
+        if (movingAutonomously.get()) { // Already in an autonomous operation
+            teamUtil.log("WARNING: Attempt to driveToTape while drive system is in autonomous operation--ignored");
+            return;
+        } else {
+            movingAutonomously.set(true); // signal that we are in an auto operation
+            manualInterrupt.set(false); // reset interrupt flag
+            teamUtil.log("Launching Thread to driveToTape");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    driveToTapeTelop( driveHeading,  robotHeading,  velocity,  timeout );
+                }
+            });
+            thread.start();
+        }
+    }
+
+
+    // drive until either rear proximity sensor is triggered, OR we are interrupted, OR we time out.
+    // Returns true if it was successful, false if it timed out
+    // Does NOT stop motors at end!
+    public boolean driveToProximity(double driveHeading, double robotHeading, double velocity, long timeout ) {
+        log ("Drive To Proximity");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !getLeftProximity() && !getRightProximity()) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
+        }
+        movingAutonomously.set(false);
+        return System.currentTimeMillis() < timeOutTime;
+    }
+
+    public void driveToProximityNoWait(double driveHeading, double robotHeading, double velocity, long timeout ) {
+        if (movingAutonomously.get()) { // Already in an autonomous operation
+            teamUtil.log("WARNING: Attempt to driveToProximity while drive system is in autonomous operation--ignored");
+            return;
+        } else {
+            movingAutonomously.set(true); // signal that we are in an auto operation
+            manualInterrupt.set(false); // reset interrupt flag
+            teamUtil.log("Launching Thread to driveToProximity");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    driveToProximity( driveHeading,  robotHeading,  velocity,  timeout );
+                }
+            });
+            thread.start();
+        }
+    }
+
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin
         if(rightDist<xOffset && forwardsDist > yOffset){
@@ -1073,7 +1163,6 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         while(teamUtil.keepGoing(timeOutTime)){
             List<AprilTagDetection> detections = aprilTag.getDetections();
-
             for(AprilTagDetection detection : detections){
                 if(detection.id == id){
                     log("April Tag Detected");
@@ -1084,9 +1173,36 @@ public class Drive {
         }
         log("No April Tag Seen");
         return noAprilTag;
-
-
     }
+    // returns an x offset of the robot relative to the center of the backdrop.  Negative is left of center
+    public float getRobotBackdropXOffset () {
+        if (!aprilTagProcessorRunning) {
+            log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
+            return (float) noAprilTag;
+        } else {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+            float offsetTotal = 0;
+            int numTags = 0;
+            for (AprilTagDetection detection : detections) { // Average whatever readings we have
+                if (detection.id == 1 || detection.id == 4) { // left April Tags
+                    numTags++;
+                    offsetTotal = offsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH + TAG_CENTER_TO_CENTER);
+                } else if (detection.id == 3 || detection.id == 6) { // right April Tags
+                    numTags++;
+                    offsetTotal = offsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH - TAG_CENTER_TO_CENTER);
+                } else { // Center tags
+                    numTags++;
+                    offsetTotal = offsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH);
+                }
+            }
+            if (numTags > 0) {
+                return -1* offsetTotal / numTags;
+            } else {
+                return (float) noAprilTag;
+            }
+        }
+    }
+
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values
@@ -1112,6 +1228,10 @@ public class Drive {
         if (Math.abs(leftJoyStickX)<DEADBAND) {leftJoyStickX = 0;}
         if (Math.abs(leftJoyStickY)<DEADBAND) {leftJoyStickY = 0;}
         if (Math.abs(rightJoyStickX)<DEADBAND) {rightJoyStickX = 0;}
+
+        if (movingAutonomously.get() && (leftJoyStickX != 0 || rightJoyStickX != 0 || leftJoyStickY != 0)) { // Do we need to interrupt an autonomous operation?
+            manualInterrupt.set(true);
+        }
 
         if (leftJoyStickX > 0) {
             leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
@@ -1175,8 +1295,13 @@ public class Drive {
         driveJoyStick(rotatedLeftX, rotatedLeftY, rightX, isFast);
     }
 
-
-
-
+    public void geoFenceDriveJoystick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, double robotHeading) {
+        if (Math.abs(robotHeading-180)<10) { // TODO: Also maybe don't do this unless output is in score position?
+            if ((getLeftProximity() || getRightProximity()) && leftJoyStickX > 0) {
+                leftJoyStickX = 0;
+            }
+        }
+        universalDriveJoystick(leftJoyStickX, leftJoyStickY, rightJoyStickX, isFast, robotHeading);
+    }
 }
 

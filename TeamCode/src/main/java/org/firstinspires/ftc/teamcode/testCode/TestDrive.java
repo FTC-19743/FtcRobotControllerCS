@@ -70,9 +70,11 @@ public class TestDrive extends LinearOpMode {
             }
             if(gamepad.wasUpPressed()) {
                 drive.findLineProcesser.viewingPipeline = !drive.findLineProcesser.viewingPipeline;
+                //drive.findPixelProcesser.viewingPipeline = !drive.findPixelProcesser.viewingPipeline;
             }
             if(gamepad.wasDownPressed()) {
                 drive.findLineProcesser.nextView(); ;
+                //drive.findPixelProcesser.nextView(); ;
             }
             intake.outputTelemetry();
             drive.sensorTelemetry();
@@ -80,11 +82,30 @@ public class TestDrive extends LinearOpMode {
             telemetry.update();
         }
         waitForStart();
+        drive.setHeading(180);
         while (opModeIsActive()) {
             gamepad.loop();
 
-            //teamUtil.log("largest area: "+drive.findLine.LinePipe.getLargestArea());
+            ////////// Drive
+            if (gamepad.gamepad.right_stick_button && gamepad.gamepad.left_stick_button) {
+                drive.setHeading(180); // Zero is towards the scoring side of field
+            }
+            drive.universalDriveJoystick(
+                    gamepad.gamepad.left_stick_y,
+                    -gamepad.gamepad.left_stick_x,
+                    gamepad.gamepad.right_stick_x,
+                    gamepad.gamepad.right_trigger>.5,
+                    drive.getHeading());
 
+            if (gamepad.wasUpPressed()) {
+                drive.driveToProximityNoWait(0,180,400,3000);
+                drive.setMotorsActiveBrake();
+                teamUtil.pause(500);
+                drive.setMotorsWithEncoder();
+            }
+            if (gamepad.wasDownPressed()) {
+                drive.driveToTapeTelopNoWait(0,180,400,3000);
+            }
             /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);
             telemetry.addLine("Deceleration (b): "+drive.MAX_DECELERATION);
@@ -102,6 +123,7 @@ public class TestDrive extends LinearOpMode {
                 //drive.moveCm(1000, 20, 180, 180, 1000);
                 //drive.centerOnAprilTag(8, 40, 0, 180);
             }
+            /*
             if(gamepad.gamepad.right_trigger > .5){
                 drive.setHeading(0);
                 //drive.moveCm(1000, 20, 180, 180, 1000);
@@ -114,6 +136,7 @@ public class TestDrive extends LinearOpMode {
                 //drive.moveCm(2500, 220, 0, 0, 500);
                 //drive.stopAtUltDistance(30,0,0);
             }
+             */
             /*
             if(gamepad.wasLeftBumperPressed()){
                 drive.findMaxVelocity();
