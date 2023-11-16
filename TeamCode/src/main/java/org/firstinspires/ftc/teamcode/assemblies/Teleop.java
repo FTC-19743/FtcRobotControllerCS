@@ -136,12 +136,6 @@ public class Teleop extends LinearOpMode {
                 robot.intake.reverseIntake();
             }
 
-
-
-
-
-
-
             robot.outputTelemetry();
             robot.telemetry.addLine("Last Level: " + robot.output.lastLevel);
             telemetry.update();

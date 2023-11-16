@@ -34,16 +34,6 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.update();
         }
         initializeRobot();
-        /*
-        while(!gamepad.wasAPressed()){
-            gamepad.loop();
-            teamUtil.telemetry.addLine("Check Robot and THEN");
-            teamUtil.telemetry.addLine("Press A on Game Pad 1 to CALIBRATE");
-            teamUtil.telemetry.update();
-        }
-        teamUtil.telemetry.addLine("Calibrating Robot. Please wait");
-        teamUtil.telemetry.update();
-        */
         robot.calibrate();
 
         while(!gamepad.wasAPressed()){
@@ -100,9 +90,7 @@ public class Auto extends LinearOpMode {
         }
 
         waitForStart();
-        robot.auto(robot.drive.findTeamPropProcesser.propPosition,teamUtil.SIDE);
-
-
+        robot.autoV2(robot.drive.findTeamPropProcesser.propPosition,true);
 
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }

@@ -17,9 +17,6 @@ public class Robot {
     public Lift lift;
     public Launcher launcher;
 
-    public OpenCVPropFinder openCVPropFinder;
-
-
     public static void log(String logString) {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
 
@@ -33,7 +30,6 @@ public class Robot {
         output = new Output(intake);
         launcher = new Launcher();
         lift = new Lift();
-        openCVPropFinder =  new OpenCVPropFinder();
     }
 
     public void initialize(){
@@ -67,7 +63,6 @@ public class Robot {
     public int scoreSide(){return 0;}
 
     public float getPathOffset(int path){
-
         float robotBackdropXOffset = drive.getRobotBackdropXOffset();
         if(robotBackdropXOffset>900){
             log("No April Tag Detected");
@@ -83,6 +78,91 @@ public class Robot {
             }
         }
     }
+
+    public void pushPurplePixelAndGoToAprilTagViewing(int path) {
+        teamUtil.log("Pushing Pixel");
+        switch (path) { // Push the pixel and move back a bit
+            case 1:
+                drive.moveCm(67,fieldSide());
+                drive.moveCm(30,fieldSide()+50);
+                drive.moveCm(10,driverSide());
+                break;
+            case 2:
+                drive.moveCm(86,fieldSide());
+                drive.moveCm(8.5,driverSide());
+                break;
+            case 3:
+                drive.moveCm(75,fieldSide());
+                drive.moveCm(30,fieldSide()+300);
+                drive.moveCm(13,driverSide());
+                break;
+        }
+        teamUtil.log("Driving to April Tag Viewing Location");
+        if (teamUtil.SIDE== teamUtil.Side.SCORE) { // Run to April Tag viewing location from SCORE Side
+            switch (path) { // TODO: reverse 1 and 3 for blue side?
+                case 1: drive.moveCm(drive.MAX_VELOCITY,83,0,180,0); break;
+                case 2: drive.moveCm(drive.MAX_VELOCITY,50,0, 180,0); break;
+                case 3: drive.moveCm(drive.MAX_VELOCITY,23,0,180,0); break;
+            }
+        } else { // Run to April Tag viewing location from WING Side
+            switch (path) { // TODO: reverse 1 and 3 for blue side?
+                case 1:
+                    //output.goToScoreNoWait(1);
+                    drive.moveCm(24, scoreSide());
+                    drive.moveCm(69, fieldSide());
+                    drive.moveCm(159, scoreSide(), 800);
+                    drive.moveCm(79, driverSide()); // strafe
+                    break;
+                case 2:
+                    drive.moveCm(36, audienceSide());
+                    drive.moveCm(64, fieldSide());
+                    drive.moveCm(197, scoreSide(), 800);
+                    drive.moveCm(72, driverSide()); // strafe
+                    break;
+                case 3:
+                    drive.moveCm(52, audienceSide());
+                    drive.moveCm(69, fieldSide());
+                    drive.moveCm(180, scoreSide(), 800);
+                    drive.moveCm(75, driverSide()); // strafe
+                    break;
+            }
+        }
+    }
+    public void autoV2(int path, boolean operateArms) {
+        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance==teamUtil.Alliance.RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
+        drive.setHeading(180); // Zero is towards the scoring side of field
+        drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
+        pushPurplePixelAndGoToAprilTagViewing(path);
+        if (operateArms) output.goToScoreNoWait(1);
+        teamUtil.pause(1000); // Allow time for April Tag Viewer to get a solid reading and output to get in position
+        float aprilTagOffset = getPathOffset(path);
+        drive.moveCm(1500,35,0,180,350);
+        drive.driveToTape(0,180,350,2000);
+        drive.stopMotors();
+        //drive.setMotorsActiveBrake();
+        teamUtil.pause(500);
+        drive.moveCm(Math.abs(aprilTagOffset),aprilTagOffset<0?driverSide():fieldSide());
+
+        if (operateArms) output.dropPixels();
+        teamUtil.pause(1000);
+
+        // get well out of the way
+        drive.moveCm(5, audienceSide());
+        if (operateArms) output.goToLoadNoWait();
+        if (Math.abs(aprilTagOffset-0) < .01 || path==2) {
+            drive.moveCm(65, fieldSide());
+        } else if (path==1){
+            drive.moveCm(65- drive.TAG_CENTER_TO_CENTER, fieldSide()); // TODO: Reverse sign for blue alliance
+        } else { // path 3
+            drive.moveCm(65+drive.TAG_CENTER_TO_CENTER, fieldSide()); // TODO: Reverse sign for blue alliance
+        }
+        drive.moveCm(20,0);
+        log("Auto-Finished");
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // OLD CODE
+
     public void auto(int path, teamUtil.Side side){ // TODO: Lose the "left" parameter and use TeamUtil.SIDE instead
         drive.setHeading(180); // Zero is towards the scoring side of field
         if(path==1&&side == teamUtil.Side.WING){

@@ -488,6 +488,9 @@ public class Drive {
         moveCm(maxVelocity, centimeters, driveHeading, getHeading(), endVelocity);
     }
     public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity){
+        log("MoveCM cms:" + centimeters + " driveH:"+ driveHeading+" robotH:"+robotHeading+" MaxV:"+maxVelocity+" EndV:"+endVelocity);
+
+        details=false;
         MotorData data = new MotorData();
         getDriveMotorData(data);
 
@@ -568,6 +571,8 @@ public class Drive {
             }
         }
         lastVelocity = endVelocity;
+        log("MoveCM--Finished");
+
     }
 
 
@@ -759,22 +764,23 @@ public class Drive {
         log ("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
         if(tapeSensor1.isOnTape()){
+            log ("Drive To Tape-Saw 1, looking for 2");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-
             }
         }else if(tapeSensor2.isOnTape()){
+            log ("Drive To Tape-Saw 2, looking for 1");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-
             }
         }else {
+            log ("Drive To Tape-Looking for either");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() || !tapeSensor2.isOnTape() && teamUtil.keepGoing(timeOutTime)) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-
             }
-
         }
+        log ("Drive To Tape-Finished");
+
         return System.currentTimeMillis() < timeOutTime;
     }
 

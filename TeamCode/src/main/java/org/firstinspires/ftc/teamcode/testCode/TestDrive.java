@@ -143,6 +143,7 @@ public class TestDrive extends LinearOpMode {
             }
             */
 
+            /*
             if(gamepad.wasOptionsPressed()){
                 if(gamepad1.dpad_up){
                     velocity += 100;
@@ -183,6 +184,7 @@ public class TestDrive extends LinearOpMode {
                     drive.MIN_END_VELOCITY -= 10;
                 }
             }
+            */
             drive.driveMotorTelemetry();
             intake.outputTelemetry();
             drive.sensorTelemetry();
