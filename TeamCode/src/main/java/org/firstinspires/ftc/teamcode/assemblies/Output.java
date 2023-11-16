@@ -22,14 +22,14 @@ public class Output {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
     }
 
-    public boolean loading = false;
+    public AtomicBoolean loading = new AtomicBoolean(false);
     public static int elevatorMax = 2100; //Could maybe go to 2200 but playing it safe for now
     public static int elevatorMin = 0; //bottom
     public static int elevatorSafeFlipRotateLevel = 400;
     public static int elevatorSafeStrafeLevel = 700;
     public static int elevatorMinScoreLevel = 275; // Lowest level for scoring horizontally
     public static int elevatorScoreLevel3 = 690; // Lowest level for scoring horizontally
-    public static int elevatorScoreInc = elevatorScoreLevel3 - elevatorMinScoreLevel / 2; // amount to lower or raise elevator per level
+    public static int elevatorScoreInc = (elevatorScoreLevel3 - elevatorMinScoreLevel) / 2; // amount to lower or raise elevator per level = 207.5
     public static int elevatorRotateInc = elevatorScoreInc / 2; // amount to lower or raise elevator when changing from horizontal to slanted placement
 
     public static int elevatorMaxVelocity = 2500; //TODO: Could be a bit higher?
@@ -44,8 +44,8 @@ public class Output {
 
 
 
-    public static double flipperLoad = 0.1516;
-    public static double flipperScore = 0.845;
+    public static double flipperLoad = 0.1516+0.007*5;
+    public static double flipperScore = 0.845+0.007*5;
 
     public static double StraferLoad = 0.55;
     public static double StraferRight = 0.25;
@@ -96,7 +96,7 @@ public class Output {
         grabber = hardwareMap.get(Servo.class,"grabber");
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
-
+        loading.set(true);
         teamUtil.log("Output Initialized ");
     }
 
@@ -131,6 +131,7 @@ public class Output {
         elevRight.setVelocity(elevatorMaxVelocity);
         elevLeft.setVelocity(elevatorMaxVelocity);
         moving.set(false);
+
         log("Output Calibrate finished");
     }
 
@@ -166,7 +167,7 @@ public class Output {
    }
 
    public void rotateGrabberClockwise(){
-        if(loading == false) {
+        if(!loading.get()) {
             if (grabberRotater.getPosition() + GrabberRotatorIncrement <= GrabberRotatorUpperLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement);
             }
@@ -174,7 +175,7 @@ public class Output {
    }
 
     public void rotateGrabberCounterclockwise(){
-        if(loading == false) {
+        if(!loading.get()) {
             if (grabberRotater.getPosition() - GrabberRotatorIncrement >= GrabberRotatorLowerLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement);
             }
@@ -184,13 +185,13 @@ public class Output {
 
 
    public void elevManual(double increment){
-       if (moving.get() || loading) { // Output system is already moving in a long running operation
+       if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
            teamUtil.log("WARNING: Attempt to move elevator while output system is moving--ignored");
            return;
        } else {
            log("Elev Manual: " + increment);
-           elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
-           elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
+           elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + increment, elevatorMinScoreLevel, elevatorMax)));
+           elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMinScoreLevel, elevatorMax)));
        }
    }
 //    public void elevatorControl(joystick){
@@ -203,9 +204,9 @@ public class Output {
 //            elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMin, elevatorMax)));
 //        }
 //    }
-   public void straferManual(boolean left){
+   public void oldStraferManual(boolean left){
 
-       if (moving.get() || loading) { // Output system is already moving in a long running operation
+       if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
            teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
            return;
        } else {
@@ -230,6 +231,21 @@ public class Output {
        }
    }
 
+   public void straferManual(boolean left){
+       if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
+           teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
+           return;
+       } else {
+           if(left){
+               grabberStrafer.setPosition(StraferLeft);
+           }
+           else{
+               grabberStrafer.setPosition(StraferRight);
+
+           }
+       }
+   }
+
     public void setServosToLoad() {
         grabberStrafer.setPosition(StraferLoad);
         grabberRotater.setPosition(GrabberRotatorLoad);
@@ -247,21 +263,23 @@ public class Output {
         setServosToLoad();
         log("Go To Load No Elevator-Finished");
         moving.set(false);
-        loading = true;
+        loading.set(true);
     }
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
-        lastLevel = (elevLeft.getCurrentPosition()-elevatorMinScoreLevel)/elevatorScoreInc-1;
+        log("Elev Current position in goToLoad" + elevLeft.getCurrentPosition());
+        lastLevel = Math.round(((float)elevLeft.getCurrentPosition()-(float)elevatorMinScoreLevel)/(float)elevatorScoreInc+1);
+        log("lastLevel" +lastLevel);
         moving.set(true);
 
         log("Go To Load");
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             // we don't know where the servos are so we need to go up to a safe level to move them
             log("Go To Load: Raising to safe level");
-            elevRight.setTargetPosition(elevatorSafeStrafeLevel);
-            elevLeft.setTargetPosition(elevatorSafeStrafeLevel);
-            while (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel-20 || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel-20) {
+            elevRight.setTargetPosition(elevatorSafeStrafeLevel+50);
+            elevLeft.setTargetPosition(elevatorSafeStrafeLevel+50);
+            while (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             }
         }
         // Move servos to correct position and wait for them to complete
@@ -272,19 +290,22 @@ public class Output {
         log("Go To Load: Running to Bottom");
         elevRight.setTargetPosition(elevatorMin);
         elevLeft.setTargetPosition(elevatorMin); // TODO LATER: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
-
-        while (elevLeft.getCurrentPosition() > elevatorMin+10 || elevRight.getCurrentPosition() > elevatorMin+10) {
+        long timeOutTime = System.currentTimeMillis() + 4000;
+        while (teamUtil.keepGoing(timeOutTime)&&elevLeft.getCurrentPosition() > elevatorMin+10 && elevRight.getCurrentPosition() > elevatorMin+10) {
         }
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
         log("Go To Load-Finished");
         moving.set(false);
-        loading = true;
+        loading.set(true);
 
     }
 
     public void goToLoadNoWait() {
-        if (moving.get()) { // Output system is already moving in a long running operation
+        if (moving.get()||loading.get()) { // Output system is already moving in a long running operation
+            log("states in go to load");
+            log("moving" + moving.get());
+            log("loading" + loading.get());
             teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
             return;
         } else {
@@ -302,7 +323,12 @@ public class Output {
     // Grab the pixels and get into scoring position
     public void goToScore(int level) {
         moving.set(true);
+        loading.set(false);
+
         int elevDestination = elevatorMinScoreLevel + (level-1)*elevatorScoreInc;
+        log("level" + level);
+        log("elev Destination " + elevDestination);
+
         elevLeft.setVelocity(elevatorMaxVelocity);
         elevRight.setVelocity(elevatorMaxVelocity);
         log("Go To Score");
@@ -346,13 +372,17 @@ public class Output {
 
         log("Go To Score-Finished");
         moving.set(false);
-        loading = false;
     }
 
 
     public void goToScoreNoWait(int level) {
-        if (moving.get()) { // Output system is already moving in a long running operation
-            teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
+        if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
+            log("states in go to score");
+
+            log("moving" + moving.get());
+            log("loading" + loading.get());
+
+            teamUtil.log("WARNING: Attempt to goToScore while output system is moving--ignored");
             return;
         } else {
             moving.set(true);

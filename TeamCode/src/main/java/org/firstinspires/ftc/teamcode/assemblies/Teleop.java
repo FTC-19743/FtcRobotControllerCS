@@ -35,7 +35,7 @@ public class Teleop extends LinearOpMode {
         telemetry.update();
         double manualSpeedElevator = 100;
         robot.output.lastLevel = 2;
-
+        robot.drive.setHeading(180);
         waitForStart();
 
 
@@ -45,17 +45,21 @@ public class Teleop extends LinearOpMode {
 
             ////////// Drive
             if (driverGamepad.gamepad.right_stick_button && driverGamepad.gamepad.left_stick_button) {
-                robot.drive.resetHeading();
-            }
+                robot.drive.setHeading(180);            }
             robot.drive.universalDriveJoystick(
-                    driverGamepad.gamepad.left_stick_x,
                     driverGamepad.gamepad.left_stick_y,
+                    -driverGamepad.gamepad.left_stick_x,
                     driverGamepad.gamepad.right_stick_x,
                     driverGamepad.gamepad.right_trigger>.5,
                     robot.drive.getHeading());
 
+            if(driverGamepad.wasDownPressed()){
+                robot.drive.driveToTapeTelopNoWait(0,180,400,3000);
+            }
+
             ////////// Intake
             robot.intake.autoOff();
+
 
             if(armsGamepad.wasLeftTriggerPressed()){
                 robot.intake.toggleIntake();
@@ -101,7 +105,7 @@ public class Teleop extends LinearOpMode {
                 //robot.output.goToScoreNoWait(3);
                 robot.output.goToScoreNoWait(robot.output.lastLevel);
             }
-
+            /*
             if(armsGamepad.wasLeftBumperPressed()){
                 robot.output.straferManual(true);
             }
@@ -109,6 +113,8 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasRightBumperPressed()){
                 robot.output.straferManual(false);
             }
+
+             */
 
             if(Math.abs(armsGamepad.gamepad.left_stick_y) > .30){
                 robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
@@ -137,6 +143,7 @@ public class Teleop extends LinearOpMode {
 
 
             robot.outputTelemetry();
+            robot.telemetry.addLine("Last Level: " + robot.output.lastLevel);
             telemetry.update();
 
         }

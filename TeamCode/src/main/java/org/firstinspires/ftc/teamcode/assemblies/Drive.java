@@ -789,9 +789,9 @@ public class Drive {
             //teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
         }
         stopMotors();
-        //setMotorsActiveBrake();
+        //setMotorsActiveBrake(); 
         //teamUtil.pause(500);
-        //setMotorsWithEncoder();
+        setMotorsWithEncoder();
         movingAutonomously.set(false);
         return System.currentTimeMillis() < timeOutTime;
     }
@@ -812,8 +812,8 @@ public class Drive {
             thread.start();
         }
     }
-
-
+    
+    
     // drive until either rear proximity sensor is triggered, OR we are interrupted, OR we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!

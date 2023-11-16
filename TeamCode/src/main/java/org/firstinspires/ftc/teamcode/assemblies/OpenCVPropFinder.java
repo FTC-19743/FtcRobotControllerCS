@@ -34,7 +34,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
-    double middleRedThreshold = 70; //
+    double middleRedThreshold = 80; //
     double rightRedThreshold = 50; //
     double middleBlueThreshold = 100; //112
     double leftBlueThreshold = 100; //
@@ -90,13 +90,13 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             satRectRight = 0;
 
             if(satRectLeft> leftBlueThreshold){
-                propPosition = 3;
+                propPosition = 1;
             }
             else if(satRectMiddle>middleBlueThreshold){
                 propPosition = 2;
             }
             else{
-                propPosition = 1;
+                propPosition = 3;
             }
         }
 
