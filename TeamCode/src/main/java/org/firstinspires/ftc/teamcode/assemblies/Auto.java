@@ -14,6 +14,8 @@ public class Auto extends LinearOpMode {
     Robot robot;
     TeamGamepad gamepad;
 
+    int delay = 0;
+
     public void initializeRobot(){
         telemetry.addLine("Initializing Robot");
         teamUtil.telemetry.update();
@@ -38,10 +40,23 @@ public class Auto extends LinearOpMode {
 
         while(!gamepad.wasAPressed()){
             gamepad.loop();
+            if(gamepad.wasLeftPressed()){ if (delay > 0) delay--; }
+            if(gamepad.wasRightPressed()){ if (delay < 10) delay++;}
+
+            teamUtil.telemetry.addLine("Delayed Start? (use Game Pad 1 DPad L/R)");
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
             if(gamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
             if(gamepad.wasRightPressed()){ teamUtil.alliance = teamUtil.Alliance.BLUE;}
 
-            teamUtil.telemetry.addLine("RED or BLUE? (use Game Pad 1 DPad)");
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("RED or BLUE? (use Game Pad 1 DPad L/R)");
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
@@ -52,9 +67,10 @@ public class Auto extends LinearOpMode {
             if(gamepad.wasLeftPressed()){ teamUtil.SIDE = teamUtil.Side.SCORE;}
             if(gamepad.wasRightPressed()){ teamUtil.SIDE = teamUtil.Side.WING;}
 
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine("------------------------------------");
-            teamUtil.telemetry.addLine("Score or Wing Side? (use Game Pad 1 DPad)");
+            teamUtil.telemetry.addLine("Score or Wing Side? (use Game Pad 1 DPad L/R)");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
@@ -72,11 +88,12 @@ public class Auto extends LinearOpMode {
             if(gamepad.wasLeftPressed()){ robot.output.dropPixels();}
             if(gamepad.wasRightPressed()){robot.output.grabOnePixel();}
 
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
-            teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.propPosition);
+            teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
             teamUtil.telemetry.addLine("------------------------------------");
-            teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad to grab/release)");
+            teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad L/R to grab/release)");
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
@@ -84,14 +101,16 @@ public class Auto extends LinearOpMode {
 
         while(!opModeIsActive()){
             telemetry.addLine("Ready to Go!");
-            telemetry.addLine("Path: "+robot.drive.findTeamPropProcesser.propPosition);
+            telemetry.addLine("Delay Seconds: "+delay);
+            telemetry.addLine("Alliance: "+teamUtil.alliance.toString());
             telemetry.addLine("Side: "+teamUtil.SIDE.toString());
+            telemetry.addLine("Path: "+robot.drive.findTeamPropProcesser.getPropPosition());
             telemetry.update();
         }
 
         waitForStart();
+        teamUtil.pause(delay*1000);
         robot.autoV2(robot.drive.findTeamPropProcesser.propPosition,true);
-
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }
 }

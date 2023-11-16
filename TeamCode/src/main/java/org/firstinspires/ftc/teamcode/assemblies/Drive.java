@@ -775,11 +775,15 @@ public class Drive {
             }
         }else {
             log ("Drive To Tape-Looking for either");
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() || !tapeSensor2.isOnTape() && teamUtil.keepGoing(timeOutTime)) {
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape() ) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
         }
-        log ("Drive To Tape-Finished");
+        if (System.currentTimeMillis()> timeOutTime) {
+            log("Drive To Tape-TIMED OUT!");
+        } else {
+            log("Drive To Tape-Finished");
+        }
 
         return System.currentTimeMillis() < timeOutTime;
     }

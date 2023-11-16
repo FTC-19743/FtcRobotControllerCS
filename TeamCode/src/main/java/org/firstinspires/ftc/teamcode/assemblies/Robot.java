@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.BLUE;
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -52,10 +55,10 @@ public class Robot {
     }
 
     public int fieldSide() { // helper method that returns heading out towards the field
-        return teamUtil.alliance == teamUtil.Alliance.RED ? 90 : 270;
+        return teamUtil.alliance == RED ? 90 : 270;
     }
     public int driverSide() { // helper method that returns heading backs towards drivers
-        return teamUtil.alliance == teamUtil.Alliance.RED ? 270 : 90;
+        return teamUtil.alliance == RED ? 270 : 90;
     }
 
     public int audienceSide(){return 180;}
@@ -99,50 +102,53 @@ public class Robot {
         }
         teamUtil.log("Driving to April Tag Viewing Location");
         if (teamUtil.SIDE== teamUtil.Side.SCORE) { // Run to April Tag viewing location from SCORE Side
-            switch (path) { // TODO: reverse 1 and 3 for blue side?
-                case 1: drive.moveCm(drive.MAX_VELOCITY,83,0,180,0); break;
-                case 2: drive.moveCm(drive.MAX_VELOCITY,50,0, 180,0); break;
-                case 3: drive.moveCm(drive.MAX_VELOCITY,23,0,180,0); break;
+            switch (path) {
+                case 1: drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 83 : 23,0,180,0); break;
+                case 2: drive.moveCm(drive.MAX_VELOCITY,45,0, 180,0); break;
+                case 3: drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED ? 23 : 83,0,180,0); break;
             }
         } else { // Run to April Tag viewing location from WING Side
-            switch (path) { // TODO: reverse 1 and 3 for blue side?
-                case 1:
-                    //output.goToScoreNoWait(1);
-                    drive.moveCm(24, scoreSide());
-                    drive.moveCm(69, fieldSide());
-                    drive.moveCm(159, scoreSide(), 800);
-                    drive.moveCm(79, driverSide()); // strafe
-                    break;
-                case 2:
-                    drive.moveCm(36, audienceSide());
-                    drive.moveCm(64, fieldSide());
-                    drive.moveCm(197, scoreSide(), 800);
-                    drive.moveCm(72, driverSide()); // strafe
-                    break;
-                case 3:
-                    drive.moveCm(52, audienceSide());
-                    drive.moveCm(69, fieldSide());
-                    drive.moveCm(180, scoreSide(), 800);
-                    drive.moveCm(75, driverSide()); // strafe
-                    break;
+            if ((path==1 && teamUtil.alliance== RED) || (path==3 && teamUtil.alliance== BLUE)) {
+                drive.moveCm(24, scoreSide());
+                drive.moveCm(69, fieldSide());
+                drive.moveCm(159, scoreSide(), 800);
+                drive.moveCm(79, driverSide()); // strafe
+            } else if ((path==3 && teamUtil.alliance== RED) || (path==1 && teamUtil.alliance== BLUE)) {
+                drive.moveCm(52, audienceSide());
+                drive.moveCm(69, fieldSide());
+                drive.moveCm(180, scoreSide(), 800);
+                drive.moveCm(75, driverSide()); // strafe
+            } else { // Path 2
+                drive.moveCm(36, audienceSide());
+                drive.moveCm(64, fieldSide());
+                drive.moveCm(197, scoreSide(), 800);
+                drive.moveCm(72, driverSide()); // strafe
             }
         }
     }
     public void autoV2(int path, boolean operateArms) {
-        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance==teamUtil.Alliance.RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
+        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
         drive.setHeading(180); // Zero is towards the scoring side of field
         drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
+
+        //Push Purple pixel into place and get in position to see April Tags
         pushPurplePixelAndGoToAprilTagViewing(path);
         if (operateArms) output.goToScoreNoWait(1);
         teamUtil.pause(1000); // Allow time for April Tag Viewer to get a solid reading and output to get in position
         float aprilTagOffset = getPathOffset(path);
+
+        //Go to Scoring position
         drive.moveCm(1500,35,0,180,350);
         drive.driveToTape(0,180,350,2000);
-        drive.stopMotors();
-        //drive.setMotorsActiveBrake();
+        drive.stopMotors();   //drive.setMotorsActiveBrake();
         teamUtil.pause(500);
-        drive.moveCm(Math.abs(aprilTagOffset),aprilTagOffset<0?driverSide():fieldSide());
+        if (teamUtil.alliance== RED) { // use April tag localization offset
+            drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? driverSide() : fieldSide());
+        } else {
+            drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? fieldSide() : driverSide());
+        }
 
+        // Drop the pixel
         if (operateArms) output.dropPixels();
         teamUtil.pause(1000);
 
@@ -152,13 +158,18 @@ public class Robot {
         if (Math.abs(aprilTagOffset-0) < .01 || path==2) {
             drive.moveCm(65, fieldSide());
         } else if (path==1){
-            drive.moveCm(65- drive.TAG_CENTER_TO_CENTER, fieldSide()); // TODO: Reverse sign for blue alliance
+            drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER), fieldSide());
+            //drive.moveCm(65 - drive.TAG_CENTER_TO_CENTER, fieldSide());
         } else { // path 3
-            drive.moveCm(65+drive.TAG_CENTER_TO_CENTER, fieldSide()); // TODO: Reverse sign for blue alliance
+            drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? drive.TAG_CENTER_TO_CENTER : -drive.TAG_CENTER_TO_CENTER), fieldSide());
+            //drive.moveCm(65+drive.TAG_CENTER_TO_CENTER, fieldSide());
         }
         drive.moveCm(20,0);
         log("Auto-Finished");
     }
+
+
+
 
     ////////////////////////////////////////////////////////////////
     // OLD CODE
@@ -349,7 +360,7 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
@@ -357,7 +368,7 @@ public class Robot {
                     }
                 }
                 else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
@@ -366,7 +377,7 @@ public class Robot {
                 }
 
                 else{
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(15,driverSide());
                     }
                     else{
@@ -472,7 +483,7 @@ public class Robot {
             output.goToScoreNoWait(1);
             drive.moveCm(40,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
-            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+            if(teamUtil.alliance == RED) {
                 aprilTagOffset = drive.returnAprilTagIDOffset(5, 500);
             }else{
                 aprilTagOffset = drive.returnAprilTagIDOffset(2, 500);
@@ -491,7 +502,7 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
@@ -499,7 +510,7 @@ public class Robot {
                     }
                 }
                 else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
@@ -508,7 +519,7 @@ public class Robot {
                 }
 
                 else{
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(15,driverSide());
                     }
                     else{
@@ -541,7 +552,7 @@ public class Robot {
             output.goToScoreNoWait(1);
             drive.moveCm(10,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
-            if(teamUtil.alliance == teamUtil.Alliance.RED) {
+            if(teamUtil.alliance == RED) {
                 aprilTagOffset = drive.returnAprilTagIDOffset(6, 500);
             }else{
                 aprilTagOffset = drive.returnAprilTagIDOffset(3, 500);
@@ -562,7 +573,7 @@ public class Robot {
 
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
@@ -570,7 +581,7 @@ public class Robot {
                     }
                 }
                 else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
                     }else{
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
@@ -579,7 +590,7 @@ public class Robot {
                 }
 
                 else{
-                    if(teamUtil.alliance == teamUtil.Alliance.RED) {
+                    if(teamUtil.alliance == RED) {
                         drive.moveCm(15,driverSide());
                     }
                     else{

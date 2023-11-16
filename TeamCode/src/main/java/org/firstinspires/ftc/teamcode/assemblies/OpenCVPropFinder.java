@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.libs.OpenCVProcesser;
+import org.firstinspires.ftc.teamcode.libs.runningVoteCount;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -31,6 +32,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     Mat HSVMat = new Mat();
     public Rect rectLeft, rectMiddle, rectRight;
+    private runningVoteCount election= new runningVoteCount(3000);  // track readings for the last 3 seconds
 
     int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
@@ -46,22 +48,26 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
         teamUtil.log("Initializing OpenCVPropFinder processor");
+
         if (teamUtil.alliance== teamUtil.Alliance.RED) {
             rectLeft = new Rect(0, 0, 1, 1);
             rectMiddle = new Rect(200, 100, 100, 100);
             rectRight = new Rect(500, 125, 110, 100);
         } else {
-            rectLeft = new Rect(50, 80, 110, 120);
-            rectMiddle = new Rect(350, 50, 100, 100);
+            rectLeft = new Rect(50, 130, 110, 120);
+            rectMiddle = new Rect(350, 100, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
         }
         teamUtil.log("Initialized OpenCVPropFinder processor");
     }
     public void outputTelemetry () {
         telemetry.addData("Saturation L/M/R: ", "%.1f/%.1f/%.1f",satRectLeft, satRectMiddle, satRectRight);
-        telemetry.addLine("Prop Location: " + propPosition);
+        telemetry.addLine("Prop Location: " + getPropPosition());
     }
 
+    public int getPropPosition() {
+        return election.getWinner(1);
+    }
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
@@ -99,6 +105,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
                 propPosition = 3;
             }
         }
+        election.vote(propPosition);
 
         return null; // No need to pass data to OnDrawFrame
 
