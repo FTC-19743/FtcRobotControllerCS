@@ -97,6 +97,8 @@ public class Output {
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
         loading.set(true);
+        elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         teamUtil.log("Output Initialized ");
     }
 
@@ -141,8 +143,38 @@ public class Output {
             return;
         } else {
             grabber.setPosition(GrabberOpen);
+
         }
     }
+    public void dropAndGoToLoad() {
+        log("Drop and Stow");
+        grabber.setPosition(GrabberOpen);
+        teamUtil.pause(1000);
+        goToLoad();
+    }
+
+    public void dropAndGoToLoadNoWait() {
+        if (moving.get()||loading.get()) { // Output system is already moving in a long running operation
+            // log("states in go to load");
+            /*log("moving" + moving.get());
+            log("loading" + loading.get());*/
+            teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
+            return;
+        } else {
+            moving.set(true);
+            teamUtil.log("Launching Thread to Stow Output System");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dropAndGoToLoad();
+                }
+            });
+            thread.start();
+        }
+    }
+
+
+
 
     public void grabPixels(){
         if (moving.get()) { // Output system is already moving in a long running operation

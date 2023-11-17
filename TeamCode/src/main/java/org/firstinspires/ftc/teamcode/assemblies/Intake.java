@@ -82,6 +82,7 @@ public class Intake {
     public void collect() {
         lKnocker.setPosition(leftKnockerCollect);
         rKnocker.setPosition(rightKnockerCollect);
+
     }
     public void startIntake(){
         sweeper.setPower(1*sweeperDirection);
@@ -114,14 +115,11 @@ public class Intake {
         }
     }
 
-    public void grabTwoPixels(){
+    public void grabOnePixel(){
         collect();
         teamUtil.pause(500); // TENATIVE VALUE
-        ready();
-        teamUtil.pause(300);// TENATIVE VALUE
-        collect();
-        teamUtil.pause(300);// TENATIVE VALUE
         store();
+
     }
 
     public void autoOff(){

@@ -155,14 +155,12 @@ public class Robot {
         // get well out of the way
         drive.moveCm(5, audienceSide());
         if (operateArms) output.goToLoadNoWait();
-        if (Math.abs(aprilTagOffset-0) < .01 || path==2) {
+        if (Math.abs(aprilTagOffset) < .01 || path==2) {
             drive.moveCm(65, fieldSide());
         } else if (path==1){
             drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER), fieldSide());
-            //drive.moveCm(65 - drive.TAG_CENTER_TO_CENTER, fieldSide());
         } else { // path 3
             drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? drive.TAG_CENTER_TO_CENTER : -drive.TAG_CENTER_TO_CENTER), fieldSide());
-            //drive.moveCm(65+drive.TAG_CENTER_TO_CENTER, fieldSide());
         }
         drive.moveCm(20,0);
         log("Auto-Finished");

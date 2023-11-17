@@ -109,7 +109,7 @@ public class Auto extends LinearOpMode {
         }
 
         waitForStart();
-        teamUtil.pause(delay*1000);
+        teamUtil.pause(delay*1000); // Delay start if needed
         robot.autoV2(robot.drive.findTeamPropProcesser.propPosition,true);
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }

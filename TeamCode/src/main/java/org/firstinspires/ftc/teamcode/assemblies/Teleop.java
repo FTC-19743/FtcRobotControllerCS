@@ -70,7 +70,8 @@ public class Teleop extends LinearOpMode {
             }
             if (armsGamepad.wasLeftPressed())
             {
-                robot.intake.grabTwoPixels();
+                robot.intake.grabOnePixel();
+
             }
             if(armsGamepad.wasDownPressed()){
                 robot.intake.store();
@@ -97,6 +98,12 @@ public class Teleop extends LinearOpMode {
                 robot.lift.stowArm();
             }
 
+            ///////// Launcher
+
+            if(driverGamepad.wasOptionsPressed()){
+                robot.launcher.toggleRelease();
+            }
+
             ////////// Output
             if(armsGamepad.wasAPressed()){ // Get ready to load the next pixels
                 robot.output.goToLoadNoWait();
@@ -120,7 +127,7 @@ public class Teleop extends LinearOpMode {
                 robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
             }
             if (armsGamepad.gamepad.right_trigger> 0.5) {
-                robot.output.dropPixels();
+                robot.output.dropAndGoToLoadNoWait();
             }
 
             if(armsGamepad.wasXPressed()){
@@ -129,9 +136,7 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasBPressed()){
                 robot.output.rotateGrabberClockwise();
             }
-            if(armsGamepad.wasOptionsPressed()){
-                robot.launcher.toggleRelease();
-            }
+
             if(armsGamepad.wasStartPressed()){
                 robot.intake.reverseIntake();
             }
