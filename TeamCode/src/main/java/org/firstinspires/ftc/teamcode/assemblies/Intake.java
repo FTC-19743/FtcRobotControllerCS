@@ -119,7 +119,6 @@ public class Intake {
         collect();
         teamUtil.pause(500); // TENATIVE VALUE
         store();
-
     }
 
     public void autoOff(){

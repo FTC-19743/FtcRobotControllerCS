@@ -97,6 +97,10 @@ public class Output {
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
         loading.set(true);
+        elevLeft.setVelocity(0);
+        elevRight.setVelocity(0);
+        elevLeft.setTargetPosition(elevLeft.getCurrentPosition());
+        elevRight.setTargetPosition(elevRight.getCurrentPosition());
         elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         teamUtil.log("Output Initialized ");
