@@ -134,8 +134,8 @@ public class Output {
         log("Calibrate Final: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
         elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        elevRight.setVelocity(elevatorMaxVelocity);
-        elevLeft.setVelocity(elevatorMaxVelocity);
+        ///elevRight.setVelocity(elevatorMaxVelocity);
+        ///elevLeft.setVelocity(elevatorMaxVelocity);
         moving.set(false);
 
         log("Output Calibrate finished");

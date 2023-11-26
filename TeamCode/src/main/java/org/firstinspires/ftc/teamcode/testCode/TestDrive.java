@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.Intake;
+import org.firstinspires.ftc.teamcode.assemblies.Output;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 public class TestDrive extends LinearOpMode {
     Drive drive;
     Intake intake;
+    Output output;
     TeamGamepad gamepad;
     int currentCam = 0;
     public void toggleCamera() {
@@ -44,6 +46,9 @@ public class TestDrive extends LinearOpMode {
         gamepad.initilize(true);
         intake = new Intake();
         intake.initalize();
+        output = new Output(intake);
+        output.initialize();
+        output.calibrate();
         drive = new Drive();
         drive.initalize();
         while(!gamepad.wasAPressed()){
@@ -185,6 +190,28 @@ public class TestDrive extends LinearOpMode {
                 }
             }
             */
+
+            if(gamepad.wasYPressed()){
+                output.goToScore(2);
+            }
+
+            if(gamepad.wasAPressed()){
+                output.goToLoad();
+            }
+
+            if(gamepad.wasBPressed()){
+                intake.startIntake();
+            }
+
+            if(gamepad.wasXPressed()){
+                intake.grabTwoPixels();
+            }
+
+
+
+
+
+
             drive.driveMotorTelemetry();
             intake.outputTelemetry();
             drive.sensorTelemetry();

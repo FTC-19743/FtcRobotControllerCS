@@ -121,6 +121,20 @@ public class Intake {
         store();
     }
 
+    public void grabTwoPixels(){
+        collect();
+        teamUtil.pause(500); // TENATIVE VALUE
+
+        ready();
+        teamUtil.pause(250); // TENATIVE VALUE
+
+        collect();
+        teamUtil.pause(250); // TENATIVE VALUE
+
+        store();
+
+    }
+
     public void autoOff(){
         if(intakeRunning) {
             if(twoPixelsPresent() == true){

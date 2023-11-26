@@ -29,6 +29,9 @@ public class testAutoPaths extends LinearOpMode {
         robot = new Robot();
         robot.drive.initalize();
         robot.drive.initCV();
+        robot.intake.initalize();
+        robot.output.initialize();
+        robot.output.calibrate();
         telemetry.addLine("Ready to start");
         telemetry.update();
         robot.drive.setHeading(180);
@@ -57,7 +60,7 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasUpPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV2(2, false);
+                robot.autoV3(2, true);
             }
             if(driverGamepad.wasRightPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;

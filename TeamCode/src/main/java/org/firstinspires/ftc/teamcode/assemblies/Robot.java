@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.BLUE;
 import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -19,6 +20,8 @@ public class Robot {
     public Output output;
     public Lift lift;
     public Launcher launcher;
+
+    public int straferDistanceFarStack = 17790;
 
     public static void log(String logString) {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
@@ -125,6 +128,128 @@ public class Robot {
                 drive.moveCm(72, driverSide()); // strafe
             }
         }
+    }
+
+    public void autoV3(int path, boolean operateArms){
+
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        log("encoder position" + drive.strafeEncoder.getCurrentPosition());
+        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
+        drive.setHeading(180); // Zero is towards the scoring side of field
+        drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
+        if(operateArms){
+            output.goToScoreNoWait(2);
+
+        }
+        drive.moveCm(86,fieldSide());
+        drive.moveCm(6.5, driverSide(),500);
+        drive.moveCm(drive.MAX_VELOCITY,90,0, 180,350);
+        drive.driveToTape(0,180,350,3000);
+        drive.stopMotors();
+        if(operateArms){
+            output.dropAndGoToLoadNoWait();
+        }else{
+            teamUtil.pause(1000);
+        }
+        drive.moveCm(drive.MAX_VELOCITY,100,135, 180,800);
+        drive.moveCm(drive.MAX_VELOCITY,210,180, 180, drive.MIN_END_VELOCITY);
+        log("encoder position" + drive.strafeEncoder.getCurrentPosition());
+        double strafeDistanceFromStackTics = drive.strafeEncoder.getCurrentPosition()-straferDistanceFarStack;
+        double strafeDistanceFromStackCms = strafeDistanceFromStackTics/130;
+        log("strafe distance from stack tics" + strafeDistanceFromStackTics);
+        log("strafe distance from stack cms" + strafeDistanceFromStackCms);
+
+        long ultrasonicSensorReadingTime = System.currentTimeMillis()+1000;
+        if(operateArms){
+            intake.startIntake();
+        }
+        drive.moveCm(1000,Math.abs(strafeDistanceFromStackCms),strafeDistanceFromStackCms>0? 270:90,180,0);
+
+        while(teamUtil.keepGoing(ultrasonicSensorReadingTime)){
+        }
+        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
+        teamUtil.pause(750);
+        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
+        double ultrasonicSensorDistanceFromWall = drive.getUltrasonicDistance();
+        drive.moveCm(800,ultrasonicSensorDistanceFromWall-10,180,180,0);
+
+        drive.stopMotors();
+
+        if(operateArms){
+            intake.grabTwoPixels();
+        }else{
+            teamUtil.pause(1000);//grabTwoPixels
+
+        }
+
+
+
+        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 800);
+        if(operateArms){
+            output.goToScoreNoWait(2);
+        }
+        drive.moveCm(drive.MAX_VELOCITY,95,315, 180, drive.MIN_END_VELOCITY);
+
+        drive.driveToTape(0,180,350,3000);
+        drive.stopMotors();
+        if(operateArms){
+            output.dropAndGoToLoadNoWait();
+        }
+
+
+        drive.moveCm(drive.MAX_VELOCITY,95,135, 180,800);
+        drive.moveCm(drive.MAX_VELOCITY,210,180, 180, drive.MIN_END_VELOCITY);
+        drive.stopMotors();//temporary
+        log("encoder position" + drive.strafeEncoder.getCurrentPosition());
+        strafeDistanceFromStackTics = drive.strafeEncoder.getCurrentPosition()-straferDistanceFarStack;
+        strafeDistanceFromStackCms = strafeDistanceFromStackTics/130;
+        log("strafe distance from stack tics" + strafeDistanceFromStackTics);
+        log("strafe distance from stack cms" + strafeDistanceFromStackCms);
+
+        ultrasonicSensorReadingTime = System.currentTimeMillis()+1000;
+        if(operateArms){
+            intake.startIntake();
+
+        }
+        drive.moveCm(1000,Math.abs(strafeDistanceFromStackCms),strafeDistanceFromStackCms>0? 270:90,180,0);
+
+        while(teamUtil.keepGoing(ultrasonicSensorReadingTime)){
+        }
+        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
+        teamUtil.pause(750);
+        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
+
+        drive.moveCm(800,ultrasonicSensorDistanceFromWall-10,180,180,0);
+
+        drive.stopMotors();
+
+        if(operateArms){
+            intake.grabTwoPixels();
+        }else{
+            teamUtil.pause(1000);//grabTwoPixels
+
+        }
+        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 800);
+        if(operateArms){
+            output.goToScoreNoWait(3);
+        }
+        drive.moveCm(drive.MAX_VELOCITY,95,315, 180, drive.MIN_END_VELOCITY);
+
+        drive.driveToTape(0,180,350,3000);
+        drive.stopMotors();
+        if(operateArms){
+            output.dropAndGoToLoad();
+        }
+
+
+
+
+
+
+
+
+
+
     }
     public void autoV2(int path, boolean operateArms) {
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);

@@ -53,6 +53,7 @@ public class Drive {
     public DcMotorEx fr = null;
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
+    public DcMotorEx strafeEncoder;
     public AnalogInput ultLeft = null;
     public DigitalChannel prxLeft  = null, prxRight  = null;
 
@@ -112,6 +113,7 @@ public class Drive {
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
+        strafeEncoder = hardwareMap.get(DcMotorEx.class, "strafeEncoder");
         ultLeft = hardwareMap.analogInput.get("ult");
         prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
         prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
@@ -221,8 +223,8 @@ public class Drive {
         return !prxRight.getState();
     }
     public void driveMotorTelemetry() {
-        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d heading:%f ",
-                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
+        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d strafe:%d heading:%f ",
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), strafeEncoder.getCurrentPosition(), getHeading());
     }
     public void sensorTelemetry() {
         telemetry.addData("On Line:"," %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
