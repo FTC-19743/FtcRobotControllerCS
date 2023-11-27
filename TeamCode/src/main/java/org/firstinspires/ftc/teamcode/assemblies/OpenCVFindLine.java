@@ -72,6 +72,7 @@ public class OpenCVFindLine extends OpenCVProcesser {
     }
 
     Mat HSVMat = new Mat();
+    Mat greyMat = new Mat();
     Scalar lowHSV = new Scalar(0, 0, 200); // lower bound HSV for white
     Scalar highHSV = new Scalar(255, 50, 255); // higher bound HSV for white
     Mat blurredMat = new Mat();
@@ -81,16 +82,20 @@ public class OpenCVFindLine extends OpenCVProcesser {
     Mat hierarchy = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
-    double largestArea, midpoint;
+    double largestArea, midpoint, width, bottom;
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
         largestArea = 0;
         midpoint = 0;
-        // TODO: This is probably way more work than we need to do to find "white" areas...but maybe we will use the pixycam later...
-        Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
-        Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
-        Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
+        bottom = 0;
+        // Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
+        // Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
+        // Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
+        Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_BGR2GRAY); // convert to Greyscale
+        Imgproc.blur(greyMat, blurredMat, blurFactor); // get rid of noise
+        Imgproc.threshold(greyMat,thresholdMat,127,255,Imgproc.THRESH_BINARY);
+
         Imgproc.Canny(thresholdMat, edges, 100, 300);
         contours.clear(); // empty the list from last time
         Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -102,11 +107,18 @@ public class OpenCVFindLine extends OpenCVProcesser {
                 contoursPoly[i] = new MatOfPoint2f();
                 Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
                 boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                if (boundRect[i].br().y > bottom) { // "lowest" one yet
+                    bottom = boundRect[i].br().y;
+                    midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
+                    largestArea = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
+                }
+                /*
                 double area = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
                 if (area > largestArea) {
                     largestArea = (int) area;
                     midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
                 }
+                 */
             }
             return boundRect; // return the array of bounding rectangles we found
         }
