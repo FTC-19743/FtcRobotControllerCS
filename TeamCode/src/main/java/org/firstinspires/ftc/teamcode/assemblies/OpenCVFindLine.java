@@ -25,6 +25,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OpenCVFindLine extends OpenCVProcesser {
     HardwareMap hardwareMap;
@@ -51,7 +52,8 @@ public class OpenCVFindLine extends OpenCVProcesser {
         teamUtil.log("Initializing OpenCVFindLine processor - FINISHED");
     }
     public void outputTelemetry () {
-        telemetry.addLine("MidPoint: " + midpoint + " Area:" + largestArea);
+        telemetry.addLine("Lowest: " + lastValidBottom + "MidPoint: " + lastValidMidPoint);
+        telemetry.addLine(" Area:" + largestArea + "Width: " + width + "thresh:" + whiteThreshold);
     }
 
     public void nextView() {
@@ -64,12 +66,35 @@ public class OpenCVFindLine extends OpenCVProcesser {
         stageToRenderToViewport = stages[nextStageNum];
     }
 
+    public void reset() { // Call this when starting this processor to clear out previous results
+        largestArea = 0;
+        midpoint = 0;
+        bottom = 0;
+        width = 0;
+        lastValidMidPoint.set(0);
+        lastValidBottom.set(0);
+    }
+    public boolean sawLine () {
+        return lastValidMidPoint.get() > 0;
+    }
+    public boolean details = false;
+
     public double getLargestArea() {
         return largestArea;
     }
     public double getMidpoint() {
         return midpoint;
     }
+
+    static public int CAMWIDTH = 640; // Options: 320x240, 640x480, 1280x720
+    static public int CAMHEIGHT = 480;
+    static public int MIDPOINTTARGET = (int) (CAMWIDTH * .47);
+    static public int MINWIDTH = (int) (CAMWIDTH * .125);
+    static public int MAXWIDTH = (int) (CAMWIDTH * .4);
+
+    public int whiteThreshold = 160;
+    public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack
+    Scalar blackColor = new Scalar(0, 0, 0);
 
     Mat HSVMat = new Mat();
     Mat greyMat = new Mat();
@@ -82,19 +107,23 @@ public class OpenCVFindLine extends OpenCVProcesser {
     Mat hierarchy = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
-    double largestArea, midpoint, width, bottom;
+    double midpoint, width, bottom, largestArea;
+    AtomicInteger lastValidMidPoint = new AtomicInteger(0);
+    AtomicInteger lastValidBottom = new AtomicInteger(0);
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
-        largestArea = 0;
-        midpoint = 0;
-        bottom = 0;
+        int largestArea = 0;
+        if (details) teamUtil.log("Process Frame Start");
+
         // Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
         // Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
         // Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
-        Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_BGR2GRAY); // convert to Greyscale
+        Imgproc.rectangle(frame, cropRect, blackColor,-1);
+
+        Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_RGB2GRAY); // convert to Greyscale
         Imgproc.blur(greyMat, blurredMat, blurFactor); // get rid of noise
-        Imgproc.threshold(greyMat,thresholdMat,127,255,Imgproc.THRESH_BINARY);
+        Imgproc.threshold(greyMat,thresholdMat,whiteThreshold,255,Imgproc.THRESH_BINARY);
 
         Imgproc.Canny(thresholdMat, edges, 100, 300);
         contours.clear(); // empty the list from last time
@@ -107,21 +136,32 @@ public class OpenCVFindLine extends OpenCVProcesser {
                 contoursPoly[i] = new MatOfPoint2f();
                 Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
                 boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                /*
                 if (boundRect[i].br().y > bottom) { // "lowest" one yet
                     bottom = boundRect[i].br().y;
                     midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
                     largestArea = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
                 }
-                /*
+                */
                 double area = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
                 if (area > largestArea) {
-                    largestArea = (int) area;
-                    midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
+                    largestArea = (int) area; // biggest object seen so far in this frame
+                    //midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
+                    //bottom = boundRect[i].br().y;
+                    width = boundRect[i].br().x - boundRect[i].tl().x;
+                    if (width > MINWIDTH && width < MAXWIDTH) { // Looks like white tape!
+                        lastValidMidPoint.set((int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x));
+                        lastValidBottom.set((int)boundRect[i].br().y);
+                        if (details) teamUtil.log("Tape Mid:" + lastValidMidPoint.get() + " Bot:" +lastValidBottom.get());
+                    }
                 }
-                 */
             }
+            if (details) teamUtil.log("Process Frame End");
+
             return boundRect; // return the array of bounding rectangles we found
         }
+        if (details) teamUtil.log("Process Frame End - Nothing Found");
+
         return null;
     }
 
@@ -129,10 +169,12 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
         // draw rectangles around the objects we found
         if (viewingPipeline) {
-            Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
+            Bitmap bmp = Bitmap.createBitmap(greyMat.cols(), greyMat.rows(), Bitmap.Config.ARGB_8888);
+            //Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
             switch (stageToRenderToViewport) {
                 case BLURRED: { Utils.matToBitmap(blurredMat, bmp); break;}
-                case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
+                case HSV: { Utils.matToBitmap(greyMat, bmp); break; }
+                //case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
                 case THRESHOLD: { Utils.matToBitmap(thresholdMat, bmp); break;}
                 case EDGES: { Utils.matToBitmap(edges, bmp); break;}
                 default: {}

@@ -81,6 +81,12 @@ public class TestDrive extends LinearOpMode {
                 drive.findLineProcesser.nextView(); ;
                 //drive.findPixelProcesser.nextView(); ;
             }
+            if(gamepad.wasLeftPressed()) {
+                drive.findLineProcesser.whiteThreshold = drive.findLineProcesser.whiteThreshold-10;
+            }
+            if(gamepad.wasRightPressed()) {
+                drive.findLineProcesser.whiteThreshold = drive.findLineProcesser.whiteThreshold+10;
+            }
             intake.outputTelemetry();
             drive.sensorTelemetry();
             drive.visionTelemetry();
@@ -110,6 +116,14 @@ public class TestDrive extends LinearOpMode {
             }
             if (gamepad.wasDownPressed()) {
                 drive.driveToTapeTelopNoWait(0,180,400,3000);
+            }
+            if (gamepad.wasLeftPressed()) {
+                drive.moveCm(2000, 30,180, 180, 350);
+                drive.findLineProcesser.reset();
+                drive.driveToStack(180,180,350,2000);
+            }
+            if (gamepad.wasRightPressed()) {
+                drive.findLineProcesser.reset();
             }
             /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);

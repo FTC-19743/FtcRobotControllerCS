@@ -191,6 +191,7 @@ public class Drive {
         visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
         findTeamPropProcessorRunning=false;
         visionPortal.setProcessorEnabled(findLineProcesser,true);
+        findLineProcesser.reset();
         findLineProcessorRunning=true;
     }
     public void runSideTeamPropFinderProcessor() {
@@ -858,6 +859,64 @@ public class Drive {
         }
     }
 
+    // Drives forward until robot sees white tape, then strafes to line up on it and then goes to wall
+    public void driveToStack(double driveHeading, double robotHeading, double velocity, long timeout) {
+        boolean details = false;
+        findLineProcesser.details = details;
+        log ("Drive To Stack");
+        int driftPixels = (int)(findLineProcesser.CAMWIDTH * .075);
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        findLineProcesser.reset();
+
+        // Drive until we see the line
+        // TODO: IMPORTANT! We need a fail safe in here in case we don't see the line because we are too wide/close
+        // TODO: This can be detected my using the encoders and a "maximum seek distance"
+        // TODO: Options include "stop", "go and park", "use the strafe encoder", "back up and try again", ?
+        while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
+            if (details) {log("Looking for Line. ");}
+            driveMotorsHeadingsFR(driveHeading, robotHeading,velocity);
+            teamUtil.pause(50); // give CPU time to image processing
+        }
+
+        // kill forward momentum to preserve camera field of view
+        // TODO: Might not be needed
+        stopMotors();
+        teamUtil.pause(250);
+
+        log ("Strafing to Line");
+        if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
+            // TODO: Need another failsafe here to make sure we don't strafe off of the tile
+            while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(90, 180, velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+        } else {
+            // TODO: And here!
+            while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(270, 180,velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+        }
+        findLineProcesser.details = false; // Don't continue to clutter up log
+
+        // kill strafe momentum
+        stopMotors();
+        teamUtil.pause(250);
+
+        // Use proximity to end of tape to adjust distance to wall
+        int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
+        int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
+        double cmsToStack = ((float)pixelsToClose/(float)visiblePixels) * (26.5-18.5) + 18.5; // Assume Camera view is linear.  Might not be
+        log ("Driving to wall: " + cmsToStack );
+        moveCm(400, cmsToStack, driveHeading, robotHeading,0);
+        stopMotors();
+
+        if (System.currentTimeMillis() > timeOutTime) {
+            log("Drive To Stack --TIMED OUT!");
+        } else {
+            log("Drive To Stack - Finished");
+        }
+    }
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
         int quadrant; // the quad the goal point would be in if the current spot was the origin
         if(rightDist<xOffset && forwardsDist > yOffset){
