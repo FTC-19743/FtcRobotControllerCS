@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.opencv.core.Point;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +98,6 @@ public class Drive {
     public double CRAWL_SPEED = 200;
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
-    public double VELOCITY_DECREASE_PER_CM = 10;
     public double CMS_PER_INCH = 2.54;
     public Drive() {
         teamUtil.log("Constructing Drive");
@@ -1331,6 +1331,40 @@ public class Drive {
         return noAprilTag;
     }
     // returns an x offset of the robot relative to the center of the backdrop.  Negative is left of center
+    public boolean getRobotBackdropOffset(org.opencv.core.Point p) {
+        if (!aprilTagProcessorRunning) {
+            log("ERROR: getRobotBackdropOffset called without April Tag Processor Running");
+            return false;
+        } else {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+            float xOffsetTotal = 0, yOffsetTotal = 0;
+            int numTags = 0;
+            for (AprilTagDetection detection : detections) { // Average whatever readings we have
+                if (detection.ftcPose == null) {
+                    // We shouldn't be here, but there might be a bug in the FTC code which allows this to happen
+                } else {
+                    if (detection.id == 1 || detection.id == 4) { // left April Tags
+                        numTags++;
+                        xOffsetTotal = xOffsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH + TAG_CENTER_TO_CENTER);
+                    } else if (detection.id == 3 || detection.id == 6) { // right April Tags
+                        numTags++;
+                        xOffsetTotal = xOffsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH - TAG_CENTER_TO_CENTER);
+                    } else { // Center tags
+                        numTags++;
+                        xOffsetTotal = xOffsetTotal + (float) (detection.ftcPose.x * CMS_PER_INCH);
+                    }
+                    yOffsetTotal = yOffsetTotal + (float) (detection.ftcPose.y * CMS_PER_INCH);
+                }
+            }
+            if (numTags > 0) {
+                p.x = -1* xOffsetTotal / numTags;
+                p.y = yOffsetTotal / numTags;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
     public float getRobotBackdropXOffset () {
         if (!aprilTagProcessorRunning) {
             log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
@@ -1359,7 +1393,49 @@ public class Drive {
         }
     }
 
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Drive robot to a location relative to backdrop using April Tags
+    // ASSUMPTIONS:
+    // Robot will still be able to see at least one April Tag at end
+    // Robot is moving at 'velocity" when this method is called
+    // X is cms from the middle of the backdrop (- is left, + is right)
+    // Y is cms from the April tags
+    public boolean driveToAprilTagOffset (double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
+        log ("Drive to April Tag Offset");
+        boolean details = true;
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        float driftCms = 2;
+        org.opencv.core.Point tagOffset = new org.opencv.core.Point();
+        log ("Continue on Initial Heading");
+        while(! getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(timeOutTime)) {
+            driveMotorsHeadingsFR(initialDriveHeading, robotHeading, initialVelocity); // continue on initial heading until we see a tag
+        }
+        log ("Driving based on tags");
+        while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
+            double cmsToStrafe = tagOffset.x - xOffset;
+            double cmsToBackup = tagOffset.y - yOffset;
+            double cmsToTravel = Math.sqrt(cmsToStrafe*cmsToStrafe+cmsToBackup*cmsToBackup);
+            if (Math.abs(cmsToTravel) < driftCms) {
+                break;
+            }
+            double heading = adjustAngle( Math.toDegrees(Math.atan(cmsToStrafe/cmsToBackup)));
+            double velocity = Math.min(initialVelocity,MIN_END_VELOCITY + MAX_DECELERATION*COUNTS_PER_CENTIMETER*cmsToTravel);
+            if (details) teamUtil.log("strafe: "+ cmsToStrafe + " back: "+ cmsToBackup+ " travel: "+ cmsToTravel + " heading: "+ heading + " v: "+ velocity);
+            driveMotorsHeadingsFR(heading,robotHeading,velocity);
+            while (!getRobotBackdropOffset(tagOffset) ) {
+                // TODO: if we stay in this loop for very long, it means the robot is moving based on stale data.  Need a failsafe here
+                if (details) teamUtil.log("Lost sight of tags!");
+            }
+        }
+        stopMotors();
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("driveToAprilTagOffset - TIMED OUT!");
+            return false;
+        } else {
+            log ("Drive to April Tag Offset - FINISHED");
+            return true;
+        }
+    }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values
     // Implements a deadband where joystick position will be ignored (translation and rotation)

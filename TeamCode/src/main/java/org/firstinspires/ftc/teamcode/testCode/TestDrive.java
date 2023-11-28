@@ -112,7 +112,8 @@ public class TestDrive extends LinearOpMode {
 
         drive.initCV();
         getCameraSettings();
-        drive.runSideTeamPropFinderProcessor();
+        drive.runRearAprilTagProcessor();
+        //drive.runSideTeamPropFinderProcessor();
         double velocity = drive.MAX_VELOCITY;
         telemetry.addLine("Ready");
         telemetry.update();
@@ -182,7 +183,7 @@ public class TestDrive extends LinearOpMode {
                 drive.driveToStack(180,180,350,2000);
             }
             if (gamepad.wasRightPressed()) {
-                drive.findLineProcesser.reset();
+                drive.driveToAprilTagOffset(1000,315,180,0,30,4000); // TODO: Fix timeout
             }
             /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);
