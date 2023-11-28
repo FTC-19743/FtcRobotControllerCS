@@ -3,11 +3,16 @@ package org.firstinspires.ftc.teamcode.testCode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.Intake;
 import org.firstinspires.ftc.teamcode.assemblies.Output;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
+import org.firstinspires.ftc.vision.VisionPortal;
+
+import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
@@ -16,6 +21,12 @@ public class TestDrive extends LinearOpMode {
     Output output;
     TeamGamepad gamepad;
     int currentCam = 0;
+    private int     myExposure  ;
+    private int     minExposure ;
+    private int     maxExposure ;
+    private int     myGain      ;
+    private int     minGain ;
+    private int     maxGain ;
     public void toggleCamera() {
         currentCam++;
         if (currentCam > 3) {
@@ -38,7 +49,43 @@ public class TestDrive extends LinearOpMode {
         }
     }
 
-    @Override
+    private void getCameraSettings() {
+        // Ensure Vision Portal has been setup.
+        if (drive.visionPortal == null) {
+            return;
+        }
+
+        // Wait for the camera to be open
+        if (drive.visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting");
+            telemetry.update();
+            while (!isStopRequested() && (drive.visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+
+        // Get camera control values unless we are stopping.
+        if (!isStopRequested()) {
+            ExposureControl exposureControl = drive.visionPortal.getCameraControl(ExposureControl.class);
+            minExposure = (int) exposureControl.getMinExposure(TimeUnit.MILLISECONDS) + 1;
+            maxExposure = (int) exposureControl.getMaxExposure(TimeUnit.MILLISECONDS);
+
+            GainControl gainControl = drive.visionPortal.getCameraControl(GainControl.class);
+            if (gainControl == null) { // FTC software has a bug where this isn't supported on switchableCameras!
+                minGain = 0;
+                maxGain = 0;
+            } else {
+                minGain = gainControl.getMinGain();
+                maxGain = gainControl.getMaxGain();
+            }
+
+        }
+    }
+
+
+@Override
     public void runOpMode(){
         teamUtil.init(this);
         teamUtil.alliance = teamUtil.Alliance.BLUE;
@@ -64,6 +111,7 @@ public class TestDrive extends LinearOpMode {
         }
 
         drive.initCV();
+        getCameraSettings();
         drive.runSideTeamPropFinderProcessor();
         double velocity = drive.MAX_VELOCITY;
         telemetry.addLine("Ready");
@@ -87,6 +135,17 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasRightPressed()) {
                 drive.findLineProcesser.whiteThreshold = drive.findLineProcesser.whiteThreshold+10;
             }
+            if(gamepad.wasYPressed()) {
+                myExposure = myExposure+1;
+                drive.setCamExposure(myExposure,0);
+            }
+            if(gamepad.wasAPressed()) {
+                myExposure = myExposure-1;
+                drive.setCamExposure(myExposure,0);
+            }
+            telemetry.addData("Exposure","%d  (%d - %d)", myExposure, minExposure, maxExposure);
+            telemetry.addData("Gain","%d  (%d - %d)", myGain, minGain, maxGain);
+
             intake.outputTelemetry();
             drive.sensorTelemetry();
             drive.visionTelemetry();

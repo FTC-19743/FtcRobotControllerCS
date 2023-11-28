@@ -14,6 +14,8 @@ import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -25,6 +27,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Drive {
@@ -59,10 +62,13 @@ public class Drive {
 
     // Image Processors and Cameras
     public AprilTagProcessor aprilTag;
+    private int     aprilTagExposure = 5 ; // frame exposure in ms (use TestDrive opMode to calibrate)
+    private int     aprilTagGain = 230; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
     public OpenCVFindLine findLineProcesser;
     //public OpenCVYellowPixelDetector findPixelProcesser;
 
     public OpenCVPropFinder findTeamPropProcesser;
+
     public VisionPortal visionPortal;
 
     public double noAprilTag = 999.0;
@@ -158,7 +164,7 @@ public class Drive {
         }
 
         CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(backCam, frontCam, sideCam);
+                .getCameraManager().nameForSwitchableCamera(backCam, sideCam, frontCam ); // This order is important, so backCam is running first
 
         // Create the vision portal by using a builder.
         visionPortal = new VisionPortal.Builder()
@@ -169,12 +175,87 @@ public class Drive {
                 .addProcessor(findTeamPropProcesser)
                 .build();
 
-        teamUtil.pause(2000); // give initial camera a chance to get going
+        teamUtil.log("Waiting for Vision Portal to start Streaming");
+        // Wait for the initial camera (backCam) to be STREAMING
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+                teamUtil.pause(20);
+            }
+        }
 
         teamUtil.log("Initializing Drive CV - FINISHED");
     }
+
+    public void setAutoExposure() {
+        // Wait for the camera to be STREAMING to use CameraControls (FTC SDK requirement)
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+                teamUtil.pause(20);
+            }
+        }
+        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+        if (exposureControl==null) {
+            teamUtil.log("Failed to get ExposureControl object");
+            return;
+        }
+        if (exposureControl.getMode() != ExposureControl.Mode.Auto) {
+            exposureControl.setMode(ExposureControl.Mode.Auto);
+            teamUtil.pause(50);
+        }
+    }
+    public void setAutoExposureNoWait() {
+        teamUtil.log("Switching to AutoExposure on WebCams");
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setAutoExposure();
+            }
+        });
+        thread.start();
+    }
+
+    public void setCamExposure(long exposure, int gain) {
+        // Wait for the camera to be STREAMING to mess with controls (FTC SDK requirement)
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+                teamUtil.pause(20);
+            }
+        }
+        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+        if (exposureControl==null) {
+            teamUtil.log("Failed to get ExposureControl object");
+            return;
+        }
+        if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+            exposureControl.setMode(ExposureControl.Mode.Manual);
+            teamUtil.pause(50);
+        }
+        exposureControl.setExposure(exposure, TimeUnit.MILLISECONDS);
+        teamUtil.pause(20);
+
+        // FTC bug with no gain control on switchable cameras prevents this
+        //GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+        //if (gainControl==null) {
+        //    teamUtil.log("Failed to get GainControl object");
+        //    return;
+        //}
+        //gainControl.setGain(aprilTagGain);
+        //teamUtil.pause(20);
+    }
+
+    public void setCamExposureNoWait(long exposure, int gain) {
+        teamUtil.log("Switching to AprilTag Exposure on WebCams");
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setCamExposure( exposure, gain);
+            }
+        });
+        thread.start();
+    }
     public void runRearAprilTagProcessor() {
         visionPortal.setActiveCamera(backCam);
+        setCamExposureNoWait(aprilTagExposure, aprilTagGain);
         visionPortal.setProcessorEnabled(findLineProcesser,false);
         findLineProcessorRunning=false;
         visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
@@ -185,6 +266,8 @@ public class Drive {
     }
     public void runFrontLineFinderProcessor() {
         visionPortal.setActiveCamera(frontCam);
+        setCamExposureNoWait(findLineProcesser.lineExposure, findLineProcesser.lineGain);
+        //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
         visionPortal.setProcessorEnabled(aprilTag ,false);
         //visionPortal.setProcessorEnabled(findPixelProcesser,false);
         aprilTagProcessorRunning=false;
@@ -196,6 +279,8 @@ public class Drive {
     }
     public void runSideTeamPropFinderProcessor() {
         visionPortal.setActiveCamera(sideCam);
+        setCamExposureNoWait(findTeamPropProcesser.propExposure, findTeamPropProcesser.propGain);
+        //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
         visionPortal.setProcessorEnabled(aprilTag ,false);
         //visionPortal.setProcessorEnabled(findPixelProcesser,false);
         aprilTagProcessorRunning=false;

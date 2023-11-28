@@ -36,11 +36,14 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
     int propPosition;
     double satRectLeft, satRectRight, satRectMiddle;
+
+    // These constants should all be tuned at the same time
+    public int propExposure = 50 ; //  frame exposure in ms (use TestDrive opMode to calibrate)
+    public int propGain = 1; // Unknown--  DOESN'T WORK DUE TO FTC BUG
     double middleRedThreshold = 80; //
     double rightRedThreshold = 50; //
     double middleBlueThreshold = 100; //112
     double leftBlueThreshold = 100; //
-    double percentageError = 0.05;
     public OpenCVPropFinder () {
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         telemetry = teamUtil.telemetry;

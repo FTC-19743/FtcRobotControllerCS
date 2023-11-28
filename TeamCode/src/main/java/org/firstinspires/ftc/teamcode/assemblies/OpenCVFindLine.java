@@ -92,7 +92,10 @@ public class OpenCVFindLine extends OpenCVProcesser {
     static public int MINWIDTH = (int) (CAMWIDTH * .125);
     static public int MAXWIDTH = (int) (CAMWIDTH * .4);
 
-    public int whiteThreshold = 160;
+    // These three need to be tuned together
+    public int whiteThreshold = 140;
+    public int lineExposure = 20 ; // frame exposure in ms (use TestDrive opMode to calibrate)
+    public int lineGain = 1; // Unknown--  DOESN'T WORK DUE TO FTC BUG
     public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack
     Scalar blackColor = new Scalar(0, 0, 0);
 
