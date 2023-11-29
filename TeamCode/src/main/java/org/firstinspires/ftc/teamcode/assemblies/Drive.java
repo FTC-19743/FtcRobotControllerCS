@@ -1426,20 +1426,19 @@ public class Drive {
                 break;
             }
             double heading;
-            if(tagOffset.y>=0){
+            if(cmsToBackup==0) {
+                heading = cmsToStrafe<0 ? 270:90;
+            }else if (cmsToBackup > 0){ // Using vertical (y-axis) to compute reference angles since 0 is at top
                  heading = adjustAngle( Math.toDegrees(Math.atan(cmsToStrafe/cmsToBackup)));
-            }
-            else if(tagOffset.x<0){
-                 heading = 270-Math.toDegrees(Math.atan(cmsToBackup/cmsToStrafe));
-            }
-            else{
-                heading = 90-Math.toDegrees(Math.atan(cmsToBackup/cmsToStrafe));
+            } else {
+                heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
             double velocity = Math.min(initialVelocity,MIN_END_VELOCITY + MAX_DECELERATION*COUNTS_PER_CENTIMETER*cmsToTravel);
             if (details) teamUtil.log("strafe: "+ cmsToStrafe + " back: "+ cmsToBackup+ " travel: "+ cmsToTravel + " heading: "+ heading + " v: "+ velocity);
             driveMotorsHeadingsFR(heading,robotHeading,velocity);
             while (!getRobotBackdropOffset(tagOffset) ) {
                 // TODO: if we stay in this loop for very long, it means the robot is moving based on stale data.  Need a failsafe here
+                // TODO: Maybe just back up until we see a tag or travel more than a few inches?
                 if (details) teamUtil.log("Lost sight of tags!");
             }
         }

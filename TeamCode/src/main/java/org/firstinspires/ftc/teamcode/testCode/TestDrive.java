@@ -169,25 +169,38 @@ public class TestDrive extends LinearOpMode {
                     drive.getHeading());
 
             if (gamepad.wasUpPressed()) {
-                drive.driveToProximityNoWait(0,180,400,3000);
-                drive.setMotorsActiveBrake();
-                teamUtil.pause(500);
-                drive.setMotorsWithEncoder();
+                output.moveStraferMiddle();
             }
             if (gamepad.wasDownPressed()) {
                 drive.driveToTapeTelopNoWait(0,180,400,3000);
             }
             if (gamepad.wasLeftPressed()) {
-                drive.moveCm(2000, 30,180, 180, 350);
-                drive.findLineProcesser.reset();
-
-                drive.driveToStack(180,180,350,2000);
+                output.moveStraferLeft();
             }
             if (gamepad.wasRightPressed()) {
-                //drive.moveCm(drive.MAX_VELOCITY,60,300, 180, 1000);
-
-                drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER)/2,30,4000); // TODO: Fix timeout
+                output.moveStraferRight();
             }
+
+            /*
+                // DriveToStack Test Code
+                drive.moveCm(2000, 30,180, 180, 350);
+                drive.findLineProcesser.reset();
+                drive.driveToStack(180,180,350,2000);
+
+                //Drive To April Tag Offset test code
+                drive.moveCm(drive.MAX_VELOCITY,60,300, 180, 1000);
+                drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER)/2,30,4000); // TODO: Fix timeout
+                drive.moveCm(drive.MAX_VELOCITY,12,0, 180, drive.MIN_END_VELOCITY);
+                drive.driveToTape(0,180,350,1500);
+                drive.stopMotors();
+
+                // Drive to proximity test code
+                drive.driveToProximityNoWait(0,180,400,3000);
+                drive.setMotorsActiveBrake();
+                teamUtil.pause(500);
+                drive.setMotorsWithEncoder();
+             */
+
             /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);
             telemetry.addLine("Deceleration (b): "+drive.MAX_DECELERATION);

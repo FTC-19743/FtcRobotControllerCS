@@ -267,6 +267,30 @@ public class Output {
        }
    }
 
+   public void moveStraferLeft() {
+       if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
+           teamUtil.log("WARNING: Attempt to strafe grabber in bad position");
+           return;
+       } else {
+           grabberStrafer.setPosition(StraferLeft);
+       }
+   }
+   public void moveStraferRight() {
+       if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
+           teamUtil.log("WARNING: Attempt to strafe grabber in bad position");
+           return;
+       } else {
+           grabberStrafer.setPosition(StraferRight);
+       }
+   }
+    public void moveStraferMiddle() {
+        if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to strafe grabber in bad position");
+            return;
+        } else {
+            grabberStrafer.setPosition(StraferLoad);
+        }
+    }
    public void straferManual(boolean left){
        if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
            teamUtil.log("WARNING: Attempt to strafe grabber while output system is moving--ignored");
