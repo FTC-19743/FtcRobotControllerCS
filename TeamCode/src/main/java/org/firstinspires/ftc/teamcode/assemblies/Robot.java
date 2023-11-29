@@ -130,13 +130,14 @@ public class Robot {
         }
     }
 
+
     public void autoV3(int path, boolean operateArms){
 
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         log("encoder position" + drive.strafeEncoder.getCurrentPosition());
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
         drive.setHeading(180); // Zero is towards the scoring side of field
-        drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
+         // Get AprilTag Finder up and running
         if(operateArms){
             output.goToScoreNoWait(2);
 
@@ -151,8 +152,19 @@ public class Robot {
         }else{
             teamUtil.pause(1000);
         }
+        drive.runFrontLineFinderProcessor();
         drive.moveCm(drive.MAX_VELOCITY,100,135, 180,800);
-        drive.moveCm(drive.MAX_VELOCITY,210,180, 180, drive.MIN_END_VELOCITY);
+
+        drive.moveCm(drive.MAX_VELOCITY,185,180, 180, 350);
+        if(operateArms){
+            intake.startIntake();
+        }
+        drive.driveToStack(180,180,350,2000);
+
+
+
+
+        /*
         log("encoder position" + drive.strafeEncoder.getCurrentPosition());
         double strafeDistanceFromStackTics = drive.strafeEncoder.getCurrentPosition()-straferDistanceFarStack;
         double strafeDistanceFromStackCms = strafeDistanceFromStackTics/130;
@@ -160,13 +172,14 @@ public class Robot {
         log("strafe distance from stack cms" + strafeDistanceFromStackCms);
 
         long ultrasonicSensorReadingTime = System.currentTimeMillis()+1000;
-        if(operateArms){
-            intake.startIntake();
-        }
+
+
         drive.moveCm(1000,Math.abs(strafeDistanceFromStackCms),strafeDistanceFromStackCms>0? 270:90,180,0);
 
         while(teamUtil.keepGoing(ultrasonicSensorReadingTime)){
         }
+
+
         log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
         teamUtil.pause(750);
         log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
@@ -174,7 +187,7 @@ public class Robot {
         drive.moveCm(800,ultrasonicSensorDistanceFromWall-10,180,180,0);
 
         drive.stopMotors();
-
+*/
         if(operateArms){
             intake.grabTwoPixels();
         }else{
@@ -183,15 +196,20 @@ public class Robot {
         }
 
 
-
-        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 800);
+        drive.runRearAprilTagProcessor();
+        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
         if(operateArms){
             output.goToScoreNoWait(2);
         }
-        drive.moveCm(drive.MAX_VELOCITY,95,315, 180, drive.MIN_END_VELOCITY);
+        drive.moveCm(drive.MAX_VELOCITY,60,300, 180, 1000);
+
+        drive.driveToAprilTagOffset(1000,315,180,(-drive.TAG_CENTER_TO_CENTER)/2,30,4000); // TODO: Fix timeout
+
+        drive.moveCm(drive.MAX_VELOCITY,15,0, 180, drive.MIN_END_VELOCITY);
 
         drive.driveToTape(0,180,350,3000);
         drive.stopMotors();
+        /*
         if(operateArms){
             output.dropAndGoToLoadNoWait();
         }
@@ -240,6 +258,10 @@ public class Robot {
         if(operateArms){
             output.dropAndGoToLoad();
         }
+
+         */
+
+
 
 
 

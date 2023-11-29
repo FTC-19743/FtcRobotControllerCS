@@ -324,7 +324,7 @@ public class Drive {
     public void visionTelemetry () {
         if (aprilTagProcessorRunning) {
             //findPixelProcesser.outputTelemetry();
-            telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
+            //telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
             telemetry.addLine("RearCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
@@ -653,7 +653,7 @@ public class Drive {
             log("distance after deceleration: " + distance);
         }
         if(endVelocity <= MIN_END_VELOCITY){
-            runMotors(0);
+            stopMotors();
             if(details) {
                 log("Went below or was min end velocity");
             }
@@ -1330,7 +1330,10 @@ public class Drive {
         log("No April Tag Seen");
         return noAprilTag;
     }
-    // returns an x offset of the robot relative to the center of the backdrop.  Negative is left of center
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // returns an x,y offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
+    // Returns false if it fails or times out.
     public boolean getRobotBackdropOffset(org.opencv.core.Point p) {
         if (!aprilTagProcessorRunning) {
             log("ERROR: getRobotBackdropOffset called without April Tag Processor Running");
@@ -1365,6 +1368,9 @@ public class Drive {
             }
         }
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // returns an x offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
     public float getRobotBackdropXOffset () {
         if (!aprilTagProcessorRunning) {
             log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
@@ -1400,6 +1406,7 @@ public class Drive {
     // Robot is moving at 'velocity" when this method is called
     // X is cms from the middle of the backdrop (- is left, + is right)
     // Y is cms from the April tags
+    // TODO: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset (double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
         log ("Drive to April Tag Offset");
         boolean details = true;
@@ -1418,7 +1425,16 @@ public class Drive {
             if (Math.abs(cmsToTravel) < driftCms) {
                 break;
             }
-            double heading = adjustAngle( Math.toDegrees(Math.atan(cmsToStrafe/cmsToBackup)));
+            double heading;
+            if(tagOffset.y>=0){
+                 heading = adjustAngle( Math.toDegrees(Math.atan(cmsToStrafe/cmsToBackup)));
+            }
+            else if(tagOffset.x<0){
+                 heading = 270-Math.toDegrees(Math.atan(cmsToBackup/cmsToStrafe));
+            }
+            else{
+                heading = 90-Math.toDegrees(Math.atan(cmsToBackup/cmsToStrafe));
+            }
             double velocity = Math.min(initialVelocity,MIN_END_VELOCITY + MAX_DECELERATION*COUNTS_PER_CENTIMETER*cmsToTravel);
             if (details) teamUtil.log("strafe: "+ cmsToStrafe + " back: "+ cmsToBackup+ " travel: "+ cmsToTravel + " heading: "+ heading + " v: "+ velocity);
             driveMotorsHeadingsFR(heading,robotHeading,velocity);

@@ -60,7 +60,7 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasUpPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV3(2, true);
+                robot.autoV3(2, false);
             }
             if(driverGamepad.wasRightPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;

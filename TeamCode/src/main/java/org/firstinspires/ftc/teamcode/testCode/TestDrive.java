@@ -180,10 +180,13 @@ public class TestDrive extends LinearOpMode {
             if (gamepad.wasLeftPressed()) {
                 drive.moveCm(2000, 30,180, 180, 350);
                 drive.findLineProcesser.reset();
+
                 drive.driveToStack(180,180,350,2000);
             }
             if (gamepad.wasRightPressed()) {
-                drive.driveToAprilTagOffset(1000,315,180,0,30,4000); // TODO: Fix timeout
+                //drive.moveCm(drive.MAX_VELOCITY,60,300, 180, 1000);
+
+                drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER)/2,30,4000); // TODO: Fix timeout
             }
             /*
             telemetry.addLine("Acceleration (a): "+drive.MAX_ACCELERATION);
