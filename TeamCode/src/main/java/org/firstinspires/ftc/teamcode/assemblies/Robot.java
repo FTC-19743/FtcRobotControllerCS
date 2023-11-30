@@ -141,11 +141,11 @@ public class Robot {
         if(operateArms){
             output.goToScoreNoWait(2);
 
-        }
+        } //TODO: calibrate movecm parameters
         drive.moveCm(86,fieldSide());
         drive.moveCm(6.5, driverSide(),500);
         drive.moveCm(drive.MAX_VELOCITY,90,0, 180,350);
-        drive.driveToTape(0,180,350,3000);
+        drive.driveToTapeSetPower(.1f,3000);
         drive.stopMotors();
         if(operateArms){
             output.dropAndGoToLoadNoWait();
@@ -161,8 +161,64 @@ public class Robot {
         }
         drive.driveToStack(180,180,350,2000);
 
+        if(operateArms){
+            intake.grabTwoPixels();
+        }else{
+            teamUtil.pause(1000);//grabTwoPixels
+
+        }
 
 
+        drive.runRearAprilTagProcessor();
+        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
+        if(operateArms){
+            output.goToScoreNoWait(2);
+        }
+        drive.moveCm(drive.MAX_VELOCITY,48,300, 180, 1000);
+
+        drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER),30,4000);
+        //TODO: make failsafe for if above returns false
+
+        drive.moveCm(drive.MAX_VELOCITY,9,0, 180, 0);
+        drive.driveToTapeSetPower(.1f,3000);
+        if(operateArms){
+            output.dropAndGoToLoadNoWait();
+        }else{
+            teamUtil.pause(1000);
+        }
+        drive.runFrontLineFinderProcessor();
+        drive.moveCm(drive.MAX_VELOCITY,67,135, 180,800);
+        drive.moveCm(drive.MAX_VELOCITY,198,180, 180, 350);
+
+        if(operateArms){
+            intake.startIntake();
+        }
+        drive.driveToStack(180,180,350,3000);
+
+        if(operateArms){
+            intake.grabTwoPixels();
+        }else{
+            teamUtil.pause(1000);//grabTwoPixels
+
+        }
+        drive.runRearAprilTagProcessor();
+        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
+        if(operateArms){
+            output.goToScoreNoWait(3);
+        }
+        drive.moveCm(drive.MAX_VELOCITY,48,300, 180, 1000);
+        drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER),30,4000);
+        //TODO: make failsafe for if above returns false
+
+        drive.moveCm(drive.MAX_VELOCITY,9,0, 180, 0);
+        drive.driveToTapeSetPower(.1f,3000);
+        if(operateArms){
+            output.dropAndGoToLoadNoWait();
+        }else{
+            teamUtil.pause(1000);
+        }
+        teamUtil.pause(3000);
+        drive.stopMotors();
 
         /*
         log("encoder position" + drive.strafeEncoder.getCurrentPosition());
@@ -188,27 +244,6 @@ public class Robot {
 
         drive.stopMotors();
 */
-        if(operateArms){
-            intake.grabTwoPixels();
-        }else{
-            teamUtil.pause(1000);//grabTwoPixels
-
-        }
-
-
-        drive.runRearAprilTagProcessor();
-        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
-        if(operateArms){
-            output.goToScoreNoWait(2);
-        }
-        drive.moveCm(drive.MAX_VELOCITY,60,300, 180, 1000);
-
-        drive.driveToAprilTagOffset(1000,315,180,(-drive.TAG_CENTER_TO_CENTER)/2,30,4000); // TODO: Fix timeout
-
-        drive.moveCm(drive.MAX_VELOCITY,15,0, 180, drive.MIN_END_VELOCITY);
-
-        drive.driveToTape(0,180,350,3000);
-        drive.stopMotors();
         /*
         if(operateArms){
             output.dropAndGoToLoadNoWait();

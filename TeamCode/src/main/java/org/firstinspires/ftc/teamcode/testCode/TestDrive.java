@@ -172,7 +172,7 @@ public class TestDrive extends LinearOpMode {
                 output.moveStraferMiddle();
             }
             if (gamepad.wasDownPressed()) {
-                drive.driveToTapeTelopNoWait(0,180,400,3000);
+                drive.driveToTapeSetPower(0.1f,3000);
             }
             if (gamepad.wasLeftPressed()) {
                 output.moveStraferLeft();

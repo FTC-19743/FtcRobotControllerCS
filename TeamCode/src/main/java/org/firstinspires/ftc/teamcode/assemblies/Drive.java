@@ -85,7 +85,7 @@ public class Drive {
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
     public double COUNTS_PER_CENTIMETER = 17.923;
-    public double MIN_START_VELOCITY = 350; //tentative value
+    public double MIN_START_VELOCITY = 300; //tentative value
     public double MIN_END_VELOCITY = 250; //tentative value
     public double MAX_ACCELERATION = 12; //tentative value
     public double MAX_DECELERATION = 2; //tentative value (should be negative)
@@ -876,6 +876,23 @@ public class Drive {
         return System.currentTimeMillis() < timeOutTime;
     }
 
+    public boolean driveToTapeSetPower(float power, long timeout) {
+        log ("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+            setMotorPower(-power);
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape() ) {
+
+            }
+        setMotorPower(0);
+        if (System.currentTimeMillis()> timeOutTime) {
+            log("Drive To Tape-TIMED OUT!");
+        } else {
+            log("Drive To Tape-Finished");
+        }
+
+        return System.currentTimeMillis() < timeOutTime;
+    }
+
     // drive until either color sensor is triggered, OR we are interrupted, OR we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
@@ -946,6 +963,7 @@ public class Drive {
 
     // Drives forward until robot sees white tape, then strafes to line up on it and then goes to wall
     public void driveToStack(double driveHeading, double robotHeading, double velocity, long timeout) {
+        //start with a minimum of 40 cms from the wall
         boolean details = false;
         findLineProcesser.details = details;
         log ("Drive To Stack");
@@ -1411,6 +1429,7 @@ public class Drive {
         log ("Drive to April Tag Offset");
         boolean details = true;
         long timeOutTime = System.currentTimeMillis() + timeout;
+        long aprilTagTimeoutTime=0;
         float driftCms = 2;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
         log ("Continue on Initial Heading");
@@ -1436,14 +1455,16 @@ public class Drive {
             double velocity = Math.min(initialVelocity,MIN_END_VELOCITY + MAX_DECELERATION*COUNTS_PER_CENTIMETER*cmsToTravel);
             if (details) teamUtil.log("strafe: "+ cmsToStrafe + " back: "+ cmsToBackup+ " travel: "+ cmsToTravel + " heading: "+ heading + " v: "+ velocity);
             driveMotorsHeadingsFR(heading,robotHeading,velocity);
-            while (!getRobotBackdropOffset(tagOffset) ) {
+            aprilTagTimeoutTime = System.currentTimeMillis()+1000;
+            while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
                 // TODO: if we stay in this loop for very long, it means the robot is moving based on stale data.  Need a failsafe here
                 // TODO: Maybe just back up until we see a tag or travel more than a few inches?
                 if (details) teamUtil.log("Lost sight of tags!");
             }
+
         }
         stopMotors();
-        if (System.currentTimeMillis() > timeOutTime) {
+        if (System.currentTimeMillis() > timeOutTime|| System.currentTimeMillis() >aprilTagTimeoutTime) {
             teamUtil.log("driveToAprilTagOffset - TIMED OUT!");
             return false;
         } else {
