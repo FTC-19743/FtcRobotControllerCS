@@ -41,6 +41,9 @@ public class TeamGamepad {
     double leftTriggerWasPressedLastTime = 0;
     double leftTriggerWasPressed = 0;
     boolean leftTriggerBumpToDo = false;
+    double rightTriggerWasPressedLastTime = 0;
+    double rightTriggerWasPressed = 0;
+    boolean rightTriggerBumpToDo = false;
     boolean optionsWasPressedLastTime = false;
     boolean optionsWasPressed = false;
     boolean optionsBumpToDo = false;
@@ -83,6 +86,8 @@ public class TeamGamepad {
         leftBumperWasPressed = gamepad.left_bumper;
         leftTriggerWasPressedLastTime = leftTriggerWasPressed;
         leftTriggerWasPressed = gamepad.left_trigger;
+        rightTriggerWasPressedLastTime = rightTriggerWasPressed;
+        rightTriggerWasPressed = gamepad.right_trigger;
         optionsWasPressedLastTime = optionsWasPressed;
         optionsWasPressed = gamepad.options;
 
@@ -118,6 +123,9 @@ public class TeamGamepad {
         }
         if (leftTriggerWasPressed < 0.8 && leftTriggerWasPressedLastTime >= 0.8){
             leftTriggerBumpToDo = true;
+        }
+        if (rightTriggerWasPressed < 0.8 && rightTriggerWasPressedLastTime >= 0.8){
+            rightTriggerBumpToDo = true;
         }
         if (optionsWasPressed == false && optionsWasPressedLastTime == true) {
             optionsBumpToDo = true;
@@ -199,6 +207,13 @@ public class TeamGamepad {
     public boolean wasLeftTriggerPressed(){
         if(leftTriggerBumpToDo){
             leftTriggerBumpToDo = false;
+            return true;
+        }
+        return false;
+    }
+    public boolean wasRightTriggerPressed(){
+        if(rightTriggerBumpToDo){
+            rightTriggerBumpToDo = false;
             return true;
         }
         return false;
