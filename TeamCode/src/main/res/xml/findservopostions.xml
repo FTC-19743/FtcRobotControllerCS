@@ -2,7 +2,8 @@
 <Robot type="FirstInspires-FTC">
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
-            <Servo name="ServoEH0" port="0" />
+            <RevBlinkinLedDriver name="blinkin" port="0" />
+            <!--<Servo name="ServoEH0" port="0" />-->
             <Servo name="ServoEH1" port="1" />
             <Servo name="ServoEH2" port="2" />
             <Servo name="ServoEH3" port="3" />

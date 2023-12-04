@@ -19,24 +19,24 @@ public class findServoPositions extends LinearOpMode {
     TeamGamepad gamepad;
     private Servo servo;
     private int port = 0;
-    private boolean ch = true;
+    private boolean ch = false; // Start on Expansion Hub port 0
 
     private void updateServo()
     {
-        String name = "Servo";
-        if (ch) {
-            name = name+"CH";
-        } else {
-            name = name+"EH";
-        }
-        name = name + port;
-        servo = hardwareMap.servo.get(name);
-        servo.setPosition(INITIAL_POS);
-
+            String name = "Servo";
+            if (ch) {
+                name = name+"CH";
+            } else {
+                name = name+"EH";
+            }
+            name = name + port;
+            servo = hardwareMap.servo.get(name);
+            servo.setPosition(INITIAL_POS);
+            currentPosition = INITIAL_POS;
     }
 
     public void runOpMode() {
-        teamUtil.init(this);
+        //teamUtil.init(this); // Don't use, since it will try to load the Blinkin instead of Servo 0 on the EH
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         updateServo();

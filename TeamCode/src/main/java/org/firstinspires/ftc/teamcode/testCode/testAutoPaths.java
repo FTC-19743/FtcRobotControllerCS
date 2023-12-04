@@ -75,13 +75,14 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasYPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV2(2, false);
+                robot.autoV3(2, false);
             }
             if(driverGamepad.wasBPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.autoV2(3, false);
             }
+
             telemetry.update();
 
         }

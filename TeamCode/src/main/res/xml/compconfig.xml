@@ -13,6 +13,8 @@
             <goBILDA5202SeriesMotor name="elevRight" port="1" />
             <goBILDA5202SeriesMotor name="elevLeft" port="2" />
             <goBILDA5202SeriesMotor name="liftSpindle" port="3" />
+
+            <RevBlinkinLedDriver name="blinkin" port="0"/>
             <Servo name="launcher" port="1" />
             <ContinuousRotationServo name="sweeper" port="2" />
             <ContinuousRotationServo name="kicker" port="3" />

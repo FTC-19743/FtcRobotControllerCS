@@ -44,12 +44,15 @@ public class Output {
 
 
 
-    public static double flipperLoad = 0.1516+0.007*5;
-    public static double flipperScore = 0.845+0.007*5;
+    //public static double flipperLoad = 0.1516+0.007*5;
+    public static double flipperLoad = 0.1877;
 
-    public static double StraferLoad = 0.55;
-    public static double StraferRight = 0.25;
-    public static double StraferLeft = 0.86;
+    //public static double flipperScore = 0.845+0.007*5;
+    public static double flipperScore = 0.8756;
+
+    public static double StraferLoad = 0.47;
+    public static double StraferRight = 0.28; // "Right" when facing the backdrop.  Actually Robot's left
+    public static double StraferLeft = 0.655;
 
     public static double StraferIncrement = 0.025;
     public static double GrabberOpen = 0.55;
@@ -94,8 +97,11 @@ public class Output {
         flipper = hardwareMap.get(Servo.class,"flipper");
         flipper.setPosition(flipperLoad);
         grabber = hardwareMap.get(Servo.class,"grabber");
+        grabber.setPosition(GrabberOpen);
         grabberRotater = hardwareMap.get(Servo.class,"grabberRotator");
+        grabberRotater.setPosition(GrabberRotatorLoad);
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
+        grabberStrafer.setPosition(StraferLoad);
         loading.set(true);
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);

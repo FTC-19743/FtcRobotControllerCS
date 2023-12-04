@@ -130,6 +130,36 @@ public class Robot {
         }
     }
 
+    public void pushPurplePixelV3(int path) {
+        teamUtil.log("Pushing Pixel");
+        switch (path) { // Push the pixel and move back a bit
+            case 1:
+                drive.moveCm(67,fieldSide());
+                drive.moveCm(30,fieldSide()+50);
+                drive.moveCm(10,driverSide());
+                break;
+            case 2:
+                drive.moveCm(86,fieldSide());
+                if(teamUtil.SIDE == teamUtil.Side.WING){
+                    drive.moveCm(9,driverSide());
+                    break;
+                }
+                drive.moveCm(8.5,driverSide());
+                break;
+            case 3:
+                drive.moveCm(75,fieldSide());
+                drive.moveCm(30,fieldSide()+300);
+                drive.moveCm(13,driverSide());
+                break;
+        }
+    }
+    public void cycle(double xOffset){ // TODO: add to auto routines and add the rest of a cycle to it
+        drive.runFrontLineFinderProcessor();
+        drive.moveCm(86+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
+        drive.moveCm(drive.MAX_VELOCITY, 194-xOffset, 180, 180, 350);
+
+    }
+
 
     public void autoV3(int path, boolean operateArms){
 
@@ -138,86 +168,155 @@ public class Robot {
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
         drive.setHeading(180); // Zero is towards the scoring side of field
          // Get AprilTag Finder up and running
-        if(operateArms){
-            output.goToScoreNoWait(2);
 
-        } //TODO: calibrate movecm parameters
-        drive.moveCm(86,fieldSide());
-        drive.moveCm(6.5, driverSide(),500);
-        drive.moveCm(drive.MAX_VELOCITY,90,0, 180,350);
-        drive.driveToTapeSetPower(.1f,3000);
-        drive.stopMotors();
-        if(operateArms){
-            output.dropAndGoToLoadNoWait();
-        }else{
-            teamUtil.pause(1000);
+        pushPurplePixelV3(path);
+        if(teamUtil.SIDE == teamUtil.Side.SCORE) {//TODO: calibrate movecm parameters
+            if(operateArms){
+                output.goToScoreNoWait(2);
+
+            }
+            drive.moveCm(drive.MAX_VELOCITY, 90, 0, 180, 350);
+            drive.driveToTapeSetPower(.1f, 3000);
+            drive.stopMotors();
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(1000);
+            }
+            drive.runFrontLineFinderProcessor();
+            drive.moveCm(drive.MAX_VELOCITY, 100, 135, 180, 800);
+
+            drive.moveCm(drive.MAX_VELOCITY, 185, 180, 180, 350);
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.driveToStack(180, 180, 350, 2000);
+
+            if (operateArms) {
+                intake.grabTwoPixels();
+            } else {
+                teamUtil.pause(1000);//grabTwoPixels
+
+            }
+
+
+            drive.runRearAprilTagProcessor();
+            drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
+            if (operateArms) {
+                output.goToScoreNoWait(2);
+            }
+            drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
+
+            drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
+            //TODO: make failsafe for if above returns false
+
+            drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
+            drive.driveToTapeSetPower(.1f, 3000);
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(1000);
+            }
+            drive.runFrontLineFinderProcessor();
+            drive.moveCm(drive.MAX_VELOCITY, 67, 135, 180, 800);
+            drive.moveCm(drive.MAX_VELOCITY, 198, 180, 180, 350);
+
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.driveToStack(180, 180, 350, 3000);
+
+            if (operateArms) {
+                intake.grabTwoPixels();
+            } else {
+                teamUtil.pause(1000);//grabTwoPixels
+
+            }
+            drive.runRearAprilTagProcessor();
+            drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
+            if (operateArms) {
+                output.goToScoreNoWait(3);
+            }
+            drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
+            drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
+            //TODO: make failsafe for if above returns false
+
+            drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
+            drive.driveToTapeSetPower(.1f, 3000);
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(1000);
+            }
+        }else{ // wing
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.moveCm(64, 180);
+            if (operateArms) {
+                intake.grabOnePixel();
+            } else {
+                teamUtil.pause(1000);//grabTwoPixels
+
+            }
+            drive.runRearAprilTagProcessor();
+            drive.moveCm(400, 3, 0, 400);
+            drive.moveCm( 50, 90, 800);
+            drive.moveCm(220, 0, 800);
+            if (operateArms) {
+                output.goToScoreNoWait(2);
+            }
+            drive.moveCm(65, 285);
+            double xOffset = 0;
+            if(path == 1){
+                xOffset= (-drive.TAG_CENTER_TO_CENTER);
+            }else if(path == 3){
+                xOffset = drive.TAG_CENTER_TO_CENTER;
+            }
+            drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 4000);
+            drive.moveCm(17, 0);
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(1000);
+            }
+            drive.runFrontLineFinderProcessor();
+
+
+            drive.moveCm(drive.MAX_VELOCITY, 86, 135, 180, 800);
+
+            drive.moveCm(drive.MAX_VELOCITY, 194, 180, 180, 350);
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.driveToStack(180, 180, 350, 2000);
+
+            if (operateArms) {
+                intake.grabTwoPixels();
+            } else {
+                teamUtil.pause(1000);//grabTwoPixels
+
+            }
+
+
+            drive.runRearAprilTagProcessor();
+            drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
+            if (operateArms) {
+                output.goToScoreNoWait(2);
+            }
+            drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
+
+            drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
+            //TODO: make failsafe for if above returns false
+
+            drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
+            drive.driveToTapeSetPower(.1f, 3000);
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(1000);
+            }
         }
-        drive.runFrontLineFinderProcessor();
-        drive.moveCm(drive.MAX_VELOCITY,100,135, 180,800);
-
-        drive.moveCm(drive.MAX_VELOCITY,185,180, 180, 350);
-        if(operateArms){
-            intake.startIntake();
-        }
-        drive.driveToStack(180,180,350,2000);
-
-        if(operateArms){
-            intake.grabTwoPixels();
-        }else{
-            teamUtil.pause(1000);//grabTwoPixels
-
-        }
-
-
-        drive.runRearAprilTagProcessor();
-        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
-        if(operateArms){
-            output.goToScoreNoWait(2);
-        }
-        drive.moveCm(drive.MAX_VELOCITY,48,300, 180, 1000);
-
-        drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER),30,4000);
-        //TODO: make failsafe for if above returns false
-
-        drive.moveCm(drive.MAX_VELOCITY,9,0, 180, 0);
-        drive.driveToTapeSetPower(.1f,3000);
-        if(operateArms){
-            output.dropAndGoToLoadNoWait();
-        }else{
-            teamUtil.pause(1000);
-        }
-        drive.runFrontLineFinderProcessor();
-        drive.moveCm(drive.MAX_VELOCITY,67,135, 180,800);
-        drive.moveCm(drive.MAX_VELOCITY,198,180, 180, 350);
-
-        if(operateArms){
-            intake.startIntake();
-        }
-        drive.driveToStack(180,180,350,3000);
-
-        if(operateArms){
-            intake.grabTwoPixels();
-        }else{
-            teamUtil.pause(1000);//grabTwoPixels
-
-        }
-        drive.runRearAprilTagProcessor();
-        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 1000);
-        if(operateArms){
-            output.goToScoreNoWait(3);
-        }
-        drive.moveCm(drive.MAX_VELOCITY,48,300, 180, 1000);
-        drive.driveToAprilTagOffset(1000,0,180,(-drive.TAG_CENTER_TO_CENTER),30,4000);
-        //TODO: make failsafe for if above returns false
-
-        drive.moveCm(drive.MAX_VELOCITY,9,0, 180, 0);
-        drive.driveToTapeSetPower(.1f,3000);
-        if(operateArms){
-            output.dropAndGoToLoadNoWait();
-        }else{
-            teamUtil.pause(1000);
-        }
-        teamUtil.pause(3000);
         drive.stopMotors();
 
         /*

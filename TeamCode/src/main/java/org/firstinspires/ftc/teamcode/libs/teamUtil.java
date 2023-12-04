@@ -16,6 +16,9 @@ public class teamUtil {
     public enum Side {WING, SCORE}
     public static Side SIDE = Side.WING;
 
+    public static Blinkin theBlinkin =null;
+
+
     public static boolean LEFT = true; // Don't use this anymore!
 
 
@@ -23,6 +26,8 @@ public class teamUtil {
         theOpMode = opMode;
         telemetry = theOpMode.telemetry;
         inInitialization = true;
+        theBlinkin = new Blinkin(opMode.hardwareMap, opMode.telemetry);
+        theBlinkin.init();
     }
 
     // Wait for the specified milliseconds

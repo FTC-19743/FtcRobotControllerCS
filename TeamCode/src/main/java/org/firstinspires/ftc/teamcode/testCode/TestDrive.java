@@ -49,6 +49,12 @@ public class TestDrive extends LinearOpMode {
         }
     }
 
+    public void cycle(double xOffset){
+        drive.runFrontLineFinderProcessor();
+        drive.moveCm(86+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
+        drive.moveCm(drive.MAX_VELOCITY, 194-xOffset, 180, 180, 350);
+
+    } // TODO: DELETE MEEEEEEEEEEEEEEEEEEEEEEEEEE
     private void getCameraSettings() {
         // Ensure Vision Portal has been setup.
         if (drive.visionPortal == null) {
@@ -168,8 +174,14 @@ public class TestDrive extends LinearOpMode {
                     gamepad.gamepad.right_trigger>.5,
                     drive.getHeading());
 
+            if(gamepad.wasRightBumperPressed()){
+                toggleCamera();
+                //drive.setHeading(180);
+                //drive.moveCm(1000, 20, 180, 180, 1000);
+                //drive.centerOnAprilTag(8, 40, 0, 180);
+            }
             if (gamepad.wasUpPressed()) {
-                output.moveStraferMiddle();
+                cycle((drive.TAG_CENTER_TO_CENTER));
             }
             if (gamepad.wasDownPressed()) {
                 drive.driveToTapeSetPower(0.1f,3000);
@@ -179,6 +191,18 @@ public class TestDrive extends LinearOpMode {
             }
             if (gamepad.wasRightPressed()) {
                 output.moveStraferRight();
+            }
+            if(gamepad.wasYPressed()){
+                output.goToScore(2);
+            }
+            if(gamepad.wasAPressed()){
+                output.goToLoad();
+            }
+            if(gamepad.wasBPressed()){
+                intake.startIntake();
+            }
+            if(gamepad.wasXPressed()){
+                intake.grabTwoPixels();
             }
 
             /*
@@ -212,12 +236,7 @@ public class TestDrive extends LinearOpMode {
             telemetry.addLine("Ultrasonic Distance: "+drive.getUltrasonicDistance());
             */
 
-            if(gamepad.wasRightBumperPressed()){
-                toggleCamera();
-                //drive.setHeading(180);
-                //drive.moveCm(1000, 20, 180, 180, 1000);
-                //drive.centerOnAprilTag(8, 40, 0, 180);
-            }
+
             /*
             if(gamepad.gamepad.right_trigger > .5){
                 drive.setHeading(0);
@@ -280,22 +299,6 @@ public class TestDrive extends LinearOpMode {
                 }
             }
             */
-
-            if(gamepad.wasYPressed()){
-                output.goToScore(2);
-            }
-
-            if(gamepad.wasAPressed()){
-                output.goToLoad();
-            }
-
-            if(gamepad.wasBPressed()){
-                intake.startIntake();
-            }
-
-            if(gamepad.wasXPressed()){
-                intake.grabTwoPixels();
-            }
 
 
 

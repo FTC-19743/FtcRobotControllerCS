@@ -2,16 +2,12 @@ package org.firstinspires.ftc.teamcode.assemblies;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.CRServoImpl;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Intake {
@@ -32,17 +28,19 @@ public class Intake {
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
-    public double leftKnockerStore = 0.76;
+    public double leftKnockerStore = 0.72;
+    public double leftKnockerSweep = 0.44;
+    public double leftKnockerDrop = 0.32;
 
-    public double leftKnockerCollect = 0.17;
+    public double leftKnockerCollect = 0.19;
 
-    public double leftKnockerVertical = 0.42;
 
-    public double rightKnockerStore = 0.06;
+    public double rightKnockerStore = 0.25;
+    public double rightKnockerSweep = 0.54;
+    public double rightKnockerDrop = .68;
 
-    public double rightKnockerCollect = 0.64;
+    public double rightKnockerCollect = 0.81;
 
-    public double rightKnockerVertical = 0.38;
 
     public boolean intakeRunning = false;
 
@@ -76,8 +74,8 @@ public class Intake {
     }
 
     public void ready() {
-        lKnocker.setPosition(leftKnockerVertical);
-        rKnocker.setPosition(rightKnockerVertical);
+        lKnocker.setPosition(leftKnockerDrop);
+        rKnocker.setPosition(rightKnockerDrop);
     }
     public void collect() {
         lKnocker.setPosition(leftKnockerCollect);
