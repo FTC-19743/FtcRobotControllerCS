@@ -99,6 +99,7 @@ public class Drive {
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
     public double CMS_PER_INCH = 2.54;
+    public double TICS_PER_CM_STRAFE = 130;
     public Drive() {
         teamUtil.log("Constructing Drive");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -1427,7 +1428,7 @@ public class Drive {
     // TODO: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset (double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
         log ("Drive to April Tag Offset");
-        boolean details = true;
+        boolean details = false;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime=0;
         float driftCms = 2;
@@ -1571,5 +1572,21 @@ public class Drive {
         }
         universalDriveJoystick(leftJoyStickX, leftJoyStickY, rightJoyStickX, isFast, robotHeading);
     }
+
+    public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout){
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        float driftCms = 1;
+        while(Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())>driftCms*TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)){
+            driveMotorsHeadingsFR(driveHeading,robotHeading,velocity);
+        }
+        if (System.currentTimeMillis() > timeOutTime){
+            teamUtil.log("strafeToEncoder - TIMED OUT!");
+            return false;
+        } else {
+            log ("strafeToEncoder - FINISHED");
+            return true;
+        }
+    }
+
 }
 

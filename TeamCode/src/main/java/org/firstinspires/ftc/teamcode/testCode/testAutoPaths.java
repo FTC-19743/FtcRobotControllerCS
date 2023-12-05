@@ -55,7 +55,7 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasLeftPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV2(1, false);
+                robot.autoV3(1, false);
             }
             if(driverGamepad.wasUpPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
@@ -65,22 +65,22 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasRightPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV2(3, false);
+                robot.autoV3(3, false);
             }
             if(driverGamepad.wasXPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV2(1, false);
+                robot.autoV3(1, true);
             }
             if(driverGamepad.wasYPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV3(2, false);
+                robot.autoV3(2, true);
             }
             if(driverGamepad.wasBPressed()) {
                 teamUtil.alliance= teamUtil.Alliance.RED;
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV2(3, false);
+                robot.autoV3(3, true);
             }
 
             telemetry.update();

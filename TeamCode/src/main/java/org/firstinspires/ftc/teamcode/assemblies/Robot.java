@@ -130,33 +130,87 @@ public class Robot {
         }
     }
 
-    public void pushPurplePixelV3(int path) {
+    public boolean pushPurplePixelV3(int path) {
         teamUtil.log("Pushing Pixel");
+
         switch (path) { // Push the pixel and move back a bit
             case 1:
-                drive.moveCm(67,fieldSide());
+                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?69: 67, fieldSide());
                 drive.moveCm(30,fieldSide()+50);
-                drive.moveCm(10,driverSide());
+                if(teamUtil.SIDE==teamUtil.Side.WING){
+                    if(!drive.strafeToEncoder(driverSide(),180,400,9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                }
+                else{
+                    //Figure out later
+                }
+
                 break;
             case 2:
                 drive.moveCm(86,fieldSide());
-                if(teamUtil.SIDE == teamUtil.Side.WING){
-                    drive.moveCm(9,driverSide());
-                    break;
+                if(!drive.strafeToEncoder(driverSide(),180,400,9300, 2000)) {
+                    drive.stopMotors();
+                    return false;
                 }
-                drive.moveCm(8.5,driverSide());
                 break;
             case 3:
-                drive.moveCm(75,fieldSide());
-                drive.moveCm(30,fieldSide()+300);
-                drive.moveCm(13,driverSide());
+                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?73: 80, fieldSide());
+                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?32:30,fieldSide()+300);
+                if(teamUtil.SIDE==teamUtil.Side.SCORE) {
+                    if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                }
+                else{
+                    drive.moveCm(11,driverSide());
+                    drive.moveCm(10,180);
+                    if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                }
                 break;
         }
+
+        return true;
     }
-    public void cycle(double xOffset){ // TODO: add to auto routines and add the rest of a cycle to it
+    public void cycle(double xOffset, boolean operateArms){ // TODO: add to auto routines and add the rest of a cycle to it
+        long startTime = System.currentTimeMillis();
         drive.runFrontLineFinderProcessor();
-        drive.moveCm(86+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
-        drive.moveCm(drive.MAX_VELOCITY, 194-xOffset, 180, 180, 350);
+        drive.moveCm(100+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
+        drive.moveCm(drive.MAX_VELOCITY, 183-xOffset, 180, 180, 350);
+        if (operateArms) {
+            intake.startIntake();
+        }
+        drive.driveToStack(180, 180, 350, 3000);
+
+        if (operateArms) {
+            intake.grabTwoPixels();
+        } else {
+            teamUtil.pause(1000);//grabTwoPixels
+
+        }
+        drive.runRearAprilTagProcessor();
+        drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
+        if (operateArms) {
+            output.goToScoreNoWait(3);
+        }
+        drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
+        drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
+        //TODO: make failsafe for if above returns false
+
+        drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
+        drive.driveToTapeSetPower(.1f, 3000);
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(1000);
+        }
+        long cycleTime = System.currentTimeMillis()-startTime;
+        log("cycleTime: "+ cycleTime);
 
     }
 
@@ -169,7 +223,10 @@ public class Robot {
         drive.setHeading(180); // Zero is towards the scoring side of field
          // Get AprilTag Finder up and running
 
-        pushPurplePixelV3(path);
+        if(!pushPurplePixelV3(path)){
+            return;   //Auto Bailout
+        }
+
         if(teamUtil.SIDE == teamUtil.Side.SCORE) {//TODO: calibrate movecm parameters
             if(operateArms){
                 output.goToScoreNoWait(2);
@@ -249,16 +306,34 @@ public class Robot {
                 teamUtil.pause(1000);
             }
         }else{ // wing
+            drive.stopMotors();
+            teamUtil.pause(250);
+
             if (operateArms) {
                 intake.startIntake();
             }
-            drive.moveCm(64, 180);
+            switch (path) { // Movement to the wall
+                case 1:
+                    drive.moveCm(40.5,180);
+                    break;
+                case 2:
+                    drive.moveCm(64,180);
+                    break;
+                case 3:
+                    drive.moveCm(80,180);
+                    break;
+            }
+
             if (operateArms) {
                 intake.grabOnePixel();
             } else {
                 teamUtil.pause(1000);//grabTwoPixels
-
             }
+
+            teamUtil.pause(1000);
+            intake.stopIntake();
+            if(true)return;
+
             drive.runRearAprilTagProcessor();
             drive.moveCm(400, 3, 0, 400);
             drive.moveCm( 50, 90, 800);
@@ -280,7 +355,12 @@ public class Robot {
             } else {
                 teamUtil.pause(1000);
             }
-            drive.runFrontLineFinderProcessor();
+
+            cycle(0,operateArms);
+
+
+
+            /*drive.runFrontLineFinderProcessor();
 
 
             drive.moveCm(drive.MAX_VELOCITY, 86, 135, 180, 800);
@@ -316,6 +396,8 @@ public class Robot {
             } else {
                 teamUtil.pause(1000);
             }
+
+             */
         }
         drive.stopMotors();
 
