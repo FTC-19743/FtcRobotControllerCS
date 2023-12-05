@@ -109,32 +109,42 @@ public class Robot {
 
         switch (path) { // SPEED UP IDEAS: Make the pixel pusher less deep and try to go on a more direct path? move pixel pusher to back and target middle stack?
             case 1:
-                drive.moveCm(69, fieldSide());
-                drive.moveCm(30, fieldSide() + 50);
+                drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0);
+                drive.moveCm(drive.MAX_VELOCITY,30, fieldSide() + 50, 180,0);
                 if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
                     drive.stopMotors();
                     return false;
                 }
-                drive.moveCm(40.5, 180);
+                drive.stopMotors();
+                teamUtil.pause(250);
+                drive.moveCm(drive.MAX_VELOCITY,38, 180, 180,0);
                 break;
             case 2:
-                drive.moveCm(86, fieldSide());
-                if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                drive.moveCm(drive.MAX_VELOCITY,86, fieldSide(), 180,0);
+                if (!drive.strafeToEncoder(driverSide(), 180, 400, 9400, 2000)) { // tweaked encoder target a bit
                     drive.stopMotors();
                     return false;
                 }
-                drive.moveCm(64, 180);
+                drive.stopMotors();
+                teamUtil.pause(250);
+                drive.moveCm(drive.MAX_VELOCITY,64, 180, 180,0);
                 break;
             case 3:
-                drive.moveCm(73, fieldSide());
-                drive.moveCm(32, fieldSide() + 300);
-                drive.moveCm(11, driverSide());
-                drive.moveCm(10, 180);
-                if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9300, 2000)) {
+                drive.moveCm(drive.MAX_VELOCITY, 73, fieldSide(), 180,0);
+                drive.moveCm(drive.MAX_VELOCITY, 32, fieldSide() + 300, 180,0);
+                drive.moveCm(drive.MAX_VELOCITY, 11, driverSide(), 180,0);
+                drive.moveCm(drive.MAX_VELOCITY, 10, 180, 180,0);
+                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
+                if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9200, 2000)) { // tweaked encoder target a bit
                     drive.stopMotors();
                     return false;
                 }
-                drive.moveCm(80, 180);
+                drive.stopMotors();
+                teamUtil.pause(250);
+                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
+                drive.moveCm(drive.MAX_VELOCITY, 84, 180, 180,0);
+                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
+
                 break;
         }
         return true;
@@ -201,6 +211,7 @@ public class Robot {
             if (!pushPurplePixelWingV3(path)) { // pushes pixel and drives to stack
                 return;   //Auto Bailout
             }
+            if (true) return;
             if (operateArms) {
                 intake.grabOnePixel();
             } else {
@@ -224,7 +235,7 @@ public class Robot {
             // Get to where we can see the AprilTags well
             drive.moveCm(65, 285); // TODO: Make this work for both Alliances and maybe don't end at at stop?
         }
-
+        if (true) return;
         // Line up for the Yellow Pixel Drop on the correct location
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER); // TODO Adjust this for better consistency?
         drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 4000);

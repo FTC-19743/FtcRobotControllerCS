@@ -1152,6 +1152,7 @@ public class Drive {
 
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
+        log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
         while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
@@ -1160,7 +1161,7 @@ public class Drive {
             teamUtil.log("strafeToEncoder - TIMED OUT!");
             return false;
         } else {
-            log("strafeToEncoder - FINISHED");
+            log("strafeToEncoder - FINISHED : Current: " + strafeEncoder.getCurrentPosition());
             return true;
         }
     }

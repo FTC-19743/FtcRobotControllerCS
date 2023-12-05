@@ -18,6 +18,7 @@ public class testAutoPaths extends LinearOpMode {
     Robot robot;
     TeamGamepad driverGamepad;
     TeamGamepad armsGamepad;
+    boolean useArms = false;
 
 
     public void runOpMode() {
@@ -32,17 +33,6 @@ public class testAutoPaths extends LinearOpMode {
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
-        while(!driverGamepad.wasAPressed()){
-            driverGamepad.loop();
-            if(driverGamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
-            if(driverGamepad.wasRightPressed()){ teamUtil.alliance = teamUtil.Alliance.BLUE;}
-
-            teamUtil.telemetry.addLine("RED or BLUE? (use Game Pad 1 DPad)");
-            teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
-            teamUtil.telemetry.addLine("------------------------------------");
-            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
-            teamUtil.telemetry.update();
-        }
 
         telemetry.addLine("Ready to start");
         telemetry.update();
@@ -53,6 +43,10 @@ public class testAutoPaths extends LinearOpMode {
         while (opModeIsActive()){
             driverGamepad.loop();
             armsGamepad.loop();
+            telemetry.addLine("Alliance: "+ teamUtil.alliance);
+            telemetry.addLine("Use Arms: "+ useArms);
+            telemetry.addLine("Strafe: "+ robot.drive.strafeEncoder.getCurrentPosition());
+
 
             ////////// Drive
             if (driverGamepad.gamepad.right_stick_button && driverGamepad.gamepad.left_stick_button) {
@@ -73,29 +67,47 @@ public class testAutoPaths extends LinearOpMode {
                         driverGamepad.gamepad.right_trigger > .5,
                         robot.drive.getHeading());
             }
+
+            if (driverGamepad.wasLeftBumperPressed()) {
+                if (teamUtil.alliance== teamUtil.Alliance.RED) {
+                    teamUtil.alliance = teamUtil.Alliance.BLUE;
+                } else {
+                    teamUtil.alliance = teamUtil.Alliance.RED;
+                }
+            }
+            if (driverGamepad.wasRightBumperPressed()) {
+                useArms = !useArms;
+            }
+
             if(driverGamepad.wasLeftPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV3(1, false);
+                robot.drive.setHeading(180);
+                robot.autoV3(1, useArms);
             }
             if(driverGamepad.wasUpPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV3(2, true);
+                robot.drive.setHeading(180);
+                robot.autoV3(2, useArms);
             }
             if(driverGamepad.wasRightPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
-                robot.autoV3(3, false);
+                robot.drive.setHeading(180);
+                robot.autoV3(3, useArms);
             }
             if(driverGamepad.wasXPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV3(1, true);
+                robot.drive.setHeading(180);
+                robot.autoV3(1, useArms);
             }
             if(driverGamepad.wasYPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV3(2, true);
+                robot.drive.setHeading(180);
+                robot.autoV3(2, useArms);
             }
             if(driverGamepad.wasBPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
-                robot.autoV3(3, true);
+                robot.drive.setHeading(180);
+                robot.autoV3(3, useArms);
             }
 
             telemetry.update();
