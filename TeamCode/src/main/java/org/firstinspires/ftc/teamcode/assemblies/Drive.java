@@ -59,12 +59,12 @@ public class Drive {
     public DcMotorEx br = null;
     public DcMotorEx strafeEncoder;
     public AnalogInput ultLeft = null;
-    public DigitalChannel prxLeft  = null, prxRight  = null;
+    public DigitalChannel prxLeft = null, prxRight = null;
 
     // Image Processors and Cameras
     public AprilTagProcessor aprilTag;
-    private int     aprilTagExposure = 5 ; // frame exposure in ms (use TestDrive opMode to calibrate)
-    private int     aprilTagGain = 230; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
+    private int aprilTagExposure = 5; // frame exposure in ms (use TestDrive opMode to calibrate)
+    private int aprilTagGain = 230; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
     public OpenCVFindLine findLineProcesser;
     //public OpenCVYellowPixelDetector findPixelProcesser;
 
@@ -100,6 +100,7 @@ public class Drive {
     public boolean details = true;
     public double CMS_PER_INCH = 2.54;
     public double TICS_PER_CM_STRAFE = 130;
+
     public Drive() {
         teamUtil.log("Constructing Drive");
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -165,7 +166,7 @@ public class Drive {
         }
 
         CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(backCam, sideCam, frontCam ); // This order is important, so backCam is running first
+                .getCameraManager().nameForSwitchableCamera(backCam, sideCam, frontCam); // This order is important, so backCam is running first
 
         // Create the vision portal by using a builder.
         visionPortal = new VisionPortal.Builder()
@@ -195,7 +196,7 @@ public class Drive {
             }
         }
         ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        if (exposureControl==null) {
+        if (exposureControl == null) {
             teamUtil.log("Failed to get ExposureControl object");
             return;
         }
@@ -204,6 +205,7 @@ public class Drive {
             teamUtil.pause(50);
         }
     }
+
     public void setAutoExposureNoWait() {
         teamUtil.log("Switching to AutoExposure on WebCams");
         Thread thread = new Thread(new Runnable() {
@@ -223,7 +225,7 @@ public class Drive {
             }
         }
         ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        if (exposureControl==null) {
+        if (exposureControl == null) {
             teamUtil.log("Failed to get ExposureControl object");
             return;
         }
@@ -249,94 +251,102 @@ public class Drive {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                setCamExposure( exposure, gain);
+                setCamExposure(exposure, gain);
             }
         });
         thread.start();
     }
+
     public void runRearAprilTagProcessor() {
         visionPortal.setActiveCamera(backCam);
         setCamExposureNoWait(aprilTagExposure, aprilTagGain);
-        visionPortal.setProcessorEnabled(findLineProcesser,false);
-        findLineProcessorRunning=false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
-        findTeamPropProcessorRunning=false;
-        visionPortal.setProcessorEnabled(aprilTag,true);
+        visionPortal.setProcessorEnabled(findLineProcesser, false);
+        findLineProcessorRunning = false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser, false);
+        findTeamPropProcessorRunning = false;
+        visionPortal.setProcessorEnabled(aprilTag, true);
         //visionPortal.setProcessorEnabled(findPixelProcesser,true);
-        aprilTagProcessorRunning=true;
+        aprilTagProcessorRunning = true;
     }
+
     public void runFrontLineFinderProcessor() {
         visionPortal.setActiveCamera(frontCam);
         setCamExposureNoWait(findLineProcesser.lineExposure, findLineProcesser.lineGain);
         //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
-        visionPortal.setProcessorEnabled(aprilTag ,false);
+        visionPortal.setProcessorEnabled(aprilTag, false);
         //visionPortal.setProcessorEnabled(findPixelProcesser,false);
-        aprilTagProcessorRunning=false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser,false);
-        findTeamPropProcessorRunning=false;
-        visionPortal.setProcessorEnabled(findLineProcesser,true);
+        aprilTagProcessorRunning = false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser, false);
+        findTeamPropProcessorRunning = false;
+        visionPortal.setProcessorEnabled(findLineProcesser, true);
         findLineProcesser.reset();
-        findLineProcessorRunning=true;
+        findLineProcessorRunning = true;
     }
+
     public void runSideTeamPropFinderProcessor() {
         visionPortal.setActiveCamera(sideCam);
         setCamExposureNoWait(findTeamPropProcesser.propExposure, findTeamPropProcesser.propGain);
         //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
-        visionPortal.setProcessorEnabled(aprilTag ,false);
+        visionPortal.setProcessorEnabled(aprilTag, false);
         //visionPortal.setProcessorEnabled(findPixelProcesser,false);
-        aprilTagProcessorRunning=false;
-        visionPortal.setProcessorEnabled(findLineProcesser,false);
-        findLineProcessorRunning=false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser,true);
-        findTeamPropProcessorRunning=true;
+        aprilTagProcessorRunning = false;
+        visionPortal.setProcessorEnabled(findLineProcesser, false);
+        findLineProcessorRunning = false;
+        visionPortal.setProcessorEnabled(findTeamPropProcesser, true);
+        findTeamPropProcessorRunning = true;
     }
 
-    public double getUltrasonicDistance(){
+    public double getUltrasonicDistance() {
         double voltage = ultLeft.getVoltage();
-        double distance = (260/3*(voltage-.55)+36)*2.54; // based on real world distances measured
+        double distance = (260 / 3 * (voltage - .55) + 36) * 2.54; // based on real world distances measured
         return distance;
     }
-    public boolean getProximity(boolean left){
-        if(!left){
+
+    public boolean getProximity(boolean left) {
+        if (!left) {
             return !prxRight.getState();
-        }else{
+        } else {
             return !prxLeft.getState();
         }
     }
-    public boolean getLeftProximity(){
+
+    public boolean getLeftProximity() {
         return !prxLeft.getState();
     }
-    public boolean getRightProximity(){
+
+    public boolean getRightProximity() {
         return !prxRight.getState();
     }
+
     public void driveMotorTelemetry() {
         telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d strafe:%d heading:%f ",
                 fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), strafeEncoder.getCurrentPosition(), getHeading());
     }
+
     public void sensorTelemetry() {
-        telemetry.addData("On Line:"," %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
+        telemetry.addData("On Line:", " %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
         telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
         telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
 
         telemetry.addData("UltrasonicLeft Distance: ", "%.1f", getUltrasonicDistance());
-        telemetry.addLine("Right proximity sensor: "+getProximity(false));
-        telemetry.addLine("Left proximity sensor: "+getProximity(true));
+        telemetry.addLine("Right proximity sensor: " + getProximity(false));
+        telemetry.addLine("Left proximity sensor: " + getProximity(true));
     }
-    public void visionTelemetry () {
+
+    public void visionTelemetry() {
         if (aprilTagProcessorRunning) {
             //findPixelProcesser.outputTelemetry();
             //telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
-            telemetry.addLine("RearCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+            telemetry.addLine("RearCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
             }
         } else if (findLineProcessorRunning) {
-            telemetry.addLine("FrontCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+            telemetry.addLine("FrontCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
             findLineProcesser.outputTelemetry();
-        }
-        else if (findTeamPropProcessorRunning) {
-            telemetry.addLine("SideCam:" + visionPortal.getCameraState()+ " FPS:" + visionPortal.getFps());
+        } else if (findTeamPropProcessorRunning) {
+            telemetry.addLine("SideCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
             findTeamPropProcesser.outputTelemetry();
         }
     }
@@ -349,13 +359,14 @@ public class Drive {
         br.setVelocity(velocity);
     }
 
-    public void setMotorsBrake(){
+    public void setMotorsBrake() {
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-    public void setMotorsFloat(){
+
+    public void setMotorsFloat() {
         fl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         bl.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -363,7 +374,7 @@ public class Drive {
     }
 
 
-    public void setMotorPower(double power){
+    public void setMotorPower(double power) {
         fl.setPower(power);
         fr.setPower(power);
         bl.setPower(power);
@@ -371,11 +382,11 @@ public class Drive {
 
     }
 
-    public void setMotorsActiveBrake(){
+    public void setMotorsActiveBrake() {
         int flPosition = fl.getCurrentPosition();
         int frPosition = fr.getCurrentPosition();
         int blPosition = bl.getCurrentPosition();
-        int brPosition =  br.getCurrentPosition();
+        int brPosition = br.getCurrentPosition();
         fl.setTargetPosition(flPosition);
         fr.setTargetPosition(frPosition);
         bl.setTargetPosition(blPosition);
@@ -401,7 +412,7 @@ public class Drive {
         br.setVelocity(brV);
     }
 
-    public void setMotorsRunToPosition(){
+    public void setMotorsRunToPosition() {
         fl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         fr.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         bl.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -546,6 +557,14 @@ public class Drive {
         data.eBR = br.getCurrentPosition();
     }
 
+    /************************************************************************************************************
+     /************************************************************************************************************
+     /************************************************************************************************************
+     *
+     * Methods to drive based on encoders
+     *
+     /************************************************************************************************************
+     /************************************************************************************************************/
     public int getEncoderDistance(MotorData initialPositions) {
         MotorData currentPositions = new MotorData();
         getDriveMotorData(currentPositions);
@@ -566,33 +585,36 @@ public class Drive {
         return (int) (Math.sqrt(Math.pow((ForwardVector * FORWARD_VECTOR_COEFFICIENT), 2) + (Math.pow((SideVector * SIDE_VECTOR_COEFFICIENT), 2))) / 4);
 
     }
+
     public void moveCm(double centimeters, double driveHeading) {
         moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), MIN_END_VELOCITY);
     }
-    public void moveCm(double centimeters, double driveHeading, double endVelocity){
+
+    public void moveCm(double centimeters, double driveHeading, double endVelocity) {
         moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), endVelocity);
     }
 
     public void moveCm(double maxVelocity, double centimeters, double driveHeading, double endVelocity) {
         moveCm(maxVelocity, centimeters, driveHeading, getHeading(), endVelocity);
     }
-    public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity){
-        log("MoveCM cms:" + centimeters + " driveH:"+ driveHeading+" robotH:"+robotHeading+" MaxV:"+maxVelocity+" EndV:"+endVelocity);
 
-        details=false;
+    public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity) {
+        log("MoveCM cms:" + centimeters + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
+
+        details = false;
         MotorData data = new MotorData();
         getDriveMotorData(data);
 
         double velocityChangeNeededAccel;
         double velocityChangeNeededDecel;
-        if(endVelocity < MIN_END_VELOCITY){
+        if (endVelocity < MIN_END_VELOCITY) {
             endVelocity = MIN_END_VELOCITY;
         }
         // tics^2/s
         if (lastVelocity == 0) {
             velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
-        }else{
+        } else {
             velocityChangeNeededAccel = maxVelocity - lastVelocity;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
         }
@@ -602,10 +624,10 @@ public class Drive {
         double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
         double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
         double postCruiseDistance = totalTics - decelerationDistance;
-        if (postCruiseDistance<0){
-            double percentageToRemoveAccel = accelerationDistance/(accelerationDistance+decelerationDistance);
-            accelerationDistance += postCruiseDistance*percentageToRemoveAccel;
-            decelerationDistance += postCruiseDistance*percentageToRemoveAccel;
+        if (postCruiseDistance < 0) {
+            double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
+            accelerationDistance += postCruiseDistance * percentageToRemoveAccel;
+            decelerationDistance += postCruiseDistance * percentageToRemoveAccel;
             postCruiseDistance = 0;
         }
         double distance = 0;
@@ -621,7 +643,7 @@ public class Drive {
             distance = getEncoderDistance(data);
             if (lastVelocity == 0) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY);
-            }else{
+            } else {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + lastVelocity);
             }
         }
@@ -643,19 +665,19 @@ public class Drive {
 
 //deceleration
         double startDecelerationDistance = distance;
-        double ticsUntilEnd = totalTics-distance;
+        double ticsUntilEnd = totalTics - distance;
         while (distance < totalTics) {
             distance = getEncoderDistance(data);
-            ticsUntilEnd = totalTics-distance;
+            ticsUntilEnd = totalTics - distance;
             driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + endVelocity);
 
         }
         if (details) {
             log("distance after deceleration: " + distance);
         }
-        if(endVelocity <= MIN_END_VELOCITY){
+        if (endVelocity <= MIN_END_VELOCITY) {
             stopMotors();
-            if(details) {
+            if (details) {
                 log("Went below or was min end velocity");
             }
         }
@@ -664,80 +686,14 @@ public class Drive {
 
     }
 
-
-
-    public void decelerationPhase(double robotHeading, double driveHeading){
-        double cruiseVelocity = lastVelocity;
-        MotorData data = new MotorData();
-        getDriveMotorData(data);
-        setMotorsWithEncoder();
-        double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
-        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION); // divide by counts per cm for distance
-        double distance = getEncoderDistance(data);
-        double startDecelerationDistance = distance;
-        while (distance < decelerationDistance) {
-            distance = getEncoderDistance(data);
-            double ticsUntilEnd = decelerationDistance - distance;
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
-        }
-        runMotors(0);
-    }
-    public void oldMoveCm(double cruiseVelocity, double centimeters) {
-        double startEncoderPosition = fl.getCurrentPosition();
-
-
-        double velocityChangeNeededAccel = cruiseVelocity - MIN_START_VELOCITY;
-        double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
-
-        setMotorsWithEncoder();
-
-        double totalTics = centimeters * COUNTS_PER_CENTIMETER;
-        double ticsDuringAcceleration = velocityChangeNeededAccel / MAX_ACCELERATION;
-        double ticsDuringDeceleration = velocityChangeNeededDecel / MAX_DECELERATION;
-        double cruiseTics = totalTics - ticsDuringDeceleration - ticsDuringAcceleration;
-        if (cruiseTics<0){
-            double percentageToRemoveAccel = ticsDuringAcceleration/(ticsDuringAcceleration+ticsDuringDeceleration);
-            ticsDuringDeceleration += (ticsDuringDeceleration+cruiseTics)*percentageToRemoveAccel;
-            ticsDuringDeceleration += (ticsDuringAcceleration+cruiseTics)*percentageToRemoveAccel;
-            cruiseTics = 0;
-        }
-        if (details) {
-            log("Total tics: " + totalTics);
-            log("Acceleration distance: " + ticsDuringAcceleration);
-            log("Deceleration distance: " + ticsDuringDeceleration);
-            log("Cruise length: " + cruiseTics);
-        }
-//acceleration
-        while (fl.getCurrentPosition() < startEncoderPosition + ticsDuringAcceleration) {
-            double ticsSinceStart = fl.getCurrentPosition() - startEncoderPosition;
-
-            runMotors(MAX_ACCELERATION * ticsSinceStart + MIN_START_VELOCITY);
-        }
-        if (details) {
-
-            log("distance after acceleration: " + (fl.getCurrentPosition() - startEncoderPosition));
-        }
-//cruise
-        while (fl.getCurrentPosition() < cruiseTics + startEncoderPosition) {
-            runMotors(cruiseVelocity);
-        }
-        if (details) {
-            log("distance after cruise: " + (fl.getCurrentPosition() - startEncoderPosition));
-        }
-
-        double encoderAfterCruise = fl.getCurrentPosition();
-//deceleration
-        while (fl.getCurrentPosition() < startEncoderPosition + totalTics) {
-            double ticsUntilEnd = ticsDuringDeceleration + fl.getCurrentPosition() - startEncoderPosition + encoderAfterCruise;
-
-            runMotors(MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
-        }
-        if (details) {
-            log("distance after deceleration: " + (fl.getCurrentPosition() - startEncoderPosition));
-        }
-    }
-
-
+    /************************************************************************************************************
+     /************************************************************************************************************
+     /************************************************************************************************************
+     *
+     * Methods to turn the robot in place
+     *
+     /************************************************************************************************************
+     /************************************************************************************************************/
     public void spinToHeading(double heading) {
         double velocity = MAX_VELOCITY;
         boolean turningLeft;
@@ -767,8 +723,8 @@ public class Drive {
         if (details) {
             log("crossing 0/360 barrier");
         }
-        while (Math.abs(currentHeading - heading)>SPIN_END_OF_MAX_VELOCITY) {
-            setMotorVelocities(leftCoefficient*velocity, rightCoefficient*velocity, leftCoefficient*velocity, rightCoefficient*velocity);
+        while (Math.abs(currentHeading - heading) > SPIN_END_OF_MAX_VELOCITY) {
+            setMotorVelocities(leftCoefficient * velocity, rightCoefficient * velocity, leftCoefficient * velocity, rightCoefficient * velocity);
             currentHeading = getHeading();
         }
         if (details) {
@@ -777,23 +733,23 @@ public class Drive {
             log("done with max velocity phase");
             log("heading: " + currentHeading);
         }
-        while (Math.abs(currentHeading-heading) > CRAWL_DISTANCE_SPINS) {
+        while (Math.abs(currentHeading - heading) > CRAWL_DISTANCE_SPINS) {
             currentHeading = getHeading();
             velocity = ((MAX_VELOCITY - CRAWL_SPEED) / (SPIN_END_OF_MAX_VELOCITY - CRAWL_DISTANCE_SPINS)) * (Math.abs(currentHeading - heading) - SPIN_END_OF_MAX_VELOCITY) + MAX_VELOCITY; // wrote an equasion
             if (velocity < CRAWL_SPEED) {
                 velocity = CRAWL_SPEED;
             }
-            setMotorVelocities(leftCoefficient*velocity, rightCoefficient*velocity, leftCoefficient*velocity, rightCoefficient*velocity);
+            setMotorVelocities(leftCoefficient * velocity, rightCoefficient * velocity, leftCoefficient * velocity, rightCoefficient * velocity);
         }
 
         if (details) {
             log("done with deceleration phase");
             log("heading: " + currentHeading);
         }
-        while (Math.abs(currentHeading-heading) > DRIFT_SPINS) {
+        while (Math.abs(currentHeading - heading) > DRIFT_SPINS) {
             currentHeading = getHeading();
             velocity = CRAWL_SPEED;
-            setMotorVelocities(leftCoefficient*velocity, rightCoefficient*velocity, leftCoefficient*velocity, rightCoefficient*velocity);
+            setMotorVelocities(leftCoefficient * velocity, rightCoefficient * velocity, leftCoefficient * velocity, rightCoefficient * velocity);
         }
 
         if (details) {
@@ -805,35 +761,45 @@ public class Drive {
         setMotorPower(0);
     }
 
-    public void stopAtUltDistance(double distanceFromWall, double robotHeading, double driveHeading){
+
+    /************************************************************************************************************
+     /************************************************************************************************************
+     /************************************************************************************************************
+     *
+     * Methods to drive based on sensors and CV
+     *
+     /************************************************************************************************************
+     /************************************************************************************************************/
+
+    public void stopAtUltDistance(double distanceFromWall, double robotHeading, double driveHeading) {
         boolean details = true;
         MotorData data = new MotorData();
         getDriveMotorData(data);
         setMotorsWithEncoder();
-        distanceFromWall = distanceFromWall+15; // adjust for moving average computed by sensor
+        distanceFromWall = distanceFromWall + 15; // adjust for moving average computed by sensor
 
         double distance = getUltrasonicDistance();
 
-        if(details){
-            log("starting distance: "+distance);
-            log("goal distance: "+distanceFromWall);
+        if (details) {
+            log("starting distance: " + distance);
+            log("goal distance: " + distanceFromWall);
         }
-        if(distance <= distanceFromWall){
+        if (distance <= distanceFromWall) {
             if (details) {
                 log("already within distance");
             }
             return;
         }
-        while(distanceFromWall<distance){
+        while (distanceFromWall < distance) {
             //log("in while loop");
             distance = getUltrasonicDistance();
-            log("distance: "+distance);
+            log("distance: " + distance);
             //double velocity = MIN_END_VELOCITY+Math.abs(distance-distanceFromWall)*VELOCITY_DECREASE_PER_CM;
             //log("Velocity: "+velocity);
-            driveMotorsHeadingsFR(driveHeading,robotHeading, 500); // TODO: Tested at 500, could be faster?
+            driveMotorsHeadingsFR(driveHeading, robotHeading, 500); // TODO: Tested at 500, could be faster?
         }
-        if(details){
-            log("distance before pause: "+distance);
+        if (details) {
+            log("distance before pause: " + distance);
         }
         stopMotors();
         setMotorsBrake();
@@ -841,34 +807,34 @@ public class Drive {
         teamUtil.pause(1000);
 
         distance = getUltrasonicDistance();
-        if(details){
-            log("distance at end: "+distance);
+        if (details) {
+            log("distance at end: " + distance);
         }
     }
 
     // drive until either sensor sees some tape or we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
-    public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout ) {
-        log ("Drive To Tape");
+    public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout) {
+        log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
-        if(tapeSensor1.isOnTape()){
-            log ("Drive To Tape-Saw 1, looking for 2");
+        if (tapeSensor1.isOnTape()) {
+            log("Drive To Tape-Saw 1, looking for 2");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
-        }else if(tapeSensor2.isOnTape()){
-            log ("Drive To Tape-Saw 2, looking for 1");
+        } else if (tapeSensor2.isOnTape()) {
+            log("Drive To Tape-Saw 2, looking for 1");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
-        }else {
-            log ("Drive To Tape-Looking for either");
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape() ) {
+        } else {
+            log("Drive To Tape-Looking for either");
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
         }
-        if (System.currentTimeMillis()> timeOutTime) {
+        if (System.currentTimeMillis() > timeOutTime) {
             log("Drive To Tape-TIMED OUT!");
         } else {
             log("Drive To Tape-Finished");
@@ -878,14 +844,14 @@ public class Drive {
     }
 
     public boolean driveToTapeSetPower(float power, long timeout) {
-        log ("Drive To Tape");
+        log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
-            setMotorPower(-power);
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape() ) {
+        setMotorPower(-power);
+        while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
 
-            }
+        }
         setMotorPower(0);
-        if (System.currentTimeMillis()> timeOutTime) {
+        if (System.currentTimeMillis() > timeOutTime) {
             log("Drive To Tape-TIMED OUT!");
         } else {
             log("Drive To Tape-Finished");
@@ -897,8 +863,8 @@ public class Drive {
     // drive until either color sensor is triggered, OR we are interrupted, OR we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
-    public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout ) {
-        log ("Drive To Tape");
+    public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout) {
+        log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
         while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
@@ -911,7 +877,8 @@ public class Drive {
         movingAutonomously.set(false);
         return System.currentTimeMillis() < timeOutTime;
     }
-    public void driveToTapeTelopNoWait(double driveHeading, double robotHeading, double velocity, long timeout ) {
+
+    public void driveToTapeTelopNoWait(double driveHeading, double robotHeading, double velocity, long timeout) {
         if (movingAutonomously.get()) { // Already in an autonomous operation
             teamUtil.log("WARNING: Attempt to driveToTape while drive system is in autonomous operation--ignored");
             return;
@@ -922,29 +889,29 @@ public class Drive {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    driveToTapeTelop( driveHeading,  robotHeading,  velocity,  timeout );
+                    driveToTapeTelop(driveHeading, robotHeading, velocity, timeout);
                 }
             });
             thread.start();
         }
     }
-    
-    
+
+
     // drive until either rear proximity sensor is triggered, OR we are interrupted, OR we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
-    public boolean driveToProximity(double driveHeading, double robotHeading, double velocity, long timeout ) {
-        log ("Drive To Proximity");
+    public boolean driveToProximity(double driveHeading, double robotHeading, double velocity, long timeout) {
+        log("Drive To Proximity");
         long timeOutTime = System.currentTimeMillis() + timeout;
         while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !getLeftProximity() && !getRightProximity()) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-            teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
+            teamUtil.log("Closing: " + manualInterrupt.get() + " " + getLeftProximity() + "/" + getRightProximity());
         }
         movingAutonomously.set(false);
         return System.currentTimeMillis() < timeOutTime;
     }
 
-    public void driveToProximityNoWait(double driveHeading, double robotHeading, double velocity, long timeout ) {
+    public void driveToProximityNoWait(double driveHeading, double robotHeading, double velocity, long timeout) {
         if (movingAutonomously.get()) { // Already in an autonomous operation
             teamUtil.log("WARNING: Attempt to driveToProximity while drive system is in autonomous operation--ignored");
             return;
@@ -955,7 +922,7 @@ public class Drive {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    driveToProximity( driveHeading,  robotHeading,  velocity,  timeout );
+                    driveToProximity(driveHeading, robotHeading, velocity, timeout);
                 }
             });
             thread.start();
@@ -967,8 +934,8 @@ public class Drive {
         //start with a minimum of 40 cms from the wall
         boolean details = false;
         findLineProcesser.details = details;
-        log ("Drive To Stack");
-        int driftPixels = (int)(findLineProcesser.CAMWIDTH * .075);
+        log("Drive To Stack");
+        int driftPixels = (int) (findLineProcesser.CAMWIDTH * .075);
         long timeOutTime = System.currentTimeMillis() + timeout;
         findLineProcesser.reset();
 
@@ -977,8 +944,10 @@ public class Drive {
         // TODO: This can be detected my using the encoders and a "maximum seek distance"
         // TODO: Options include "stop", "go and park", "use the strafe encoder", "back up and try again", ?
         while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
-            if (details) {log("Looking for Line. ");}
-            driveMotorsHeadingsFR(driveHeading, robotHeading,velocity);
+            if (details) {
+                log("Looking for Line. ");
+            }
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             teamUtil.pause(50); // give CPU time to image processing
         }
 
@@ -987,7 +956,7 @@ public class Drive {
         stopMotors();
         teamUtil.pause(250);
 
-        log ("Strafing to Line");
+        log("Strafing to Line");
         if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
             // TODO: Need another failsafe here to make sure we don't strafe off of the tile
             while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
@@ -997,7 +966,7 @@ public class Drive {
         } else {
             // TODO: And here!
             while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
-                driveMotorsHeadingsFR(270, 180,velocity);
+                driveMotorsHeadingsFR(270, 180, velocity);
                 teamUtil.pause(50); // give CPU time to image processing
             }
         }
@@ -1010,9 +979,9 @@ public class Drive {
         // Use proximity to end of tape to adjust distance to wall
         int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
         int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
-        double cmsToStack = ((float)pixelsToClose/(float)visiblePixels) * (26.5-18.5) + 18.5; // Assume Camera view is linear.  Might not be
-        log ("Driving to wall: " + cmsToStack );
-        moveCm(400, cmsToStack, driveHeading, robotHeading,0);
+        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
+        log("Driving to wall: " + cmsToStack);
+        moveCm(400, cmsToStack, driveHeading, robotHeading, 0);
         stopMotors();
 
         if (System.currentTimeMillis() > timeOutTime) {
@@ -1021,328 +990,34 @@ public class Drive {
             log("Drive To Stack - Finished");
         }
     }
-    public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset){
+
+    public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset) {
         int quadrant; // the quad the goal point would be in if the current spot was the origin
-        if(rightDist<xOffset && forwardsDist > yOffset){
+        if (rightDist < xOffset && forwardsDist > yOffset) {
             quadrant = 1;
-        }else if(rightDist > xOffset && forwardsDist > yOffset){
+        } else if (rightDist > xOffset && forwardsDist > yOffset) {
             quadrant = 2;
-        }else if(rightDist > xOffset){
+        } else if (rightDist > xOffset) {
             quadrant = 3;
-        }else{
+        } else {
             quadrant = 4;
         }
-        double angle = Math.toDegrees(Math.atan(Math.abs(yOffset-rightDist)/Math.abs(xOffset-forwardsDist)));
+        double angle = Math.toDegrees(Math.atan(Math.abs(yOffset - rightDist) / Math.abs(xOffset - forwardsDist)));
         double[] list = {quadrant, angle};
         return list;
     }
 
-    public void correctAndHug(int aprilTagID, double robotHeading) {
-        log("CorrectAndHub w/AprilTag ID:" + aprilTagID);
-        // Robot is currently traveling forward at velocity 500!
-        boolean details = true;
-        boolean seesId = false;
 
-        // Get a reading from the AprilTag if we can
-        List<AprilTagDetection> startDetections = aprilTag.getDetections();
-        for(AprilTagDetection detection : startDetections){
-            if(detection.id == aprilTagID){
-                seesId = true;
-                double xFix = detection.ftcPose.x*CMS_PER_INCH+1; // offset 1cm for robot build
-                double cmsToGoAt45 = Math.sqrt(Math.pow(xFix, 2)*2);
-                if (details) {
-                    log ("xFix: " + xFix);
-                    log("Correcting cms at 45: "+ cmsToGoAt45);
-                }
-                moveCm(500, cmsToGoAt45, xFix < 0 ? 45 : -45, robotHeading,500);
-                break;
-            }
-        }
-        if(seesId == false){ // TODO: Need a better failsafe?
-            if(details){
-                log("did not detect apriltag");
-            }
-            runMotors(0);
-            return;
-        }
-        // Now squish to wall
-        driveMotorsHeadingsFR(0,robotHeading,500);
-        teamUtil.pause(500);
-        setMotorsFloat(); // coast to wall
-        runMotors(0);
-        log("CorrectAndHub - Finished");
-    }
-
-
-    public void localizeWithAprilTag(int aprilTagID, double xOffset, double yOffset, double robotHeading){
-        log("Localize w/AprilTag ID:" + aprilTagID);
-        boolean details = true;
-        MIN_END_VELOCITY = 700;
-        boolean seesId = false;
-        double maxVelocity;
-        if(lastVelocity<=MIN_END_VELOCITY){
-            maxVelocity = MIN_END_VELOCITY;
-        }else {
-            maxVelocity = lastVelocity;
-        }
-        double forwardsDist = 0;
-        double rightDist = 0;
-        double distance = 0;
-        double startDecelDist = 0;
-        double driveHeading = 0;
-        List<AprilTagDetection> startDetections = aprilTag.getDetections();
-        for(AprilTagDetection detection : startDetections){
-            if(detection.id == aprilTagID){
-                seesId = true;
-                forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
-                rightDist = detection.ftcPose.x*CMS_PER_INCH;
-                distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
-                startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
-            }
-        }
-        if(seesId == false){ // TODO: do more tries?
-            if(details){
-                log("did not detect apriltag");
-            }
-            runMotors(0);
-            return;
-        }
-        if(details){
-            log("Distance to Target: "+distance);
-            log("Deceleration Phase Start" + startDecelDist);
-            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-        }
-        List<AprilTagDetection> lastDetections = null;
-        while(startDecelDist<distance && distance > 4){
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            if (currentDetections != lastDetections) { // Did we get new data?
-                boolean foundId= false;
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.id == aprilTagID) { // Did we find the one we are looking for?
-                        foundId = true;
-                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH - yOffset;
-                        rightDist = detection.ftcPose.x * CMS_PER_INCH - xOffset;
-                        distance = Math.sqrt(Math.pow(forwardsDist, 2) + Math.pow(rightDist, 2));
-                        lastDetections = currentDetections;
-                        driveHeading = adjustAngle(-Math.toDegrees(Math.atan(rightDist/forwardsDist)));
-
-                        log("robot heading "+robotHeading);
-                        log("drive heading "+driveHeading);
-                        log("Forwards:"+forwardsDist+" Right: "+rightDist+" Distance: "+distance);
-                        driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
-                    }
-                }
-                if(!foundId){
-                    if(details){
-                        log("lost sight of apriltag");
-                    }
-                    moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
-                    return;
-                }
-            }
-        }
-        if(details){
-            log("ended cruise");
-            log("Estimated start distance: "+distance);
-            log("Deceleration distance" + startDecelDist);
-            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-        }
-        /*
-        while(distance > 4){
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            if(currentDetections!=lastDetection) {
-                boolean foundId = false;
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.id == id) {
-                        seesId = true;
-                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
-                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
-                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
-                        foundId = true;
-                        lastDetection = currentDetections;
-                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
-                        if(rightDist<0 && forwardsDist >0){
-                            driveHeading = getHeading()+list[1];
-                        }else if(rightDist>0 && forwardsDist > 0){
-                            driveHeading = getHeading()-list[1];
-                        }else if(rightDist>0){
-                            driveHeading = adjustAngle(getHeading()-180)-list[1];
-                        }else{
-                            driveHeading = adjustAngle(getHeading()-180)+list[1];
-                        }
-                        log("robot heading "+robotHeading);
-                        log("list: "+list[0]+", "+list[1]);
-                        log("drive heading "+driveHeading);
-                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-                        robotHeading = heading;
-                        double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
-                        driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-                    }
-                }
-                if(!foundId){
-                    if(details){
-                        log("lost sight of apriltag");
-                        log("robot heading "+robotHeading);
-                        log("drive heading "+driveHeading);
-                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-                    }
-                    moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
-                    return;
-                }
-            }
-
-         */
-
-        runMotors(0);
-        lastVelocity = 0;
-    }
-
-    public void centerOnAprilTag(int id, double xOffset, double yOffset, double heading){
-        boolean details = true;
-        //TODO: FIX THE CURVE AHHHHHH
-        boolean seesId = false;
-        double maxVelocity;
-        if(lastVelocity<=MIN_END_VELOCITY){
-            maxVelocity = MIN_END_VELOCITY;
-        }else {
-            maxVelocity = lastVelocity;
-        }
-        double forwardsDist = 0;
-        double rightDist = 0;
-        double distance = 0;
-        double startDistance;
-        double startDecelDist = 0;
-        double driveHeading = 0;
-        double robotHeading = 0;
-        List<AprilTagDetection> startDetections = aprilTag.getDetections();
-        for(AprilTagDetection detection : startDetections){
-            if(detection.id == id){
-                seesId = true;
-                forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
-                rightDist = detection.ftcPose.x*CMS_PER_INCH;
-                distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
-                startDistance = distance;
-                startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
-            }
-        } // TODO: do more tries
-        if(seesId == false){
-            if(details){
-                log("did not detect apriltag");
-            }
-            runMotors(0);
-            return;
-        }
-        if(details){
-            log("Estimated start distance: "+distance);
-            log("Deceleration distance" + startDecelDist);
-            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-        }
-        List<AprilTagDetection> lastDetection = null;
-        while(startDecelDist<distance && distance > 4){
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            if (currentDetections != lastDetection) {
-                boolean foundId= false;
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.id == id) {
-                        seesId = true;
-                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
-                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
-                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
-                        foundId = true;
-                        lastDetection = currentDetections;
-                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
-
-                        if(rightDist<0 && forwardsDist >0){
-                            driveHeading = getHeading()+list[1];
-                        }else if(rightDist>0 && forwardsDist > 0){
-                            driveHeading = getHeading()-list[1];
-                        }else if(rightDist>0){
-                            driveHeading = adjustAngle(getHeading()-180)-list[1];
-                        }else{
-                            driveHeading = adjustAngle(getHeading()-180)+list[1];
-                        }
-                        log("robot heading "+robotHeading);
-                        log("list: "+list[0]+", "+list[1]);
-                        log("drive heading "+driveHeading);
-                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-                        robotHeading = heading;
-                        driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
-                    }
-                }
-                if(!foundId){
-                    if(details){
-                        log("lost sight of apriltag");
-                    }
-                    moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
-                    return;
-                }
-            }
-        }
-        if(details){
-            log("ended cruise");
-            log("Estimated start distance: "+distance);
-            log("Deceleration distance" + startDecelDist);
-            log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-        }
-        while(distance > 4){
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            if(currentDetections!=lastDetection) {
-                boolean foundId = false;
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.id == id) {
-                        seesId = true;
-                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
-                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
-                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
-                        foundId = true;
-                        lastDetection = currentDetections;
-                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
-                        if(rightDist<0 && forwardsDist >0){
-                            driveHeading = getHeading()+list[1];
-                        }else if(rightDist>0 && forwardsDist > 0){
-                            driveHeading = getHeading()-list[1];
-                        }else if(rightDist>0){
-                            driveHeading = adjustAngle(getHeading()-180)-list[1];
-                        }else{
-                            driveHeading = adjustAngle(getHeading()-180)+list[1];
-                        }
-                        log("robot heading "+robotHeading);
-                        log("list: "+list[0]+", "+list[1]);
-                        log("drive heading "+driveHeading);
-                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-                        robotHeading = heading;
-                        double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
-                        driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-                    }
-                }
-                if(!foundId){
-                    if(details){
-                        log("lost sight of apriltag");
-                        log("robot heading "+robotHeading);
-                        log("drive heading "+driveHeading);
-                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
-                    }
-                    moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
-                    return;
-                }
-            }
-
-        }
-        runMotors(0);
-        lastVelocity = 0;
-    }
-
-
-    public double returnAprilTagIDOffset(int id, long timeout){
+    public double returnAprilTagIDOffset(int id, long timeout) {
 
         long timeOutTime = System.currentTimeMillis() + timeout;
-        while(teamUtil.keepGoing(timeOutTime)){
+        while (teamUtil.keepGoing(timeOutTime)) {
             List<AprilTagDetection> detections = aprilTag.getDetections();
-            for(AprilTagDetection detection : detections){
-                if(detection.id == id){
+            for (AprilTagDetection detection : detections) {
+                if (detection.id == id) {
                     log("April Tag Detected");
 
-                    return  detection.ftcPose.x*CMS_PER_INCH;
+                    return detection.ftcPose.x * CMS_PER_INCH;
                 }
             } // TODO: do more tries
         }
@@ -1379,7 +1054,7 @@ public class Drive {
                 }
             }
             if (numTags > 0) {
-                p.x = -1* xOffsetTotal / numTags;
+                p.x = -1 * xOffsetTotal / numTags;
                 p.y = yOffsetTotal / numTags;
                 return true;
             } else {
@@ -1390,7 +1065,7 @@ public class Drive {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // returns an x offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
-    public float getRobotBackdropXOffset () {
+    public float getRobotBackdropXOffset() {
         if (!aprilTagProcessorRunning) {
             log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
             return (float) noAprilTag;
@@ -1411,7 +1086,7 @@ public class Drive {
                 }
             }
             if (numTags > 0) {
-                return -1* offsetTotal / numTags;
+                return -1 * offsetTotal / numTags;
             } else {
                 return (float) noAprilTag;
             }
@@ -1425,38 +1100,39 @@ public class Drive {
     // Robot is moving at 'velocity" when this method is called
     // X is cms from the middle of the backdrop (- is left, + is right)
     // Y is cms from the April tags
-    // TODO: enhance this to take an end velocity so you don't need to stop and waste time
-    public boolean driveToAprilTagOffset (double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
-        log ("Drive to April Tag Offset");
+    // TODO: SPEED UP IDEA: enhance this to take an end velocity so you don't need to stop and waste time
+    public boolean driveToAprilTagOffset(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
+        log("Drive to April Tag Offset");
         boolean details = false;
         long timeOutTime = System.currentTimeMillis() + timeout;
-        long aprilTagTimeoutTime=0;
+        long aprilTagTimeoutTime = 0;
         float driftCms = 2;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
-        log ("Continue on Initial Heading");
-        while(! getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(timeOutTime)) {
+        log("Continue on Initial Heading");
+        while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(initialDriveHeading, robotHeading, initialVelocity); // continue on initial heading until we see a tag
         }
-        log ("Driving based on tags");
+        log("Driving based on tags");
         while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
             double cmsToStrafe = tagOffset.x - xOffset;
             double cmsToBackup = tagOffset.y - yOffset;
-            double cmsToTravel = Math.sqrt(cmsToStrafe*cmsToStrafe+cmsToBackup*cmsToBackup);
+            double cmsToTravel = Math.sqrt(cmsToStrafe * cmsToStrafe + cmsToBackup * cmsToBackup);
             if (Math.abs(cmsToTravel) < driftCms) {
                 break;
             }
             double heading;
-            if(cmsToBackup==0) {
-                heading = cmsToStrafe<0 ? 270:90;
-            }else if (cmsToBackup > 0){ // Using vertical (y-axis) to compute reference angles since 0 is at top
-                 heading = adjustAngle( Math.toDegrees(Math.atan(cmsToStrafe/cmsToBackup)));
+            if (cmsToBackup == 0) {
+                heading = cmsToStrafe < 0 ? 270 : 90;
+            } else if (cmsToBackup > 0) { // Using vertical (y-axis) to compute reference angles since 0 is at top
+                heading = adjustAngle(Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup)));
             } else {
                 heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
-            double velocity = Math.min(initialVelocity,MIN_END_VELOCITY + MAX_DECELERATION*COUNTS_PER_CENTIMETER*cmsToTravel);
-            if (details) teamUtil.log("strafe: "+ cmsToStrafe + " back: "+ cmsToBackup+ " travel: "+ cmsToTravel + " heading: "+ heading + " v: "+ velocity);
-            driveMotorsHeadingsFR(heading,robotHeading,velocity);
-            aprilTagTimeoutTime = System.currentTimeMillis()+1000;
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY + MAX_DECELERATION * COUNTS_PER_CENTIMETER * cmsToTravel);
+            if (details)
+                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity);
+            driveMotorsHeadingsFR(heading, robotHeading, velocity);
+            aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
             while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
                 // TODO: if we stay in this loop for very long, it means the robot is moving based on stale data.  Need a failsafe here
                 // TODO: Maybe just back up until we see a tag or travel more than a few inches?
@@ -1465,14 +1141,39 @@ public class Drive {
 
         }
         stopMotors();
-        if (System.currentTimeMillis() > timeOutTime|| System.currentTimeMillis() >aprilTagTimeoutTime) {
+        if (System.currentTimeMillis() > timeOutTime || System.currentTimeMillis() > aprilTagTimeoutTime) {
             teamUtil.log("driveToAprilTagOffset - TIMED OUT!");
             return false;
         } else {
-            log ("Drive to April Tag Offset - FINISHED");
+            log("Drive to April Tag Offset - FINISHED");
             return true;
         }
     }
+
+    public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        float driftCms = 1;
+        while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+        }
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("strafeToEncoder - TIMED OUT!");
+            return false;
+        } else {
+            log("strafeToEncoder - FINISHED");
+            return true;
+        }
+    }
+
+
+    /************************************************************************************************************
+     /************************************************************************************************************
+     /************************************************************************************************************
+     *
+     * Methods to drive based on joystick values
+     *
+     /************************************************************************************************************
+     /************************************************************************************************************/
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Drive robot based on two joystick values
     // Implements a deadband where joystick position will be ignored (translation and rotation)
@@ -1482,11 +1183,11 @@ public class Drive {
         boolean details = true;
 
         float DEADBAND = 0.1f;
-        float SLOPE = 1 / (1-DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
+        float SLOPE = 1 / (1 - DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
 
         float POWERFACTOR = 1; // MAKE LESS THAN 0 to cap upperlimit of power
-        float leftX ;
-        float leftY ;
+        float leftX;
+        float leftY;
         float rotationAdjustment;
 
         float scaleAmount = isFast ? 1f : 0.5f; // full power is "fast", half power is "slow"
@@ -1494,9 +1195,15 @@ public class Drive {
         float frontLeft, frontRight, backRight, backLeft;
 
         // Ensure nothing happens if we are inside the deadband
-        if (Math.abs(leftJoyStickX)<DEADBAND) {leftJoyStickX = 0;}
-        if (Math.abs(leftJoyStickY)<DEADBAND) {leftJoyStickY = 0;}
-        if (Math.abs(rightJoyStickX)<DEADBAND) {rightJoyStickX = 0;}
+        if (Math.abs(leftJoyStickX) < DEADBAND) {
+            leftJoyStickX = 0;
+        }
+        if (Math.abs(leftJoyStickY) < DEADBAND) {
+            leftJoyStickY = 0;
+        }
+        if (Math.abs(rightJoyStickX) < DEADBAND) {
+            rightJoyStickX = 0;
+        }
 
         if (movingAutonomously.get() && (leftJoyStickX != 0 || rightJoyStickX != 0 || leftJoyStickY != 0)) { // Do we need to interrupt an autonomous operation?
             manualInterrupt.set(true);
@@ -1565,7 +1272,7 @@ public class Drive {
     }
 
     public void geoFenceDriveJoystick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, double robotHeading) {
-        if (Math.abs(robotHeading-180)<10) { // TODO: Also maybe don't do this unless output is in score position?
+        if (Math.abs(robotHeading - 180) < 10) { // TODO: Also maybe don't do this unless output is in score position?
             if ((getLeftProximity() || getRightProximity()) && leftJoyStickX > 0) {
                 leftJoyStickX = 0;
             }
@@ -1573,20 +1280,376 @@ public class Drive {
         universalDriveJoystick(leftJoyStickX, leftJoyStickY, rightJoyStickX, isFast, robotHeading);
     }
 
-    public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout){
-        long timeOutTime = System.currentTimeMillis() + timeout;
-        float driftCms = 1;
-        while(Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())>driftCms*TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)){
-            driveMotorsHeadingsFR(driveHeading,robotHeading,velocity);
+}
+
+/***************************************************************************************************************************
+ *
+ * OLDER CODE
+
+public void decelerationPhase(double robotHeading, double driveHeading){
+    double cruiseVelocity = lastVelocity;
+    MotorData data = new MotorData();
+    getDriveMotorData(data);
+    setMotorsWithEncoder();
+    double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
+    double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION); // divide by counts per cm for distance
+    double distance = getEncoderDistance(data);
+    double startDecelerationDistance = distance;
+    while (distance < decelerationDistance) {
+        distance = getEncoderDistance(data);
+        double ticsUntilEnd = decelerationDistance - distance;
+        driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
+    }
+    runMotors(0);
+}
+    public void oldMoveCm(double cruiseVelocity, double centimeters) {
+        double startEncoderPosition = fl.getCurrentPosition();
+
+
+        double velocityChangeNeededAccel = cruiseVelocity - MIN_START_VELOCITY;
+        double velocityChangeNeededDecel = cruiseVelocity - MIN_END_VELOCITY;
+
+        setMotorsWithEncoder();
+
+        double totalTics = centimeters * COUNTS_PER_CENTIMETER;
+        double ticsDuringAcceleration = velocityChangeNeededAccel / MAX_ACCELERATION;
+        double ticsDuringDeceleration = velocityChangeNeededDecel / MAX_DECELERATION;
+        double cruiseTics = totalTics - ticsDuringDeceleration - ticsDuringAcceleration;
+        if (cruiseTics<0){
+            double percentageToRemoveAccel = ticsDuringAcceleration/(ticsDuringAcceleration+ticsDuringDeceleration);
+            ticsDuringDeceleration += (ticsDuringDeceleration+cruiseTics)*percentageToRemoveAccel;
+            ticsDuringDeceleration += (ticsDuringAcceleration+cruiseTics)*percentageToRemoveAccel;
+            cruiseTics = 0;
         }
-        if (System.currentTimeMillis() > timeOutTime){
-            teamUtil.log("strafeToEncoder - TIMED OUT!");
-            return false;
-        } else {
-            log ("strafeToEncoder - FINISHED");
-            return true;
+        if (details) {
+            log("Total tics: " + totalTics);
+            log("Acceleration distance: " + ticsDuringAcceleration);
+            log("Deceleration distance: " + ticsDuringDeceleration);
+            log("Cruise length: " + cruiseTics);
+        }
+//acceleration
+        while (fl.getCurrentPosition() < startEncoderPosition + ticsDuringAcceleration) {
+            double ticsSinceStart = fl.getCurrentPosition() - startEncoderPosition;
+
+            runMotors(MAX_ACCELERATION * ticsSinceStart + MIN_START_VELOCITY);
+        }
+        if (details) {
+
+            log("distance after acceleration: " + (fl.getCurrentPosition() - startEncoderPosition));
+        }
+//cruise
+        while (fl.getCurrentPosition() < cruiseTics + startEncoderPosition) {
+            runMotors(cruiseVelocity);
+        }
+        if (details) {
+            log("distance after cruise: " + (fl.getCurrentPosition() - startEncoderPosition));
+        }
+
+        double encoderAfterCruise = fl.getCurrentPosition();
+//deceleration
+        while (fl.getCurrentPosition() < startEncoderPosition + totalTics) {
+            double ticsUntilEnd = ticsDuringDeceleration + fl.getCurrentPosition() - startEncoderPosition + encoderAfterCruise;
+
+            runMotors(MAX_DECELERATION * ticsUntilEnd + MIN_END_VELOCITY);
+        }
+        if (details) {
+            log("distance after deceleration: " + (fl.getCurrentPosition() - startEncoderPosition));
         }
     }
 
+
+public void centerOnAprilTag(int id, double xOffset, double yOffset, double heading){
+    boolean details = true;
+    //TODO: FIX THE CURVE AHHHHHH
+    boolean seesId = false;
+    double maxVelocity;
+    if(lastVelocity<=MIN_END_VELOCITY){
+        maxVelocity = MIN_END_VELOCITY;
+    }else {
+        maxVelocity = lastVelocity;
+    }
+    double forwardsDist = 0;
+    double rightDist = 0;
+    double distance = 0;
+    double startDistance;
+    double startDecelDist = 0;
+    double driveHeading = 0;
+    double robotHeading = 0;
+    List<AprilTagDetection> startDetections = aprilTag.getDetections();
+    for(AprilTagDetection detection : startDetections){
+        if(detection.id == id){
+            seesId = true;
+            forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+            rightDist = detection.ftcPose.x*CMS_PER_INCH;
+            distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
+            startDistance = distance;
+            startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
+        }
+    } // TODO: do more tries
+    if(seesId == false){
+        if(details){
+            log("did not detect apriltag");
+        }
+        runMotors(0);
+        return;
+    }
+    if(details){
+        log("Estimated start distance: "+distance);
+        log("Deceleration distance" + startDecelDist);
+        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+    }
+    List<AprilTagDetection> lastDetection = null;
+    while(startDecelDist<distance && distance > 4){
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        if (currentDetections != lastDetection) {
+            boolean foundId= false;
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == id) {
+                    seesId = true;
+                    forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                    rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                    distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                    foundId = true;
+                    lastDetection = currentDetections;
+                    double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+
+                    if(rightDist<0 && forwardsDist >0){
+                        driveHeading = getHeading()+list[1];
+                    }else if(rightDist>0 && forwardsDist > 0){
+                        driveHeading = getHeading()-list[1];
+                    }else if(rightDist>0){
+                        driveHeading = adjustAngle(getHeading()-180)-list[1];
+                    }else{
+                        driveHeading = adjustAngle(getHeading()-180)+list[1];
+                    }
+                    log("robot heading "+robotHeading);
+                    log("list: "+list[0]+", "+list[1]);
+                    log("drive heading "+driveHeading);
+                    log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                    robotHeading = heading;
+                    driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+                }
+            }
+            if(!foundId){
+                if(details){
+                    log("lost sight of apriltag");
+                }
+                moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
+                return;
+            }
+        }
+    }
+    if(details){
+        log("ended cruise");
+        log("Estimated start distance: "+distance);
+        log("Deceleration distance" + startDecelDist);
+        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+    }
+    while(distance > 4){
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        if(currentDetections!=lastDetection) {
+            boolean foundId = false;
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == id) {
+                    seesId = true;
+                    forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                    rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                    distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                    foundId = true;
+                    lastDetection = currentDetections;
+                    double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+                    if(rightDist<0 && forwardsDist >0){
+                        driveHeading = getHeading()+list[1];
+                    }else if(rightDist>0 && forwardsDist > 0){
+                        driveHeading = getHeading()-list[1];
+                    }else if(rightDist>0){
+                        driveHeading = adjustAngle(getHeading()-180)-list[1];
+                    }else{
+                        driveHeading = adjustAngle(getHeading()-180)+list[1];
+                    }
+                    log("robot heading "+robotHeading);
+                    log("list: "+list[0]+", "+list[1]);
+                    log("drive heading "+driveHeading);
+                    log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                    robotHeading = heading;
+                    double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
+                    driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+                }
+            }
+            if(!foundId){
+                if(details){
+                    log("lost sight of apriltag");
+                    log("robot heading "+robotHeading);
+                    log("drive heading "+driveHeading);
+                    log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                }
+                moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
+                return;
+            }
+        }
+
+    }
+    runMotors(0);
+    lastVelocity = 0;
 }
 
+
+public void localizeWithAprilTag(int aprilTagID, double xOffset, double yOffset, double robotHeading){
+    log("Localize w/AprilTag ID:" + aprilTagID);
+    boolean details = true;
+    MIN_END_VELOCITY = 700;
+    boolean seesId = false;
+    double maxVelocity;
+    if(lastVelocity<=MIN_END_VELOCITY){
+        maxVelocity = MIN_END_VELOCITY;
+    }else {
+        maxVelocity = lastVelocity;
+    }
+    double forwardsDist = 0;
+    double rightDist = 0;
+    double distance = 0;
+    double startDecelDist = 0;
+    double driveHeading = 0;
+    List<AprilTagDetection> startDetections = aprilTag.getDetections();
+    for(AprilTagDetection detection : startDetections){
+        if(detection.id == aprilTagID){
+            seesId = true;
+            forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+            rightDist = detection.ftcPose.x*CMS_PER_INCH;
+            distance = Math.sqrt(Math.pow(forwardsDist, 2)+Math.pow(rightDist, 2));
+            startDecelDist = (maxVelocity-MIN_END_VELOCITY)/MAX_DECELERATION/COUNTS_PER_CENTIMETER;
+        }
+    }
+    if(seesId == false){ // TODO: do more tries?
+        if(details){
+            log("did not detect apriltag");
+        }
+        runMotors(0);
+        return;
+    }
+    if(details){
+        log("Distance to Target: "+distance);
+        log("Deceleration Phase Start" + startDecelDist);
+        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+    }
+    List<AprilTagDetection> lastDetections = null;
+    while(startDecelDist<distance && distance > 4){
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        if (currentDetections != lastDetections) { // Did we get new data?
+            boolean foundId= false;
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.id == aprilTagID) { // Did we find the one we are looking for?
+                    foundId = true;
+                    forwardsDist = detection.ftcPose.y * CMS_PER_INCH - yOffset;
+                    rightDist = detection.ftcPose.x * CMS_PER_INCH - xOffset;
+                    distance = Math.sqrt(Math.pow(forwardsDist, 2) + Math.pow(rightDist, 2));
+                    lastDetections = currentDetections;
+                    driveHeading = adjustAngle(-Math.toDegrees(Math.atan(rightDist/forwardsDist)));
+
+                    log("robot heading "+robotHeading);
+                    log("drive heading "+driveHeading);
+                    log("Forwards:"+forwardsDist+" Right: "+rightDist+" Distance: "+distance);
+                    driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+                }
+            }
+            if(!foundId){
+                if(details){
+                    log("lost sight of apriltag");
+                }
+                moveCm(maxVelocity, distance, driveHeading, robotHeading, 0);
+                return;
+            }
+        }
+    }
+    if(details){
+        log("ended cruise");
+        log("Estimated start distance: "+distance);
+        log("Deceleration distance" + startDecelDist);
+        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+    }
+
+        while(distance > 4){
+            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if(currentDetections!=lastDetection) {
+                boolean foundId = false;
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.id == id) {
+                        seesId = true;
+                        forwardsDist = detection.ftcPose.y * CMS_PER_INCH;
+                        rightDist = detection.ftcPose.x * CMS_PER_INCH;
+                        distance = Math.sqrt(Math.pow(forwardsDist-xOffset, 2) + Math.pow(rightDist-yOffset, 2));
+                        foundId = true;
+                        lastDetection = currentDetections;
+                        double[] list = calculateAngle(rightDist, forwardsDist, xOffset, yOffset);
+                        if(rightDist<0 && forwardsDist >0){
+                            driveHeading = getHeading()+list[1];
+                        }else if(rightDist>0 && forwardsDist > 0){
+                            driveHeading = getHeading()-list[1];
+                        }else if(rightDist>0){
+                            driveHeading = adjustAngle(getHeading()-180)-list[1];
+                        }else{
+                            driveHeading = adjustAngle(getHeading()-180)+list[1];
+                        }
+                        log("robot heading "+robotHeading);
+                        log("list: "+list[0]+", "+list[1]);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                        robotHeading = heading;
+                        double velocity = -MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity;
+                        driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+                    }
+                }
+                if(!foundId){
+                    if(details){
+                        log("lost sight of apriltag");
+                        log("robot heading "+robotHeading);
+                        log("drive heading "+driveHeading);
+                        log("Forwards dist "+forwardsDist+" right dist: "+rightDist);
+                    }
+                    moveCm(-MAX_DECELERATION*COUNTS_PER_CENTIMETER*distance+maxVelocity, distance, driveHeading, robotHeading, 0);
+                    return;
+                }
+            }
+
+
+    runMotors(0);
+    lastVelocity = 0;
+}
+
+
+public void correctAndHug(int aprilTagID, double robotHeading) {
+    log("CorrectAndHub w/AprilTag ID:" + aprilTagID);
+    // Robot is currently traveling forward at velocity 500!
+    boolean details = true;
+    boolean seesId = false;
+
+    // Get a reading from the AprilTag if we can
+    List<AprilTagDetection> startDetections = aprilTag.getDetections();
+    for(AprilTagDetection detection : startDetections){
+        if(detection.id == aprilTagID){
+            seesId = true;
+            double xFix = detection.ftcPose.x*CMS_PER_INCH+1; // offset 1cm for robot build
+            double cmsToGoAt45 = Math.sqrt(Math.pow(xFix, 2)*2);
+            if (details) {
+                log ("xFix: " + xFix);
+                log("Correcting cms at 45: "+ cmsToGoAt45);
+            }
+            moveCm(500, cmsToGoAt45, xFix < 0 ? 45 : -45, robotHeading,500);
+            break;
+        }
+    }
+    if(seesId == false){ // TODO: Need a better failsafe?
+        if(details){
+            log("did not detect apriltag");
+        }
+        runMotors(0);
+        return;
+    }
+    // Now squish to wall
+    driveMotorsHeadingsFR(0,robotHeading,500);
+    teamUtil.pause(500);
+    setMotorsFloat(); // coast to wall
+    runMotors(0);
+    log("CorrectAndHub - Finished");
+}
+ */

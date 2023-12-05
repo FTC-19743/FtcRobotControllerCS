@@ -28,7 +28,7 @@ public class Robot {
 
     }
 
-    public Robot(){
+    public Robot() {
         telemetry = teamUtil.theOpMode.telemetry;
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         drive = new Drive();
@@ -38,7 +38,7 @@ public class Robot {
         lift = new Lift();
     }
 
-    public void initialize(){
+    public void initialize() {
         drive.initalize();
         intake.initalize();
         output.initialize();
@@ -47,12 +47,12 @@ public class Robot {
 
     }
 
-    public void outputTelemetry(){
+    public void outputTelemetry() {
         drive.driveMotorTelemetry();
         output.outputTelemetry();
     }
 
-    public void calibrate(){
+    public void calibrate() {
         output.calibrate();
         output.goToLoad(); // ready to load
     }
@@ -60,128 +60,94 @@ public class Robot {
     public int fieldSide() { // helper method that returns heading out towards the field
         return teamUtil.alliance == RED ? 90 : 270;
     }
+
     public int driverSide() { // helper method that returns heading backs towards drivers
         return teamUtil.alliance == RED ? 270 : 90;
     }
 
-    public int audienceSide(){return 180;}
-
-    public int scoreSide(){return 0;}
-
-    public float getPathOffset(int path){
-        float robotBackdropXOffset = drive.getRobotBackdropXOffset();
-        if(robotBackdropXOffset>900){
-            log("No April Tag Detected");
-            return 0;
-        }
-        else{
-            if(path==2){
-                return robotBackdropXOffset;
-            }else if(path==1){
-                return robotBackdropXOffset+drive.TAG_CENTER_TO_CENTER;
-            }else{
-                return robotBackdropXOffset-drive.TAG_CENTER_TO_CENTER;
-            }
-        }
+    public int audienceSide() {
+        return 180;
     }
 
-    public void pushPurplePixelAndGoToAprilTagViewing(int path) {
-        teamUtil.log("Pushing Pixel");
-        switch (path) { // Push the pixel and move back a bit
+    public int scoreSide() {
+        return 0;
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // SCORE Side Start - Push the purple pixel and get into position for AprilTag Localization based on path
+    public boolean pushPurplePixelScoreV3(int path) {
+        teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
+
+        switch (path) { // SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths
             case 1:
-                drive.moveCm(67,fieldSide());
-                drive.moveCm(30,fieldSide()+50);
-                drive.moveCm(10,driverSide());
+                drive.moveCm(67, fieldSide());
+                drive.moveCm(30, fieldSide() + 50);
+                drive.moveCm(10, driverSide());
+                drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 83 : 23, 0, 180, 1000);
                 break;
             case 2:
-                drive.moveCm(86,fieldSide());
-                drive.moveCm(8.5,driverSide());
+                drive.moveCm(86, fieldSide());
+                drive.moveCm(8.5, driverSide());
+                drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
                 break;
             case 3:
-                drive.moveCm(75,fieldSide());
-                drive.moveCm(30,fieldSide()+300);
-                drive.moveCm(13,driverSide());
+                drive.moveCm(80, fieldSide());
+                drive.moveCm(30, fieldSide() + 300);
+                drive.moveCm(13, driverSide());
+                drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 23 : 83, 0, 180, 1000);
                 break;
         }
-        teamUtil.log("Driving to April Tag Viewing Location");
-        if (teamUtil.SIDE== teamUtil.Side.SCORE) { // Run to April Tag viewing location from SCORE Side
-            switch (path) {
-                case 1: drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 83 : 23,0,180,0); break;
-                case 2: drive.moveCm(drive.MAX_VELOCITY,45,0, 180,0); break;
-                case 3: drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED ? 23 : 83,0,180,0); break;
-            }
-        } else { // Run to April Tag viewing location from WING Side
-            if ((path==1 && teamUtil.alliance== RED) || (path==3 && teamUtil.alliance== BLUE)) {
-                drive.moveCm(24, scoreSide());
-                drive.moveCm(69, fieldSide());
-                drive.moveCm(159, scoreSide(), 800);
-                drive.moveCm(79, driverSide()); // strafe
-            } else if ((path==3 && teamUtil.alliance== RED) || (path==1 && teamUtil.alliance== BLUE)) {
-                drive.moveCm(52, audienceSide());
-                drive.moveCm(69, fieldSide());
-                drive.moveCm(180, scoreSide(), 800);
-                drive.moveCm(75, driverSide()); // strafe
-            } else { // Path 2
-                drive.moveCm(36, audienceSide());
-                drive.moveCm(64, fieldSide());
-                drive.moveCm(197, scoreSide(), 800);
-                drive.moveCm(72, driverSide()); // strafe
-            }
-        }
+        return true;
     }
 
-    public boolean pushPurplePixelV3(int path) {
+    // Push the purple pixel into place and go to the stack to get another pixel
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // WING Side Start - Push the purple pixel and drive to nearest stack
+    public boolean pushPurplePixelWingV3(int path) {
         teamUtil.log("Pushing Pixel");
 
-        switch (path) { // Push the pixel and move back a bit
+        switch (path) { // SPEED UP IDEAS: Make the pixel pusher less deep and try to go on a more direct path? move pixel pusher to back and target middle stack?
             case 1:
-                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?69: 67, fieldSide());
-                drive.moveCm(30,fieldSide()+50);
-                if(teamUtil.SIDE==teamUtil.Side.WING){
-                    if(!drive.strafeToEncoder(driverSide(),180,400,9300, 2000)) {
-                        drive.stopMotors();
-                        return false;
-                    }
-                }
-                else{
-                    //Figure out later
-                }
-
-                break;
-            case 2:
-                drive.moveCm(86,fieldSide());
-                if(!drive.strafeToEncoder(driverSide(),180,400,9300, 2000)) {
+                drive.moveCm(69, fieldSide());
+                drive.moveCm(30, fieldSide() + 50);
+                if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
                     drive.stopMotors();
                     return false;
                 }
+                drive.moveCm(40.5, 180);
+                break;
+            case 2:
+                drive.moveCm(86, fieldSide());
+                if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                    drive.stopMotors();
+                    return false;
+                }
+                drive.moveCm(64, 180);
                 break;
             case 3:
-                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?73: 80, fieldSide());
-                drive.moveCm(teamUtil.SIDE==teamUtil.Side.WING ?32:30,fieldSide()+300);
-                if(teamUtil.SIDE==teamUtil.Side.SCORE) {
-                    if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
-                        drive.stopMotors();
-                        return false;
-                    }
+                drive.moveCm(73, fieldSide());
+                drive.moveCm(32, fieldSide() + 300);
+                drive.moveCm(11, driverSide());
+                drive.moveCm(10, 180);
+                if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9300, 2000)) {
+                    drive.stopMotors();
+                    return false;
                 }
-                else{
-                    drive.moveCm(11,driverSide());
-                    drive.moveCm(10,180);
-                    if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9300, 2000)) {
-                        drive.stopMotors();
-                        return false;
-                    }
-                }
+                drive.moveCm(80, 180);
                 break;
         }
-
         return true;
     }
-    public void cycle(double xOffset, boolean operateArms){ // TODO: add to auto routines and add the rest of a cycle to it
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public void cycleV3(double xOffset, boolean operateArms) {
         long startTime = System.currentTimeMillis();
         drive.runFrontLineFinderProcessor();
-        drive.moveCm(100+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
-        drive.moveCm(drive.MAX_VELOCITY, 183-xOffset, 180, 180, 350);
+
+        // Strafe and drive across the field to where we can almost see the white tape
+        drive.moveCm(100 + (xOffset > 0 ? 1 : -1) * (Math.sqrt(xOffset * xOffset * 2)), 135, 800);
+        drive.moveCm(drive.MAX_VELOCITY, 183 - xOffset, 180, 180, 350);
         if (operateArms) {
             intake.startIntake();
         }
@@ -196,42 +162,156 @@ public class Robot {
         drive.runRearAprilTagProcessor();
         drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
         if (operateArms) {
-            output.goToScoreNoWait(3);
+            output.goToScoreNoWait(3); // TODO Adjust for different paths?
         }
-        drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
+        drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000); // TODO Fix for both alliances
         drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
         //TODO: make failsafe for if above returns false
 
-        drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
-        drive.driveToTapeSetPower(.1f, 3000);
+        drive.moveCm(17, 0); // Go to drop position
+        // Old version using tape
+        //drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
+        //drive.driveToTapeSetPower(.1f, 3000);
+
         if (operateArms) {
             output.dropAndGoToLoadNoWait();
         } else {
             teamUtil.pause(1000);
         }
-        long cycleTime = System.currentTimeMillis()-startTime;
-        log("cycleTime: "+ cycleTime);
+        long cycleTime = System.currentTimeMillis() - startTime;
+        log("cycleTime: " + cycleTime);
+    }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public void autoV3(int path, boolean operateArms) {
+        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
+
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.setHeading(180); // Zero is towards the scoring side of field
+
+        if (teamUtil.SIDE == teamUtil.Side.SCORE) {
+            drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
+            if (operateArms) {
+                output.goToScoreNoWait(2); // TODO: Adjust this level for higher consistency?
+            }
+            if (!pushPurplePixelScoreV3(path)) { //pushes pixel and gets to good location for April tag localization
+                return;   //Auto Bailout
+            }
+        } else { // WING Side
+            if (!pushPurplePixelWingV3(path)) { // pushes pixel and drives to stack
+                return;   //Auto Bailout
+            }
+            if (operateArms) {
+                intake.grabOnePixel();
+            } else {
+                teamUtil.pause(1000);// emulate the grab
+            }
+            intake.stopIntake();
+
+            if (true) return;
+
+            drive.runRearAprilTagProcessor();
+
+            // Drive around the purple pixel (could be optimized for different paths)
+            drive.moveCm(400, 3, 0, 400);
+            drive.moveCm(50, 90, 800);
+
+            // Head to other side of field
+            drive.moveCm(220, 0, 800);
+            if (operateArms) {
+                output.goToScoreNoWait(2);
+            }
+            // Get to where we can see the AprilTags well
+            drive.moveCm(65, 285); // TODO: Make this work for both Alliances and maybe don't end at at stop?
+        }
+
+        // Line up for the Yellow Pixel Drop on the correct location
+        double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER); // TODO Adjust this for better consistency?
+        drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 4000);
+        drive.moveCm(17, 0);
+
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(1000);
+        }
+
+        cycleV3(xOffset, operateArms); // One for now...
+        teamUtil.pause(1000); // Allow output to get back to loading position
     }
 
 
-    public void autoV3(int path, boolean operateArms){
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        log("encoder position" + drive.strafeEncoder.getCurrentPosition());
-        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
-        drive.setHeading(180); // Zero is towards the scoring side of field
-         // Get AprilTag Finder up and running
+// OLDER CODE
 
-        if(!pushPurplePixelV3(path)){
-            return;   //Auto Bailout
+    public float getPathOffset(int path) {
+        float robotBackdropXOffset = drive.getRobotBackdropXOffset();
+        if (robotBackdropXOffset > 900) {
+            log("No April Tag Detected");
+            return 0;
+        } else {
+            if (path == 2) {
+                return robotBackdropXOffset;
+            } else if (path == 1) {
+                return robotBackdropXOffset + drive.TAG_CENTER_TO_CENTER;
+            } else {
+                return robotBackdropXOffset - drive.TAG_CENTER_TO_CENTER;
+            }
+        }
+    }
+
+    public boolean pushPurplePixelV3(int path) {
+        teamUtil.log("Pushing Pixel");
+
+        switch (path) { // Push the pixel and move back a bit
+            case 1:
+                drive.moveCm(teamUtil.SIDE == teamUtil.Side.WING ? 69 : 67, fieldSide());
+                drive.moveCm(30, fieldSide() + 50);
+                if (teamUtil.SIDE == teamUtil.Side.WING) {
+                    if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                } else {
+                    //Figure out later
+                }
+
+                break;
+            case 2:
+                drive.moveCm(86, fieldSide());
+                if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                    drive.stopMotors();
+                    return false;
+                }
+                break;
+            case 3:
+                drive.moveCm(teamUtil.SIDE == teamUtil.Side.WING ? 73 : 80, fieldSide());
+                drive.moveCm(teamUtil.SIDE == teamUtil.Side.WING ? 32 : 30, fieldSide() + 300);
+                if (teamUtil.SIDE == teamUtil.Side.SCORE) {
+                    if (!drive.strafeToEncoder(driverSide(), 180, 400, 9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                } else {
+                    drive.moveCm(11, driverSide());
+                    drive.moveCm(10, 180);
+                    if (!drive.strafeToEncoder(fieldSide(), 180, 400, 9300, 2000)) {
+                        drive.stopMotors();
+                        return false;
+                    }
+                }
+                break;
         }
 
-        if(teamUtil.SIDE == teamUtil.Side.SCORE) {//TODO: calibrate movecm parameters
-            if(operateArms){
-                output.goToScoreNoWait(2);
+        return true;
+    }
 
-            }
+    /*
+        // Previous V3 Code for SCORE side after pushing purple pixel
             drive.moveCm(drive.MAX_VELOCITY, 90, 0, 180, 350);
             drive.driveToTapeSetPower(.1f, 3000);
             drive.stopMotors();
@@ -256,7 +336,6 @@ public class Robot {
 
             }
 
-
             drive.runRearAprilTagProcessor();
             drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
             if (operateArms) {
@@ -265,7 +344,6 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
 
             drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
-            //TODO: make failsafe for if above returns false
 
             drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
             drive.driveToTapeSetPower(.1f, 3000);
@@ -296,7 +374,6 @@ public class Robot {
             }
             drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
             drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
-            //TODO: make failsafe for if above returns false
 
             drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
             drive.driveToTapeSetPower(.1f, 3000);
@@ -305,7 +382,11 @@ public class Robot {
             } else {
                 teamUtil.pause(1000);
             }
-        }else{ // wing
+*/
+
+    /*
+        // Previous V3 Code for WING side after pushing purple pixel
+
             drive.stopMotors();
             teamUtil.pause(250);
 
@@ -356,7 +437,7 @@ public class Robot {
                 teamUtil.pause(1000);
             }
 
-            cycle(0,operateArms);
+            cycleV3(0,operateArms);
 
 
 
@@ -387,7 +468,6 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY, 48, 300, 180, 1000);
 
             drive.driveToAprilTagOffset(1000, 0, 180, (-drive.TAG_CENTER_TO_CENTER), 30, 4000);
-            //TODO: make failsafe for if above returns false
 
             drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
             drive.driveToTapeSetPower(.1f, 3000);
@@ -398,10 +478,9 @@ public class Robot {
             }
 
              */
-        }
-        drive.stopMotors();
 
-        /*
+    /*
+// Experiment using ultrasonic sensor and strafe encoder to line up on stack
         log("encoder position" + drive.strafeEncoder.getCurrentPosition());
         double strafeDistanceFromStackTics = drive.strafeEncoder.getCurrentPosition()-straferDistanceFarStack;
         double strafeDistanceFromStackCms = strafeDistanceFromStackTics/130;
@@ -425,72 +504,60 @@ public class Robot {
 
         drive.stopMotors();
 */
-        /*
-        if(operateArms){
-            output.dropAndGoToLoadNoWait();
+
+    public void pushPurplePixelAndGoToAprilTagViewing(int path) {
+        teamUtil.log("Pushing Pixel");
+        switch (path) { // Push the pixel and move back a bit
+            case 1:
+                drive.moveCm(67, fieldSide());
+                drive.moveCm(30, fieldSide() + 50);
+                drive.moveCm(10, driverSide());
+                break;
+            case 2:
+                drive.moveCm(86, fieldSide());
+                drive.moveCm(8.5, driverSide());
+                break;
+            case 3:
+                drive.moveCm(75, fieldSide());
+                drive.moveCm(30, fieldSide() + 300);
+                drive.moveCm(13, driverSide());
+                break;
         }
-
-
-        drive.moveCm(drive.MAX_VELOCITY,95,135, 180,800);
-        drive.moveCm(drive.MAX_VELOCITY,210,180, 180, drive.MIN_END_VELOCITY);
-        drive.stopMotors();//temporary
-        log("encoder position" + drive.strafeEncoder.getCurrentPosition());
-        strafeDistanceFromStackTics = drive.strafeEncoder.getCurrentPosition()-straferDistanceFarStack;
-        strafeDistanceFromStackCms = strafeDistanceFromStackTics/130;
-        log("strafe distance from stack tics" + strafeDistanceFromStackTics);
-        log("strafe distance from stack cms" + strafeDistanceFromStackCms);
-
-        ultrasonicSensorReadingTime = System.currentTimeMillis()+1000;
-        if(operateArms){
-            intake.startIntake();
-
+        teamUtil.log("Driving to April Tag Viewing Location");
+        if (teamUtil.SIDE == teamUtil.Side.SCORE) { // Run to April Tag viewing location from SCORE Side
+            switch (path) {
+                case 1:
+                    drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 83 : 23, 0, 180, 0);
+                    break;
+                case 2:
+                    drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 0);
+                    break;
+                case 3:
+                    drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 23 : 83, 0, 180, 0);
+                    break;
+            }
+        } else { // Run to April Tag viewing location from WING Side
+            if ((path == 1 && teamUtil.alliance == RED) || (path == 3 && teamUtil.alliance == BLUE)) {
+                drive.moveCm(24, scoreSide());
+                drive.moveCm(69, fieldSide());
+                drive.moveCm(159, scoreSide(), 800);
+                drive.moveCm(79, driverSide()); // strafe
+            } else if ((path == 3 && teamUtil.alliance == RED) || (path == 1 && teamUtil.alliance == BLUE)) {
+                drive.moveCm(52, audienceSide());
+                drive.moveCm(69, fieldSide());
+                drive.moveCm(180, scoreSide(), 800);
+                drive.moveCm(75, driverSide()); // strafe
+            } else { // Path 2
+                drive.moveCm(36, audienceSide());
+                drive.moveCm(64, fieldSide());
+                drive.moveCm(197, scoreSide(), 800);
+                drive.moveCm(72, driverSide()); // strafe
+            }
         }
-        drive.moveCm(1000,Math.abs(strafeDistanceFromStackCms),strafeDistanceFromStackCms>0? 270:90,180,0);
-
-        while(teamUtil.keepGoing(ultrasonicSensorReadingTime)){
-        }
-        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
-        teamUtil.pause(750);
-        log("ultrasonic sensor distance from wall" +drive.getUltrasonicDistance());
-
-        drive.moveCm(800,ultrasonicSensorDistanceFromWall-10,180,180,0);
-
-        drive.stopMotors();
-
-        if(operateArms){
-            intake.grabTwoPixels();
-        }else{
-            teamUtil.pause(1000);//grabTwoPixels
-
-        }
-        drive.moveCm(drive.MAX_VELOCITY,210,0, 180, 800);
-        if(operateArms){
-            output.goToScoreNoWait(3);
-        }
-        drive.moveCm(drive.MAX_VELOCITY,95,315, 180, drive.MIN_END_VELOCITY);
-
-        drive.driveToTape(0,180,350,3000);
-        drive.stopMotors();
-        if(operateArms){
-            output.dropAndGoToLoad();
-        }
-
-         */
-
-
-
-
-
-
-
-
-
-
-
-
     }
+
     public void autoV2(int path, boolean operateArms) {
-        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance== RED?"RED":"BLUE") + " Side: " + teamUtil.SIDE);
+        teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
         drive.setHeading(180); // Zero is towards the scoring side of field
         drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
 
@@ -501,11 +568,11 @@ public class Robot {
         float aprilTagOffset = getPathOffset(path);
 
         //Go to Scoring position
-        drive.moveCm(1500,35,0,180,350);
-        drive.driveToTape(0,180,350,2000);
+        drive.moveCm(1500, 35, 0, 180, 350);
+        drive.driveToTape(0, 180, 350, 2000);
         drive.stopMotors();   //drive.setMotorsActiveBrake();
         teamUtil.pause(500);
-        if (teamUtil.alliance== RED) { // use April tag localization offset
+        if (teamUtil.alliance == RED) { // use April tag localization offset
             drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? driverSide() : fieldSide());
         } else {
             drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? fieldSide() : driverSide());
@@ -518,30 +585,24 @@ public class Robot {
         // get well out of the way
         drive.moveCm(5, audienceSide());
         if (operateArms) output.goToLoadNoWait();
-        if (Math.abs(aprilTagOffset) < .01 || path==2) {
+        if (Math.abs(aprilTagOffset) < .01 || path == 2) {
             drive.moveCm(65, fieldSide());
-        } else if (path==1){
-            drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER), fieldSide());
+        } else if (path == 1) {
+            drive.moveCm(65 + (teamUtil.alliance == teamUtil.Alliance.RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER), fieldSide());
         } else { // path 3
-            drive.moveCm(65 + (teamUtil.alliance==teamUtil.Alliance.RED ? drive.TAG_CENTER_TO_CENTER : -drive.TAG_CENTER_TO_CENTER), fieldSide());
+            drive.moveCm(65 + (teamUtil.alliance == teamUtil.Alliance.RED ? drive.TAG_CENTER_TO_CENTER : -drive.TAG_CENTER_TO_CENTER), fieldSide());
         }
-        drive.moveCm(20,0);
+        drive.moveCm(20, 0);
         log("Auto-Finished");
     }
 
-
-
-
-    ////////////////////////////////////////////////////////////////
-    // OLD CODE
-
-    public void auto(int path, teamUtil.Side side){ // TODO: Lose the "left" parameter and use TeamUtil.SIDE instead
+    public void auto(int path, teamUtil.Side side) { // TODO: Lose the "left" parameter and use TeamUtil.SIDE instead
         drive.setHeading(180); // Zero is towards the scoring side of field
-        if(path==1&&side == teamUtil.Side.WING){
+        if (path == 1 && side == teamUtil.Side.WING) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(67,fieldSide());
-            drive.moveCm(33.5,fieldSide()+50);
-            drive.moveCm(10,driverSide());
+            drive.moveCm(67, fieldSide());
+            drive.moveCm(33.5, fieldSide() + 50);
+            drive.moveCm(10, driverSide());
             drive.moveCm(25, scoreSide());
             drive.moveCm(69, fieldSide());
             drive.moveCm(127, scoreSide(), drive.MAX_VELOCITY);
@@ -551,18 +612,18 @@ public class Robot {
             float aprilTagOffset = getPathOffset(path);
 
 
-            log("aprilTagOffset: "+aprilTagOffset);
-            log("aprilTagOffset"+aprilTagOffset);
+            log("aprilTagOffset: " + aprilTagOffset);
+            log("aprilTagOffset" + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,4000);
+            drive.driveToTape(0, 180, 350, 4000);
 
 
             drive.setMotorsActiveBrake();
             teamUtil.pause(500);
-            drive.moveCm(Math.abs(aprilTagOffset),aprilTagOffset<0?fieldSide():driverSide());
+            drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? fieldSide() : driverSide());
 
 
             /*
@@ -598,19 +659,16 @@ public class Robot {
              */
             output.dropPixels();
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
+            drive.moveCm(5, 180);
 
             output.goToLoadNoWait();
-            drive.moveCm(60,fieldSide());
+            drive.moveCm(60, fieldSide());
 
 
-
-
-        }
-        else if(path==2&&side == teamUtil.Side.WING){
+        } else if (path == 2 && side == teamUtil.Side.WING) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(86,fieldSide());
-            drive.moveCm(8.5,driverSide());
+            drive.moveCm(86, fieldSide());
+            drive.moveCm(8.5, driverSide());
             drive.moveCm(36, audienceSide());
             drive.moveCm(64, fieldSide());
             drive.moveCm(170, scoreSide(), drive.MAX_VELOCITY);
@@ -634,12 +692,12 @@ public class Robot {
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,4000);
+            drive.driveToTape(0, 180, 350, 4000);
             //while (!drive.tapeSensor1.isOnTape()||!drive.tapeSensor2.isOnTape()){}
 
             drive.setMotorsActiveBrake();
             teamUtil.pause(500);
-            drive.moveCm(Math.abs(aprilTagOffset),aprilTagOffset<0?fieldSide():driverSide());
+            drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? fieldSide() : driverSide());
 
 
 
@@ -679,14 +737,13 @@ public class Robot {
             teamUtil.pause(1000);
             drive.moveCm(5, audienceSide());
             output.goToLoadNoWait();
-            drive.moveCm(60,fieldSide());
+            drive.moveCm(60, fieldSide());
 
 
-        }
-        else if(path==3&&side == teamUtil.Side.WING){
+        } else if (path == 3 && side == teamUtil.Side.WING) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(67,fieldSide());
-            drive.moveCm(33.5,fieldSide()-55);
+            drive.moveCm(67, fieldSide());
+            drive.moveCm(33.5, fieldSide() - 55);
             drive.moveCm(10, driverSide());
 
 
@@ -713,68 +770,58 @@ public class Robot {
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,4000);
+            drive.driveToTape(0, 180, 350, 4000);
 
 
             drive.setMotorsActiveBrake();
 
 
-            if(Math.abs(aprilTagOffset)>3.25){
-                if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == RED) {
+            if (Math.abs(aprilTagOffset) > 3.25) {
+                if (aprilTagOffset > 0 && aprilTagOffset < 900) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
                     }
-                }
-                else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == RED) {
+                } else if (aprilTagOffset < 0) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
 
                     }
-                }
-
-                else{
-                    if(teamUtil.alliance == RED) {
-                        drive.moveCm(15,driverSide());
-                    }
-                    else{
-                        drive.moveCm(15,fieldSide());
+                } else {
+                    if (teamUtil.alliance == RED) {
+                        drive.moveCm(15, driverSide());
+                    } else {
+                        drive.moveCm(15, fieldSide());
 
                     }
                 }
             }
             output.dropPixels();
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
+            drive.moveCm(5, 180);
 
             output.goToLoadNoWait();
-            drive.moveCm(80,fieldSide());
+            drive.moveCm(80, fieldSide());
 
 
-
-
-
-        }
-        else if(!(side == teamUtil.Side.WING)&&path==1){
+        } else if (!(side == teamUtil.Side.WING) && path == 1) {
 
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(65,fieldSide());
-            drive.moveCm(33,fieldSide()+50);
-            drive.moveCm(10,driverSide());
-
-
+            drive.moveCm(65, fieldSide());
+            drive.moveCm(33, fieldSide() + 50);
+            drive.moveCm(10, driverSide());
 
 
             output.goToScoreNoWait(1);
-            drive.moveCm(75,0,0);//TODO:change to min end when callibrated (also, should be more like 80)
+            drive.moveCm(75, 0, 0);//TODO:change to min end when callibrated (also, should be more like 80)
             teamUtil.pause(1000);
             float aprilTagOffset = getPathOffset(path);
-            log("aprilTagOffset"+aprilTagOffset);
-            drive.moveCm(25,0,350);
+            log("aprilTagOffset" + aprilTagOffset);
+            drive.moveCm(25, 0, 350);
             /*
             drive.getRobotBackdropXOffset();
             if(teamUtil.alliance == teamUtil.Alliance.RED) {
@@ -790,12 +837,12 @@ public class Robot {
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,4000);
+            drive.driveToTape(0, 180, 350, 4000);
             //while (!drive.tapeSensor1.isOnTape()||!drive.tapeSensor2.isOnTape()){}
 
             drive.setMotorsActiveBrake();
             teamUtil.pause(500);
-            drive.moveCm(Math.abs(aprilTagOffset),aprilTagOffset<0?driverSide():fieldSide());
+            drive.moveCm(Math.abs(aprilTagOffset), aprilTagOffset < 0 ? driverSide() : fieldSide());
 /*
             if(Math.abs(aprilTagOffset)>3.25){
                 if(aprilTagOffset>0&&aprilTagOffset<900){
@@ -829,62 +876,56 @@ public class Robot {
  */
             output.dropPixels();
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
+            drive.moveCm(5, 180);
 
             output.goToLoadNoWait();
-            drive.moveCm(60,fieldSide());
+            drive.moveCm(60, fieldSide());
 
 
-        }
-
-        else if(!(side == teamUtil.Side.WING)&&path==2){
+        } else if (!(side == teamUtil.Side.WING) && path == 2) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(86,fieldSide());
-            drive.moveCm(8.5,driverSide());
+            drive.moveCm(86, fieldSide());
+            drive.moveCm(8.5, driverSide());
             output.goToScoreNoWait(1);
-            drive.moveCm(40,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
+            drive.moveCm(40, 0, 350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
-            if(teamUtil.alliance == RED) {
+            if (teamUtil.alliance == RED) {
                 aprilTagOffset = drive.returnAprilTagIDOffset(5, 500);
-            }else{
+            } else {
                 aprilTagOffset = drive.returnAprilTagIDOffset(2, 500);
             }
-            log("aprilTagOffset: "+aprilTagOffset);
+            log("aprilTagOffset: " + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,3000);
+            drive.driveToTape(0, 180, 350, 3000);
             //while (!drive.tapeSensor1.isOnTape()||!drive.tapeSensor2.isOnTape()){}
 
             drive.setMotorsActiveBrake();
 
             //TODO fix 3.25
 
-            if(Math.abs(aprilTagOffset)>3.25){
-                if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == RED) {
+            if (Math.abs(aprilTagOffset) > 3.25) {
+                if (aprilTagOffset > 0 && aprilTagOffset < 900) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
                     }
-                }
-                else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == RED) {
+                } else if (aprilTagOffset < 0) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
 
                     }
-                }
-
-                else{
-                    if(teamUtil.alliance == RED) {
-                        drive.moveCm(15,driverSide());
-                    }
-                    else{
-                        drive.moveCm(15,fieldSide());
+                } else {
+                    if (teamUtil.alliance == RED) {
+                        drive.moveCm(15, driverSide());
+                    } else {
+                        drive.moveCm(15, fieldSide());
 
                     }
                 }
@@ -892,86 +933,74 @@ public class Robot {
             output.dropPixels();
 
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
+            drive.moveCm(5, 180);
             output.goToLoadNoWait();
-            drive.moveCm(60,fieldSide());
+            drive.moveCm(60, fieldSide());
 
 
-
-
-        }
-
-        else if(!(side == teamUtil.Side.WING)&&path==3){
+        } else if (!(side == teamUtil.Side.WING) && path == 3) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
-            drive.moveCm(80,fieldSide());
-            drive.moveCm(33,fieldSide()+300);
-            drive.moveCm(13,driverSide());
-
-
+            drive.moveCm(80, fieldSide());
+            drive.moveCm(33, fieldSide() + 300);
+            drive.moveCm(13, driverSide());
 
 
             output.goToScoreNoWait(1);
-            drive.moveCm(10,0,350);//TODO:change to min end when callibrated (also, should be more like 80)
+            drive.moveCm(10, 0, 350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
-            if(teamUtil.alliance == RED) {
+            if (teamUtil.alliance == RED) {
                 aprilTagOffset = drive.returnAprilTagIDOffset(6, 500);
-            }else{
+            } else {
                 aprilTagOffset = drive.returnAprilTagIDOffset(3, 500);
             }
-            drive.moveCm(40,0,350);
-            log("aprilTagOffset: "+aprilTagOffset);
+            drive.moveCm(40, 0, 350);
+            log("aprilTagOffset: " + aprilTagOffset);
 
-            log("aprilTagOffset"+aprilTagOffset);
+            log("aprilTagOffset" + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
             // TODO: In fact, all of your autonomous movement methods need timeouts and tests for opmode shut down
-            drive.driveToTape(0,180,350,4000);
+            drive.driveToTape(0, 180, 350, 4000);
             //while (!drive.tapeSensor1.isOnTape()||!drive.tapeSensor2.isOnTape()){}
 
             drive.setMotorsActiveBrake();
 
 
-            if(Math.abs(aprilTagOffset)>3.25){
-                if(aprilTagOffset>0&&aprilTagOffset<900){
-                    if(teamUtil.alliance == RED) {
+            if (Math.abs(aprilTagOffset) > 3.25) {
+                if (aprilTagOffset > 0 && aprilTagOffset < 900) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
 
                     }
-                }
-                else if(aprilTagOffset<0){
-                    if(teamUtil.alliance == RED) {
+                } else if (aprilTagOffset < 0) {
+                    if (teamUtil.alliance == RED) {
                         drive.moveCm(Math.abs(aprilTagOffset), driverSide());
-                    }else{
+                    } else {
                         drive.moveCm(Math.abs(aprilTagOffset), fieldSide());
 
                     }
-                }
-
-                else{
-                    if(teamUtil.alliance == RED) {
-                        drive.moveCm(15,driverSide());
-                    }
-                    else{
-                        drive.moveCm(15,fieldSide());
+                } else {
+                    if (teamUtil.alliance == RED) {
+                        drive.moveCm(15, driverSide());
+                    } else {
+                        drive.moveCm(15, fieldSide());
 
                     }
                 }
             }
             output.dropPixels();
             teamUtil.pause(1000);
-            drive.moveCm(5,180);
+            drive.moveCm(5, 180);
 
             output.goToLoadNoWait();
-            drive.moveCm(96,fieldSide());
+            drive.moveCm(96, fieldSide());
 
         }
         teamUtil.pause(5000); // TODO: Remove this for competition, just helps with debugging auto as it is developed
 
     }
-
 }
-
 
