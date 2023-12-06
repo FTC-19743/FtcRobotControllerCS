@@ -116,7 +116,7 @@ public class TestDrive extends LinearOpMode {
             teamUtil.telemetry.update();
         }
 
-        drive.initCV();
+        drive.initCV(true);
         getCameraSettings();
         drive.runRearAprilTagProcessor();
         //drive.runSideTeamPropFinderProcessor();
@@ -167,12 +167,21 @@ public class TestDrive extends LinearOpMode {
             if (gamepad.gamepad.right_stick_button && gamepad.gamepad.left_stick_button) {
                 drive.setHeading(180); // Zero is towards the scoring side of field
             }
-            drive.universalDriveJoystick(
-                    gamepad.gamepad.left_stick_y,
-                    -gamepad.gamepad.left_stick_x,
-                    gamepad.gamepad.right_stick_x,
-                    gamepad.gamepad.right_trigger>.5,
-                    drive.getHeading());
+            if (teamUtil.alliance == teamUtil.Alliance.RED) {
+                drive.universalDriveJoystick(
+                        gamepad.gamepad.left_stick_y,
+                        -gamepad.gamepad.left_stick_x,
+                        gamepad.gamepad.right_stick_x,
+                        gamepad.gamepad.right_trigger > .5,
+                        drive.getHeading());
+            } else {
+                drive.universalDriveJoystick(
+                        -gamepad.gamepad.left_stick_y,
+                        gamepad.gamepad.left_stick_x,
+                        gamepad.gamepad.right_stick_x,
+                        gamepad.gamepad.right_trigger > .5,
+                        drive.getHeading());
+            }
 
             if(gamepad.wasRightBumperPressed()){
                 toggleCamera();

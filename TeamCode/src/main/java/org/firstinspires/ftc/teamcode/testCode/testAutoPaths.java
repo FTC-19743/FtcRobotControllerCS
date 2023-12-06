@@ -19,6 +19,7 @@ public class testAutoPaths extends LinearOpMode {
     TeamGamepad driverGamepad;
     TeamGamepad armsGamepad;
     boolean useArms = false;
+    boolean liveStream = true;
 
 
     public void runOpMode() {
@@ -29,7 +30,7 @@ public class testAutoPaths extends LinearOpMode {
         armsGamepad.initilize(false);
         robot = new Robot();
         robot.drive.initalize();
-        robot.drive.initCV();
+        robot.drive.initCV(true);
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
@@ -46,6 +47,7 @@ public class testAutoPaths extends LinearOpMode {
             telemetry.addLine("Alliance: "+ teamUtil.alliance);
             telemetry.addLine("Use Arms: "+ useArms);
             telemetry.addLine("Strafe: "+ robot.drive.strafeEncoder.getCurrentPosition());
+            telemetry.addLine("FPS: "+ robot.drive.visionPortal.getFps());
 
 
             ////////// Drive
@@ -77,6 +79,15 @@ public class testAutoPaths extends LinearOpMode {
             }
             if (driverGamepad.wasRightBumperPressed()) {
                 useArms = !useArms;
+            }
+            if (driverGamepad.wasLeftTriggerPressed()) {
+                if (liveStream) {
+                    liveStream = false;
+                    robot.drive.visionPortal.stopLiveView();
+                } else {
+                    liveStream = true;
+                    robot.drive.visionPortal.resumeLiveView();
+                }
             }
 
             if(driverGamepad.wasLeftPressed()) {

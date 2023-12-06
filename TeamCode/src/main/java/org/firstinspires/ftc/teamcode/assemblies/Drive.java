@@ -147,7 +147,7 @@ public class Drive {
         teamUtil.log("Initializing Drive - FINISHED");
     }
 
-    public void initCV() {
+    public void initCV(boolean liveStreamEnabled) {
         teamUtil.log("Initializing Drive CV");
 
         // Setup a single VisionPortal with all cameras and all processers
@@ -175,6 +175,7 @@ public class Drive {
                 //.addProcessor(findPixelProcesser)
                 .addProcessor(findLineProcesser)
                 .addProcessor(findTeamPropProcesser)
+                .enableLiveView(liveStreamEnabled)
                 .build();
 
         teamUtil.log("Waiting for Vision Portal to start Streaming");
@@ -930,7 +931,8 @@ public class Drive {
     }
 
     // Drives forward until robot sees white tape, then strafes to line up on it and then goes to wall
-    public void driveToStack(double driveHeading, double robotHeading, double velocity, long timeout) {
+    // returns true if it succeeded, false if things went horribly wrong.
+    public boolean driveToStack(double driveHeading, double robotHeading, double velocity, long timeout) {
         //start with a minimum of 40 cms from the wall
         boolean details = false;
         findLineProcesser.details = details;
@@ -989,6 +991,7 @@ public class Drive {
         } else {
             log("Drive To Stack - Finished");
         }
+        return true;
     }
 
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset) {
@@ -1102,7 +1105,7 @@ public class Drive {
     // Y is cms from the April tags
     // TODO: SPEED UP IDEA: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
-        log("Drive to April Tag Offset");
+        log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
         boolean details = false;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
@@ -1134,9 +1137,7 @@ public class Drive {
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
             aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
             while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
-                // TODO: if we stay in this loop for very long, it means the robot is moving based on stale data.  Need a failsafe here
-                // TODO: Maybe just back up until we see a tag or travel more than a few inches?
-                if (details) teamUtil.log("Lost sight of tags!");
+                if (details) teamUtil.log("WARNING: Lost sight of tags!");
             }
 
         }
