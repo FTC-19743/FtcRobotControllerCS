@@ -95,6 +95,7 @@ public class TestDrive extends LinearOpMode {
     public void runOpMode(){
         teamUtil.init(this);
         teamUtil.alliance = teamUtil.Alliance.BLUE;
+        teamUtil.SIDE=teamUtil.Side.SCORE;
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         intake = new Intake();
@@ -115,6 +116,18 @@ public class TestDrive extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
+            if(gamepad.wasLeftPressed()){ teamUtil.SIDE = teamUtil.Side.SCORE;}
+            if(gamepad.wasRightPressed()){ teamUtil.SIDE = teamUtil.Side.WING;}
+
+            teamUtil.telemetry.addLine("Score or Wing? (use Game Pad 1 DPad)");
+            teamUtil.telemetry.addLine(teamUtil.SIDE == teamUtil.Side.SCORE ? "Score Side" : "Wing Side");
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+
 
         drive.initCV(true);
         getCameraSettings();
@@ -318,6 +331,7 @@ public class TestDrive extends LinearOpMode {
             intake.outputTelemetry();
             drive.sensorTelemetry();
             drive.visionTelemetry();
+            telemetry.addLine("Path: "+drive.findTeamPropProcesser.getPropPosition());
             telemetry.update();
         }
     }

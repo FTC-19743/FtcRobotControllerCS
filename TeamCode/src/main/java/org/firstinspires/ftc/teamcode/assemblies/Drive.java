@@ -945,7 +945,9 @@ public class Drive {
         // TODO: IMPORTANT! We need a fail safe in here in case we don't see the line because we are too wide/close
         // TODO: This can be detected my using the encoders and a "maximum seek distance"
         // TODO: Options include "stop", "go and park", "use the strafe encoder", "back up and try again", ?
+        double startEncoderValue = fl.getCurrentPosition();
         while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
+
             if (details) {
                 log("Looking for Line. ");
             }

@@ -85,10 +85,16 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
+            /*
             drive.moveCm(drive.MAX_VELOCITY,80, fieldSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 30 : 330 , 180, 0); // was fieldSide() + 300 on RED
             drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,  23 , 0, 180, 1000);
+
+             */
+            drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 1000);
         } else { // Path 2, middle for either Alliance
             drive.moveCm(drive.MAX_VELOCITY,86, fieldSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,8.5, driverSide(), 180, 0);
@@ -213,7 +219,7 @@ public class Robot {
         drive.runFrontLineFinderProcessor();
 
         // Strafe and drive across the field to where we can almost see the white tape
-        // TODO: Path 3 runs over the purple pixel on RED, Path 1 runs it over on BLUE!!  NEED A FIX!
+
         double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
         drive.moveCm(drive.MAX_VELOCITY, 100 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 800); // Heading was fixed at 135
         drive.moveCm(drive.MAX_VELOCITY, 183 - distanceOffset, 180, 180, 350);
@@ -296,6 +302,7 @@ public class Robot {
         }
         teamUtil.log("April Tag FPS: " + drive.visionPortal.getFps());
         // Line up for the Yellow Pixel Drop on the correct location
+        //if(true)return; //temporary for test
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER); // TODO Adjust this for better consistency?
         drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 4000);
         drive.moveCm(drive.MAX_VELOCITY,17, 0, 180, 0);
