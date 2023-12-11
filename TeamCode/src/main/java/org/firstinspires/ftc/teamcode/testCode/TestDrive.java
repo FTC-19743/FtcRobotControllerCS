@@ -219,11 +219,13 @@ public class TestDrive extends LinearOpMode {
                 drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if (gamepad.wasUpPressed()) {
-                drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 0, 180, 0);
+                drive.driveToAprilTagOffset(1000, 0, 180, 0, 30, 4000);
+                //drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 0, 180, 0);
                 //cycle((drive.TAG_CENTER_TO_CENTER));
             }
 
             if (gamepad.wasLeftPressed()) {
+                //drive.findPixelProcesser.reset();
                 output.moveStraferLeft();
             }
             if (gamepad.wasRightPressed()) {

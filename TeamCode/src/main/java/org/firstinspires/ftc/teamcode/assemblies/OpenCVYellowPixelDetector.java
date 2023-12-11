@@ -23,10 +23,15 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OpenCVYellowPixelDetector extends OpenCVProcesser {
     HardwareMap hardwareMap;
     Telemetry telemetry;
+
+    public AtomicBoolean foundPixel = new AtomicBoolean(false);
+    public int pixelMidPoint = 0;
+    public int minArea = 400;
     public boolean viewingPipeline = false;
     enum Stage {
         RAW_IMAGE,
@@ -49,7 +54,7 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
         teamUtil.log("Initializing OpenCVYellowPixelDetector processor - FINISHED");
     }
     public void outputTelemetry () {
-        telemetry.addLine("MidPoint: " + midpoint + " Area:" + largestArea);
+        telemetry.addLine("Found One: " + foundPixel.get() + "MidPoint: " + pixelMidPoint + " Area:" + largestArea);
     }
 
     public void nextView() {
@@ -70,10 +75,12 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
     }
 
     Mat HSVMat = new Mat();
-    Scalar lowHSV = new Scalar(20, 100, 100); // lower bound HSV for yellow
-    Scalar highHSV = new Scalar(30, 255, 255); // higher bound HSV for yellow
+    Scalar lowHSV = new Scalar(15, 50, 25); // lower bound HSV for yellow
+    Scalar highHSV = new Scalar(35, 255, 255); // higher bound HSV for yellow
+    //    Scalar lowHSV = new Scalar(20, 100, 100); // lower bound HSV for yellow
+    //Scalar highHSV = new Scalar(30, 255, 255); // higher bound HSV for yellow
     Mat blurredMat = new Mat();
-    Size blurFactor = new Size(5, 5);
+    Size blurFactor = new Size(10, 10);
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();
     Mat hierarchy = new Mat();
@@ -81,6 +88,11 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
     List<MatOfPoint> contours = new ArrayList<>();
     double largestArea, midpoint;
 
+    public void reset() {
+        foundPixel.set(false);
+        pixelMidPoint = 0;
+        largestArea = 0;
+    }
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
         largestArea = 0;
@@ -100,9 +112,12 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
                 Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
                 boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
                 double area = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
-                if (area > largestArea) {
-                    largestArea = (int) area;
-                    midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
+                if (area > minArea) { // Found one
+                    foundPixel.set(true);
+                    pixelMidPoint = (int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x);
+                }
+                if (area > largestArea) { // Found one
+                    largestArea = (int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x);
                 }
             }
             return boundRect; // return the array of bounding rectangles we found
