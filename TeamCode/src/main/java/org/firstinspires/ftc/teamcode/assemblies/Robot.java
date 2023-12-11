@@ -54,7 +54,7 @@ public class Robot {
 
     public void calibrate() {
         output.calibrate();
-        output.goToLoad(); // ready to load
+        //output.goToLoad(); // ready to load
     }
 
     public int fieldSide() { // helper method that returns heading out towards the field
@@ -128,19 +128,26 @@ public class Robot {
     // WING Side Start - Push the purple pixel and drive to nearest stack
     // TODO: SPEED UP IDEAS: Make the pixel pusher less deep and try to go on a more direct path? move pixel pusher to back and target middle stack?
 
-    public boolean pushPurplePixelWingV3(int path) {
+    public boolean pushPurplePixelWingV3(int path,boolean operateArms) {
         teamUtil.log("Pushing Pixel");
 
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
+            //drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
+            //drive.moveCm(drive.MAX_VELOCITY,25,  teamUtil.alliance==RED ? 140 : 220, 180,0); // was fieldSide() + 50
             drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
-            drive.moveCm(drive.MAX_VELOCITY,25,  teamUtil.alliance==RED ? 140 : 220, 180,0); // was fieldSide() + 50
+            drive.moveCm(drive.MAX_VELOCITY,28,  teamUtil.alliance==RED ? 135 : 225, 180,0); // was fieldSide() + 50
+
             if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9300, 2000)) {
                 drive.stopMotors();
                 return false;
             }
             drive.stopMotors();
             teamUtil.pause(250);
-            drive.moveCm(drive.MAX_VELOCITY,40, 180, 180,0);
+            if(operateArms){
+                intake.startIntake();
+            }
+
+            drive.moveCm(drive.MAX_VELOCITY,42, 180, 180,0);
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Under the Rigging
             drive.moveCm(drive.MAX_VELOCITY, 73, fieldSide(), 180,0);
             drive.moveCm(drive.MAX_VELOCITY, 32, teamUtil.alliance==RED ? 30 : 330, 180,0); // was fieldSide() + 300
@@ -154,6 +161,9 @@ public class Robot {
             drive.stopMotors();
             teamUtil.pause(250);
             teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
+            if(operateArms){
+                intake.startIntake();
+            }
             drive.moveCm(drive.MAX_VELOCITY, 84, 180, 180,0);
             teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
         } else { // Path 2, middle for either Alliance
@@ -164,6 +174,9 @@ public class Robot {
             }
             drive.stopMotors();
             teamUtil.pause(250);
+            if(operateArms){
+                intake.startIntake();
+            }
             drive.moveCm(drive.MAX_VELOCITY,64, 180, 180,0);
         }
 
@@ -213,10 +226,14 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public void cycleV3(double xOffset, boolean operateArms) {
+    public boolean cycleV3(double xOffset, boolean operateArms, int path) {
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.runFrontLineFinderProcessor();
+        if((path==3&&teamUtil.alliance== teamUtil.alliance.RED)||(path==1&&teamUtil.alliance== teamUtil.alliance.BLUE)){
+            drive.moveCm(drive.MAX_VELOCITY, drive.TAG_CENTER_TO_CENTER, fieldSide(), 180, 800);
+            xOffset=0;
+        }
 
         // Strafe and drive across the field to where we can almost see the white tape
 
@@ -226,7 +243,9 @@ public class Robot {
         if (operateArms) {
             intake.startIntake();
         }
-        drive.driveToStack(180, 180, 350, 3000);
+        if(!drive.driveToStack(180, 180, 350, 3000)){
+            return false;
+        }
         // TODO: driveToStack needs failsafe code INSIDE it (could also be much faster)
         // TODO: make failsafe for if above returns false
 
@@ -239,7 +258,7 @@ public class Robot {
         drive.runRearAprilTagProcessor();
         drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
         if (operateArms) {
-            output.goToScoreNoWait(3); // TODO Adjust height for different paths?
+            output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2); // TODO Adjust height for different paths?
         }
         drive.moveCm(drive.MAX_VELOCITY, 48, teamUtil.alliance==RED ? 300 : 60, 180, 1000); // Heading was fixed at 300
         drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000);
@@ -257,6 +276,7 @@ public class Robot {
         }
         long cycleTime = System.currentTimeMillis() - startTime;
         log("cycleTime: " + cycleTime);
+        return true;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,33 +289,35 @@ public class Robot {
         if (teamUtil.SIDE == teamUtil.Side.SCORE) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
             if (operateArms) {
-                output.goToScoreNoWait(2); // TODO: Adjust this level for higher consistency?
+                output.goToScoreNoWait(2,output.GrabberRotatorHorizontal2); // TODO: Adjust this level for higher consistency?
             }
             if (!pushPurplePixelScoreV3(path)) { //pushes pixel and gets to good location for April tag localization
                 return;   //Auto Bailout
             }
         } else { // WING Side
-            if (!pushPurplePixelWingV3(path)) { // pushes pixel and drives to stack
+            if (!pushPurplePixelWingV3(path,operateArms)) { // pushes pixel and drives to stack
                 return;   //Auto Bailout
             }
+            if(true) return;
             if (operateArms) {
                 intake.grabOnePixel();
             } else {
                 teamUtil.pause(1000);// emulate the grab
             }
-            intake.stopIntake();
+
 
 
             drive.runRearAprilTagProcessor();
 
             // Drive around the purple pixel (could be optimized for different paths)
             drive.moveCm(400, 3, 0, 180, 400);
-            drive.moveCm(drive.MAX_VELOCITY,50, fieldSide(), 180, 800);
 
+            drive.moveCm(drive.MAX_VELOCITY,50, fieldSide(), 180, 800);
+            intake.stopIntake();
             // Head to other side of field
             drive.moveCm(drive.MAX_VELOCITY,220, 0, 180,800);
             if (operateArms) {
-                output.goToScoreNoWait(2);
+                output.goToScoreNoWait(2,output.GrabberRotatorHorizontal2);
             }
             // Get to where we can see the AprilTags well
             drive.moveCm(drive.MAX_VELOCITY,65, teamUtil.alliance==RED? 285 : 75, 180, 0); // TODO: SPEED UP: Maybe don't end at at stop
@@ -313,8 +335,8 @@ public class Robot {
             teamUtil.pause(100);
         }
         //if (true) return;
-
-        cycleV3(xOffset, operateArms); // One for now...
+        //TODO check return value on cycle for failsafe issues
+        cycleV3(0, operateArms,path); // One for now...
         teamUtil.pause(1000); // Allow output to get back to loading position
     }
 
@@ -641,7 +663,7 @@ public class Robot {
 
         //Push Purple pixel into place and get in position to see April Tags
         pushPurplePixelAndGoToAprilTagViewing(path);
-        if (operateArms) output.goToScoreNoWait(1);
+        if (operateArms) output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
         teamUtil.pause(1000); // Allow time for April Tag Viewer to get a solid reading and output to get in position
         float aprilTagOffset = getPathOffset(path);
 
@@ -684,7 +706,7 @@ public class Robot {
             drive.moveCm(25, scoreSide());
             drive.moveCm(69, fieldSide());
             drive.moveCm(127, scoreSide(), drive.MAX_VELOCITY);
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(90, driverSide()); // strafe
             teamUtil.pause(500);
             float aprilTagOffset = getPathOffset(path);
@@ -750,7 +772,7 @@ public class Robot {
             drive.moveCm(36, audienceSide());
             drive.moveCm(64, fieldSide());
             drive.moveCm(170, scoreSide(), drive.MAX_VELOCITY);
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(100, driverSide()); // strafe
             teamUtil.pause(500);
             float aprilTagOffset = getPathOffset(path);
@@ -830,7 +852,7 @@ public class Robot {
             drive.moveCm(69, fieldSide());
 
             drive.moveCm(150, scoreSide(), drive.MAX_VELOCITY);
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(100, driverSide()); // strafe
             teamUtil.pause(500);
             float aprilTagOffset = getPathOffset(path);
@@ -894,7 +916,7 @@ public class Robot {
             drive.moveCm(10, driverSide());
 
 
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(75, 0, 0);//TODO:change to min end when callibrated (also, should be more like 80)
             teamUtil.pause(1000);
             float aprilTagOffset = getPathOffset(path);
@@ -964,7 +986,7 @@ public class Robot {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
             drive.moveCm(86, fieldSide());
             drive.moveCm(8.5, driverSide());
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(40, 0, 350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
             if (teamUtil.alliance == RED) {
@@ -1023,7 +1045,7 @@ public class Robot {
             drive.moveCm(13, driverSide());
 
 
-            output.goToScoreNoWait(1);
+            output.goToScoreNoWait(1,output.GrabberRotatorHorizontal2);
             drive.moveCm(10, 0, 350);//TODO:change to min end when callibrated (also, should be more like 80)
             double aprilTagOffset;
             if (teamUtil.alliance == RED) {

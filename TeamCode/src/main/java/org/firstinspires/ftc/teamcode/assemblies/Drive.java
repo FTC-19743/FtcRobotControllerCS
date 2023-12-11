@@ -942,12 +942,14 @@ public class Drive {
         findLineProcesser.reset();
 
         // Drive until we see the line
-        // TODO: IMPORTANT! We need a fail safe in here in case we don't see the line because we are too wide/close
-        // TODO: This can be detected my using the encoders and a "maximum seek distance"
-        // TODO: Options include "stop", "go and park", "use the strafe encoder", "back up and try again", ?
+
         double startEncoderValue = fl.getCurrentPosition();
         while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
-
+            if(fl.getCurrentPosition()-startEncoderValue>=20*COUNTS_PER_CENTIMETER){
+                stopMotors();
+                log("Drive To Stack Failed");
+                return false;
+            }
             if (details) {
                 log("Looking for Line. ");
             }
@@ -1187,7 +1189,11 @@ public class Drive {
         boolean details = true;
 
         float DEADBAND = 0.1f;
-        float SLOPE = 1 / (1 - DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
+        float SLOPE = .8f;
+        float FASTSLOPE = 1.8f;
+        float SLOWSPEED = .1f;
+        float STRAFESLOWSPEED = 0.25f;
+        //float SLOPE = 1 / (1 - DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
 
         float POWERFACTOR = 1; // MAKE LESS THAN 0 to cap upperlimit of power
         float leftX;
@@ -1212,21 +1218,110 @@ public class Drive {
         if (movingAutonomously.get() && (leftJoyStickX != 0 || rightJoyStickX != 0 || leftJoyStickY != 0)) { // Do we need to interrupt an autonomous operation?
             manualInterrupt.set(true);
         }
-
-        if (leftJoyStickX > 0) {
-            leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-        } else if (leftJoyStickX < 0) {
-            leftX = (leftJoyStickX + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-        } else {
+        if(leftJoyStickX == 0){
             leftX = 0;
+        } else if(Math.abs(leftJoyStickX)<.5){
+            leftX = leftJoyStickX>0? STRAFESLOWSPEED:-STRAFESLOWSPEED;
+        } else{
+            if (isFast) {
+                leftX = leftJoyStickX * FASTSLOPE + (leftJoyStickX>0? -.8f:.8f);
+            }
+            else{
+                leftX = leftJoyStickX * SLOPE + (leftJoyStickX>0? -.3f:.3f);
+            }
         }
-        if (leftJoyStickY > 0) {
-            leftY = (leftJoyStickY - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-        } else if (leftJoyStickY < 0) {
-            leftY = (leftJoyStickY + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-        } else {
+
+        if(leftJoyStickY == 0){
             leftY = 0;
+        } else if(Math.abs(leftJoyStickY)<.5){
+            leftY = leftJoyStickY>0? SLOWSPEED:-SLOWSPEED;
+        } else{
+            if (isFast) {
+                leftY = leftJoyStickY * FASTSLOPE + (leftJoyStickY>0? -.8f:.8f);
+            }
+            else{
+                leftY = leftJoyStickY *SLOPE + (leftJoyStickY>0? -.3f:.3f);
+            }
         }
+//
+//        if(leftJoyStickX>0){ // apply power curve to x value
+//            if(Math.abs(leftJoyStickX)<.5){
+//                leftX = SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftX = leftJoyStickX * FASTSLOPE + (-.8f);
+//                }
+//                else{
+//                    leftX = leftJoyStickX *SLOPE + (-.3f);
+//                }
+//            }
+//
+//
+//        }
+//        else if (leftJoyStickX<0) {
+//            if(Math.abs(leftJoyStickX)<.5){
+//                leftX = -SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftX = leftJoyStickX * FASTSLOPE + .8f;
+//                }
+//                else{
+//                    leftX = leftJoyStickX *SLOPE + .3f;
+//                }
+//            }
+//        }
+//        else{
+//            leftX = 0;
+//        }
+//
+//        if(leftJoyStickY>0){
+//            if(Math.abs(leftJoyStickY)<.5){
+//                leftY = SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftY = leftJoyStickY * FASTSLOPE + (-.8f);
+//                }
+//                else{
+//                    leftY = leftJoyStickY *SLOPE + (-.3f);
+//                }
+//            }
+//
+//
+//        }
+//        else if (leftJoyStickY<0) {
+//            if(Math.abs(leftJoyStickY)<.5){
+//                leftY = -SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftY = leftJoyStickY * FASTSLOPE + .8f;
+//                }
+//                else{
+//                    leftY = leftJoyStickY * SLOPE + .3f;
+//                }
+//            }
+//        }
+//        else{
+//            leftY = 0;
+//        }
+
+//        if (leftJoyStickX > 0) {
+//            leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else if (leftJoyStickX < 0) {
+//            leftX = (leftJoyStickX + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else {
+//            leftX = 0;
+//        }
+//        if (leftJoyStickY > 0) {
+//            leftY = (leftJoyStickY - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else if (leftJoyStickY < 0) {
+//            leftY = (leftJoyStickY + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else {
+//            leftY = 0;
+//        }
 
         if (Math.abs(rightJoyStickX) > DEADBAND) { // driver is turning the robot
             rotationAdjustment = (float) (rightJoyStickX * 0.525 * scaleAmount);
@@ -1236,7 +1331,7 @@ public class Drive {
                 heldHeading = getHeading();
                 holdingHeading = true;
             }
-            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .1f; // auto rotate to held heading
+            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .05f; // auto rotate to held heading
             rotationAdjustment = rotationAdjustment * Math.min(Math.max(Math.abs(leftX), Math.abs(leftY)), 0.7f); // make it proportional to speed
         }
 
@@ -1246,8 +1341,8 @@ public class Drive {
         backLeft = -(leftY + leftX - rotationAdjustment);
 
         if (details) {
-            teamUtil.telemetry.addData("LEFTX:", leftX);
-            teamUtil.telemetry.addData("LEFTY:", leftY);
+
+            teamUtil.telemetry.addLine("Joy X/Y: "+ leftJoyStickX+ "/"+ leftJoyStickY+ " X/Y: "+ leftX+ "/"+leftY);
             if (holdingHeading) {
                 teamUtil.telemetry.addData("HOLDING:", heldHeading);
             }
@@ -1282,6 +1377,11 @@ public class Drive {
             }
         }
         universalDriveJoystick(leftJoyStickX, leftJoyStickY, rightJoyStickX, isFast, robotHeading);
+    }
+
+    public void setHeldHeading(double heading){
+        holdingHeading = true;
+        heldHeading = heading;
     }
 
 }

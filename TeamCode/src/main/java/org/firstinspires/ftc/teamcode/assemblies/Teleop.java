@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -16,6 +17,8 @@ public class Teleop extends LinearOpMode {
         RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
     }
     Robot robot;
+
+    Blinkin blinkin;
     TeamGamepad driverGamepad;
     TeamGamepad armsGamepad;
 
@@ -63,8 +66,17 @@ public class Teleop extends LinearOpMode {
                         robot.drive.getHeading());
             }
 
-            if(driverGamepad.wasDownPressed()){
-                robot.drive.driveToTapeTelopNoWait(0,180,400,3000);
+            if(driverGamepad.wasAPressed()){
+                robot.drive.setHeldHeading(robot.driverSide());
+            }
+            if(driverGamepad.wasYPressed()){
+                robot.drive.setHeldHeading(robot.fieldSide());
+            }
+            if(driverGamepad.wasXPressed()){
+                robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?180:0);
+            }
+            if(driverGamepad.wasBPressed()){
+                robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?0:180);
             }
 
             ////////// Intake
@@ -101,14 +113,14 @@ public class Teleop extends LinearOpMode {
             } else if (robot.lift.startedLifting){
                 robot.lift.holdLift();
             }
-            if (driverGamepad.wasBPressed()) {
+            if (driverGamepad.wasUpPressed()) {
                 robot.lift.toggleArm();
             }
             if (false) {
                 robot.lift.stowArm();
             }
 
-            ///////// Launcher
+            ///////// Drone Launcher
 
             if(driverGamepad.wasOptionsPressed()){
                 robot.launcher.toggleRelease();
@@ -120,9 +132,9 @@ public class Teleop extends LinearOpMode {
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
-                robot.output.goToScoreNoWait(robot.output.lastLevel);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad);
             }
-            /*
+
             if(armsGamepad.wasLeftBumperPressed()){
                 robot.output.straferManual(true);
             }
@@ -131,8 +143,6 @@ public class Teleop extends LinearOpMode {
                 robot.output.straferManual(false);
             }
 
-             */
-
             if(Math.abs(armsGamepad.gamepad.left_stick_y) > .30){
                 robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
             }
@@ -140,10 +150,11 @@ public class Teleop extends LinearOpMode {
                 robot.output.dropAndGoToLoadNoWait();
             }
 
-            if(armsGamepad.wasXPressed()){
+
+            if(armsGamepad.wasRightJoystickFlickedLeft()){
                 robot.output.rotateGrabberCounterclockwise();
             }
-            if(armsGamepad.wasBPressed()){
+            if(armsGamepad.wasRightJoystickFlickedRight()){
                 robot.output.rotateGrabberClockwise();
             }
 

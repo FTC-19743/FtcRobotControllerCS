@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Intake {
@@ -17,6 +18,8 @@ public class Intake {
     public Servo rKnocker;
     public CRServo kicker;
     public CRServo sweeper;
+
+
 
     private ColorSensor pixelSensor;
     //public DistanceSensor pixelDistance;
@@ -96,6 +99,7 @@ public class Intake {
         intakeRunning = false;
         sweeper.setPower(0);
         kicker.setPower(0);
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
 
     }
@@ -105,11 +109,14 @@ public class Intake {
             intakeRunning=true;
             sweeper.setPower(1*sweeperDirection);
             kicker.setPower(1*kickerDirection);
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED);
         }
         else{
             intakeRunning=false;
             sweeper.setPower(0);
             kicker.setPower(.1);
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
         }
     }
 
@@ -143,6 +150,7 @@ public class Intake {
                     intakeRunning = false;
                     sweeper.setPower(0);
                     kicker.setPower(.1);
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
                 }
             }
             else{

@@ -54,6 +54,8 @@ public class Output {
     public static double StraferRight = 0.28; // "Right" when facing the backdrop.  Actually Robot's left
     public static double StraferLeft = 0.655;
 
+    public static int lastStraferPosition; //1=left,2=load,3=right
+
     public static double StraferIncrement = 0.025;
     public static double GrabberOpen = 0.55;
     public static double GrabberClosed = 0.73;
@@ -210,7 +212,10 @@ public class Output {
 
    public void rotateGrabberClockwise(){
         if(!loading.get()) {
-            if (grabberRotater.getPosition() + GrabberRotatorIncrement <= GrabberRotatorUpperLimit) {
+            if(Math.abs(grabberRotater.getPosition()-GrabberRotatorLoad)<.001){
+                grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement/2);
+            }
+            else if (grabberRotater.getPosition() + GrabberRotatorIncrement <= GrabberRotatorUpperLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement);
             }
         }
@@ -218,7 +223,10 @@ public class Output {
 
     public void rotateGrabberCounterclockwise(){
         if(!loading.get()) {
-            if (grabberRotater.getPosition() - GrabberRotatorIncrement >= GrabberRotatorLowerLimit) {
+            if(Math.abs(grabberRotater.getPosition()-GrabberRotatorLoad)<.001){
+                grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement/2);
+            }
+            else if (grabberRotater.getPosition() - GrabberRotatorIncrement >= GrabberRotatorLowerLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement);
             }
         }
@@ -279,7 +287,9 @@ public class Output {
            return;
        } else {
            grabberStrafer.setPosition(StraferLeft);
+           lastStraferPosition=1;
        }
+
    }
    public void moveStraferRight() {
        if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
@@ -287,6 +297,8 @@ public class Output {
            return;
        } else {
            grabberStrafer.setPosition(StraferRight);
+           lastStraferPosition=2;
+
        }
    }
     public void moveStraferMiddle() {
@@ -295,6 +307,8 @@ public class Output {
             return;
         } else {
             grabberStrafer.setPosition(StraferLoad);
+            lastStraferPosition=3;
+
         }
     }
    public void straferManual(boolean left){
@@ -303,10 +317,30 @@ public class Output {
            return;
        } else {
            if(left){
-               grabberStrafer.setPosition(StraferLeft);
+               if(lastStraferPosition==3){
+                   grabberStrafer.setPosition(StraferLoad);
+                   lastStraferPosition=2;
+
+               }else{
+                   grabberStrafer.setPosition(StraferLeft);
+                   lastStraferPosition=1;
+
+
+               }
            }
-           else{
-               grabberStrafer.setPosition(StraferRight);
+           else{//going right
+               if(lastStraferPosition==1){
+                   grabberStrafer.setPosition(StraferLoad);
+                   lastStraferPosition=2;
+
+
+               }
+               else{
+                   grabberStrafer.setPosition(StraferRight);
+                   lastStraferPosition=3;
+
+
+               }
 
            }
        }
@@ -334,12 +368,18 @@ public class Output {
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
-        log("Elev Current position in goToLoad" + elevLeft.getCurrentPosition());
+        log("Elev Current position in goToLoad: " + elevLeft.getCurrentPosition());
         lastLevel = Math.round(((float)elevLeft.getCurrentPosition()-(float)elevatorMinScoreLevel)/(float)elevatorScoreInc+1);
-        log("lastLevel" +lastLevel);
+        log("lastLevel: " +lastLevel);
         moving.set(true);
-
         log("Go To Load");
+
+        if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.1f){
+            log("Strafing to Middle");
+
+            grabberStrafer.setPosition(StraferLoad);
+            teamUtil.pause(1000);
+        }
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             // we don't know where the servos are so we need to go up to a safe level to move them
             log("Go To Load: Raising to safe level");
@@ -387,7 +427,7 @@ public class Output {
         }
     }
     // Grab the pixels and get into scoring position
-    public void goToScore(int level) {
+    public void goToScore(int level, double rotatorPosition) {
         moving.set(true);
         loading.set(false);
 
@@ -421,6 +461,7 @@ public class Output {
 
         intake.stopIntake();
 
+
         elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
         elevRight.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
 
@@ -428,8 +469,8 @@ public class Output {
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
         }
         flipper.setPosition(flipperScore);
-        grabberRotater.setPosition(GrabberRotatorHorizontal2);
-        rotaterPosition = rotaterPosition.HORIZONTAL;
+        grabberRotater.setPosition(rotatorPosition);
+
         elevLeft.setTargetPosition(elevDestination);
         elevRight.setTargetPosition(elevDestination);
 
@@ -441,7 +482,7 @@ public class Output {
     }
 
 
-    public void goToScoreNoWait(int level) {
+    public void goToScoreNoWait(int level, double rotatorPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
             log("states in go to score");
 
@@ -456,7 +497,7 @@ public class Output {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    goToScore(level);
+                    goToScore(level,rotatorPosition);
                 }
             });
             thread.start();

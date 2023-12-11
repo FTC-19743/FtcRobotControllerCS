@@ -7,7 +7,9 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.Intake;
+import org.firstinspires.ftc.teamcode.assemblies.Launcher;
 import org.firstinspires.ftc.teamcode.assemblies.Output;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -17,8 +19,10 @@ import java.util.concurrent.TimeUnit;
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
     Drive drive;
+    Blinkin blinkin;
     Intake intake;
     Output output;
+    Launcher launcher;
     TeamGamepad gamepad;
     int currentCam = 0;
     private int     myExposure  ;
@@ -103,6 +107,8 @@ public class TestDrive extends LinearOpMode {
         output = new Output(intake);
         output.initialize();
         output.calibrate();
+        launcher = new Launcher();
+        launcher.initialize();
         drive = new Drive();
         drive.initalize();
         while(!gamepad.wasAPressed()){
@@ -202,6 +208,9 @@ public class TestDrive extends LinearOpMode {
                 //drive.moveCm(1000, 20, 180, 180, 1000);
                 //drive.centerOnAprilTag(8, 40, 0, 180);
             }
+            if(gamepad.wasLeftBumperPressed()){
+                launcher.toggleRelease();
+            }
             if (gamepad.wasUpPressed()) {
                 cycle((drive.TAG_CENTER_TO_CENTER));
             }
@@ -214,17 +223,20 @@ public class TestDrive extends LinearOpMode {
             if (gamepad.wasRightPressed()) {
                 output.moveStraferRight();
             }
+            /*
             if(gamepad.wasYPressed()){
                 output.goToScore(2);
             }
+
+             */
             if(gamepad.wasAPressed()){
                 output.goToLoad();
             }
             if(gamepad.wasBPressed()){
-                intake.startIntake();
+                intake.toggleIntake();
             }
             if(gamepad.wasXPressed()){
-                intake.grabTwoPixels();
+                intake.reverseIntake();
             }
 
             /*

@@ -21,6 +21,10 @@ public class testAutoPaths extends LinearOpMode {
     boolean useArms = false;
     boolean liveStream = true;
 
+    public long startTime;
+    public long elapsedTime;
+
+
 
     public void runOpMode() {
         teamUtil.init(this);
@@ -93,34 +97,54 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasLeftPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
+                startTime=System.currentTimeMillis();
                 robot.autoV3(1, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
             }
             if(driverGamepad.wasUpPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
+                startTime=System.currentTimeMillis();
                 robot.autoV3(2, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
             }
             if(driverGamepad.wasRightPressed()) {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
+                startTime=System.currentTimeMillis();
                 robot.autoV3(3, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
             }
             if(driverGamepad.wasXPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
+                startTime=System.currentTimeMillis();
                 robot.autoV3(1, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
             }
             if(driverGamepad.wasYPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
+                startTime=System.currentTimeMillis();
+
                 robot.autoV3(2, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
             }
             if(driverGamepad.wasBPressed()) {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
-                robot.autoV3(3, useArms);
-            }
+                startTime=System.currentTimeMillis();
 
+                robot.autoV3(3, useArms);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
+            }
+            telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);
             telemetry.update();
 
         }

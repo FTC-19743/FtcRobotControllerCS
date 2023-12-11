@@ -11,6 +11,14 @@ public class TeamGamepad {
     boolean aWasPressed = false;
     boolean aWasPressedLastTime = false;
     boolean aBumpToDo = false;
+
+    double rightJoystickWasRight = 0;
+    double rightJoystickWasRightLastTime = 0;
+    boolean rightJoystickWasRightToDo = false;
+
+    double rightJoystickWasLeft = 0;
+    double rightJoystickWasLeftLastTime = 0;
+    boolean rightJoystickWasLeftToDo = false;
     boolean bWasPressed = false;
     boolean bWasPressedLastTime = false;
     boolean bBumpToDo = false;
@@ -88,6 +96,10 @@ public class TeamGamepad {
         leftTriggerWasPressed = gamepad.left_trigger;
         rightTriggerWasPressedLastTime = rightTriggerWasPressed;
         rightTriggerWasPressed = gamepad.right_trigger;
+        rightJoystickWasLeftLastTime = rightJoystickWasLeft;
+        rightJoystickWasLeft = gamepad.right_stick_x;
+        rightJoystickWasRightLastTime = rightJoystickWasRight;
+        rightJoystickWasRight = gamepad.right_stick_x;
         optionsWasPressedLastTime = optionsWasPressed;
         optionsWasPressed = gamepad.options;
 
@@ -126,6 +138,12 @@ public class TeamGamepad {
         }
         if (rightTriggerWasPressed < 0.8 && rightTriggerWasPressedLastTime >= 0.8){
             rightTriggerBumpToDo = true;
+        }
+        if (rightJoystickWasLeft > -0.8 && rightJoystickWasLeftLastTime <= -0.8){
+            rightJoystickWasLeftToDo = true;
+        }
+        if (rightJoystickWasRight < 0.8 && rightJoystickWasRightLastTime >= 0.8){
+            rightJoystickWasRightToDo = true;
         }
         if (optionsWasPressed == false && optionsWasPressedLastTime == true) {
             optionsBumpToDo = true;
@@ -214,6 +232,22 @@ public class TeamGamepad {
     public boolean wasRightTriggerPressed(){
         if(rightTriggerBumpToDo){
             rightTriggerBumpToDo = false;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean wasRightJoystickFlickedRight(){
+        if(rightJoystickWasRightToDo){
+            rightJoystickWasRightToDo = false;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean wasRightJoystickFlickedLeft(){
+        if(rightJoystickWasLeftToDo){
+            rightJoystickWasLeftToDo = false;
             return true;
         }
         return false;
