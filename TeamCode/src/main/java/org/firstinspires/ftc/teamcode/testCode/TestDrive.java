@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.testCode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
@@ -211,12 +212,17 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasLeftBumperPressed()){
                 launcher.toggleRelease();
             }
-            if (gamepad.wasUpPressed()) {
-                cycle((drive.TAG_CENTER_TO_CENTER));
-            }
             if (gamepad.wasDownPressed()) {
-                drive.driveToTapeSetPower(0.1f,3000);
+                drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
             }
+            if (gamepad.wasOptionsPressed()) {
+                drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
+            if (gamepad.wasUpPressed()) {
+                drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 0, 180, 0);
+                //cycle((drive.TAG_CENTER_TO_CENTER));
+            }
+
             if (gamepad.wasLeftPressed()) {
                 output.moveStraferLeft();
             }
