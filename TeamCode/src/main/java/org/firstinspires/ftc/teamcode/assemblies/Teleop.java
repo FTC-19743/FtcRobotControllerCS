@@ -66,18 +66,18 @@ public class Teleop extends LinearOpMode {
                         robot.drive.getHeading());
             }
 
-            if(driverGamepad.wasAPressed()){
-                robot.drive.setHeldHeading(robot.driverSide());
-            }
-            if(driverGamepad.wasYPressed()){
+            //if(driverGamepad.wasAPressed()){
+                //robot.drive.setHeldHeading(robot.driverSide());
+            //}
+            if(driverGamepad.wasYPressed()||driverGamepad.wasAPressed()){
                 robot.drive.setHeldHeading(robot.fieldSide());
             }
-            if(driverGamepad.wasXPressed()){
+            if(driverGamepad.wasXPressed()||driverGamepad.wasBPressed()){
                 robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?180:0);
             }
-            if(driverGamepad.wasBPressed()){
-                robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?0:180);
-            }
+            //if(driverGamepad.wasBPressed()){
+                //robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?0:180);
+            //}
 
             ////////// Intake
             robot.intake.autoOff();

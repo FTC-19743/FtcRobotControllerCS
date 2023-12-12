@@ -130,13 +130,11 @@ public class Robot {
 
     public boolean pushPurplePixelWingV3(int path,boolean operateArms) {
         teamUtil.log("Pushing Pixel");
+        boolean details = false;
 
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
-            //drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
-            //drive.moveCm(drive.MAX_VELOCITY,25,  teamUtil.alliance==RED ? 140 : 220, 180,0); // was fieldSide() + 50
             drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
-            drive.moveCm(drive.MAX_VELOCITY,28,  teamUtil.alliance==RED ? 135 : 225, 180,0); // was fieldSide() + 50
-
+            drive.moveCm(drive.MAX_VELOCITY,28,  teamUtil.alliance==RED ? 135 : 225, 180,0);
             if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9300, 2000)) {
                 drive.stopMotors();
                 return false;
@@ -146,26 +144,43 @@ public class Robot {
             if(operateArms){
                 intake.startIntake();
             }
-
             drive.moveCm(drive.MAX_VELOCITY,42, 180, 180,0);
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Under the Rigging
+            drive.moveCm(drive.MAX_VELOCITY,58, fieldSide(), 180,1000);
+            drive.moveCm(drive.MAX_VELOCITY,40,  teamUtil.alliance==RED ? 30 : 330, 180,0);
+            drive.moveCm(drive.MAX_VELOCITY, 5.5, driverSide(), 180,1000);
+            drive.moveCm(drive.MAX_VELOCITY, 10, 180, 180,400);
+            if (!drive.strafeToEncoder(fieldSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9200, 2000)) { // tweaked encoder target a bit
+                drive.stopMotors();
+                return false;
+            }
+            drive.stopMotors();
+            //teamUtil.pause(250);
+            if(operateArms){
+                intake.startIntake();
+            }
+            drive.moveCm(drive.MAX_VELOCITY, 78, 180, 180,400); // was 81
+            drive.setMotorsFloat(); // coast to wall
+            drive.stopMotors();
+            teamUtil.pause(250);
+            drive.setMotorsBrake();
+
+            /*  Before linking movements
             drive.moveCm(drive.MAX_VELOCITY, 73, fieldSide(), 180,0);
             drive.moveCm(drive.MAX_VELOCITY, 32, teamUtil.alliance==RED ? 30 : 330, 180,0); // was fieldSide() + 300
             drive.moveCm(drive.MAX_VELOCITY, 11, driverSide(), 180,0);
             drive.moveCm(drive.MAX_VELOCITY, 10, 180, 180,0);
-            teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
             if (!drive.strafeToEncoder(fieldSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9200, 2000)) { // tweaked encoder target a bit
                 drive.stopMotors();
                 return false;
             }
             drive.stopMotors();
             teamUtil.pause(250);
-            teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
             if(operateArms){
                 intake.startIntake();
             }
             drive.moveCm(drive.MAX_VELOCITY, 84, 180, 180,0);
-            teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
+            */
         } else { // Path 2, middle for either Alliance
             drive.moveCm(drive.MAX_VELOCITY,86, fieldSide(), 180,0);
             if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9400, 2000)) { // tweaked encoder target a bit
@@ -180,53 +195,11 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,64, 180, 180,0);
         }
 
-        /*
-        switch (path) {
-            case 1:
-                drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
-                drive.moveCm(drive.MAX_VELOCITY,25, fieldSide() + 50, 180,0);
-                if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9300, 2000)) {
-                    drive.stopMotors();
-                    return false;
-                }
-                drive.stopMotors();
-                teamUtil.pause(250);
-                drive.moveCm(drive.MAX_VELOCITY,40, 180, 180,0);
-                break;
-            case 2:
-                drive.moveCm(drive.MAX_VELOCITY,86, fieldSide(), 180,0);
-                if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9400, 2000)) { // tweaked encoder target a bit
-                    drive.stopMotors();
-                    return false;
-                }
-                drive.stopMotors();
-                teamUtil.pause(250);
-                drive.moveCm(drive.MAX_VELOCITY,64, 180, 180,0);
-                break;
-            case 3:
-                drive.moveCm(drive.MAX_VELOCITY, 73, fieldSide(), 180,0);
-                drive.moveCm(drive.MAX_VELOCITY, 32, fieldSide() + 300, 180,0);
-                drive.moveCm(drive.MAX_VELOCITY, 11, driverSide(), 180,0);
-                drive.moveCm(drive.MAX_VELOCITY, 10, 180, 180,0);
-                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
-                if (!drive.strafeToEncoder(fieldSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9200, 2000)) { // tweaked encoder target a bit
-                    drive.stopMotors();
-                    return false;
-                }
-                drive.stopMotors();
-                teamUtil.pause(250);
-                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
-                drive.moveCm(drive.MAX_VELOCITY, 84, 180, 180,0);
-                teamUtil.log("Strafe: "+ drive.strafeEncoder.getCurrentPosition());
-
-                break;
-        }
-         */
         return true;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public boolean cycleV3(double xOffset, boolean operateArms, int path) {
+    public boolean cycleV3(double xOffset, boolean operateArms, int path, boolean lastTime) {
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.runFrontLineFinderProcessor();
@@ -234,20 +207,26 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY, drive.TAG_CENTER_TO_CENTER, fieldSide(), 180, 800);
             xOffset=0;
         }
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        int desiredStrafeEncoder;
+        if(teamUtil.alliance == teamUtil.alliance.RED){
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE+61*drive.TICS_PER_CM_STRAFE);
+        }else{
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE-61*drive.TICS_PER_CM_STRAFE);
+        }
 
         // Strafe and drive across the field to where we can almost see the white tape
-
         double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
         drive.moveCm(drive.MAX_VELOCITY, 100 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 800); // Heading was fixed at 135
-        drive.moveCm(drive.MAX_VELOCITY, 183 - distanceOffset, 180, 180, 350);
+        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 188 - distanceOffset, desiredStrafeEncoder,180, 180, 350); // was 183
         if (operateArms) {
             intake.startIntake();
         }
-        if(!drive.driveToStack(180, 180, 350, 3000)){
+
+        if(!drive.driveToStack(180, 180, 350, 5000)){
+            intake.stopIntake();
             return false;
         }
-        // TODO: driveToStack needs failsafe code INSIDE it (could also be much faster)
-        // TODO: make failsafe for if above returns false
 
         if (operateArms) {
             intake.grabTwoPixels();
@@ -261,21 +240,27 @@ public class Robot {
             output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2); // TODO Adjust height for different paths?
         }
         drive.moveCm(drive.MAX_VELOCITY, 48, teamUtil.alliance==RED ? 300 : 60, 180, 1000); // Heading was fixed at 300
-        drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000);
-        //TODO: make failsafe for if above returns false
+        if(!drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000)){
+            return false;
+        }
 
         drive.moveCm(drive.MAX_VELOCITY,17, 0, 180, 0);
         // Old version using tape
         //drive.moveCm(drive.MAX_VELOCITY, 9, 0, 180, 0);
         //drive.driveToTapeSetPower(.1f, 3000);
 
+        long cycleTime = System.currentTimeMillis() - startTime;
+        log("cycleTime: " + cycleTime); // without blocking GoToLoad at end
+
         if (operateArms) {
-            output.dropAndGoToLoadNoWait();
+            if (!lastTime)
+                output.dropAndGoToLoadNoWait();
+            else
+                output.dropAndGoToLoad(); // block until finished
         } else {
             teamUtil.pause(100);
         }
-        long cycleTime = System.currentTimeMillis() - startTime;
-        log("cycleTime: " + cycleTime);
+
         return true;
     }
 
@@ -285,11 +270,12 @@ public class Robot {
 
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         drive.setHeading(180); // Zero is towards the scoring side of field
+        long startTime = System.currentTimeMillis();
 
         if (teamUtil.SIDE == teamUtil.Side.SCORE) {
             drive.runRearAprilTagProcessor(); // Get AprilTag Finder up and running
             if (operateArms) {
-                output.goToScoreNoWait(2,output.GrabberRotatorHorizontal2); // TODO: Adjust this level for higher consistency?
+                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2); // TODO: Adjust this level for higher consistency?
             }
             if (!pushPurplePixelScoreV3(path)) { //pushes pixel and gets to good location for April tag localization
                 return;   //Auto Bailout
@@ -298,7 +284,7 @@ public class Robot {
             if (!pushPurplePixelWingV3(path,operateArms)) { // pushes pixel and drives to stack
                 return;   //Auto Bailout
             }
-            if(true) return;
+
             if (operateArms) {
                 intake.grabOnePixel();
             } else {
@@ -312,12 +298,12 @@ public class Robot {
             // Drive around the purple pixel (could be optimized for different paths)
             drive.moveCm(400, 3, 0, 180, 400);
 
-            drive.moveCm(drive.MAX_VELOCITY,50, fieldSide(), 180, 800);
+            drive.moveCm(drive.MAX_VELOCITY,51, fieldSide(), 180, 800);
             intake.stopIntake();
             // Head to other side of field
             drive.moveCm(drive.MAX_VELOCITY,220, 0, 180,800);
             if (operateArms) {
-                output.goToScoreNoWait(2,output.GrabberRotatorHorizontal2);
+                output.goToScoreNoWait(3,output.GrabberRotatorLoad);
             }
             // Get to where we can see the AprilTags well
             drive.moveCm(drive.MAX_VELOCITY,65, teamUtil.alliance==RED? 285 : 75, 180, 0); // TODO: SPEED UP: Maybe don't end at at stop
@@ -335,9 +321,16 @@ public class Robot {
             teamUtil.pause(100);
         }
         //if (true) return;
-        //TODO check return value on cycle for failsafe issues
-        cycleV3(0, operateArms,path); // One for now...
-        teamUtil.pause(1000); // Allow output to get back to loading position
+        //if((teamUtil.SIDE==teamUtil.Side.WING&&path==3&&teamUtil.alliance==teamUtil.alliance.RED)||teamUtil.SIDE==teamUtil.Side.WING&&path==1&&teamUtil.alliance==teamUtil.alliance.BLUE){
+            // Not enough time to reliably cycle :( yet.
+        //} else {
+            cycleV3(xOffset, operateArms,path, true); // One for now...
+            //TODO check return value on cycle for failsafe issues
+        //}
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        log("elapsedTime: " + elapsedTime);
+        //teamUtil.pause(30000-elapsedTime-500); // Allow output to get back to loading position with correct time
+        log("Finished Auto");
     }
 
 

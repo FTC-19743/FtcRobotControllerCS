@@ -111,10 +111,6 @@ public class Drive {
         telemetry = teamUtil.theOpMode.telemetry;
     }
 
-    public static void log(String logString) {
-        RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
-    }
-
     public void initalize() {
         teamUtil.log("Initializing Drive");
         //Initialize the hardware variables. Note that the strings used here as parameters
@@ -534,10 +530,10 @@ public class Drive {
     }
 
     public void logMotorPositions() {
-        log("fr: " + fr.getCurrentPosition());
-        log("fl: " + fl.getCurrentPosition());
-        log("br: " + br.getCurrentPosition());
-        log("bl: " + bl.getCurrentPosition());
+        teamUtil.log("fr: " + fr.getCurrentPosition());
+        teamUtil.log("fl: " + fl.getCurrentPosition());
+        teamUtil.log("br: " + br.getCurrentPosition());
+        teamUtil.log("bl: " + bl.getCurrentPosition());
     }
 
     public double adjustAngle(double angle) {
@@ -604,7 +600,7 @@ public class Drive {
     }
 
     public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity) {
-        log("MoveCM cms:" + centimeters + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
+        teamUtil.log("MoveCM cms:" + centimeters + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
         details = false;
         MotorData data = new MotorData();
@@ -637,11 +633,11 @@ public class Drive {
         }
         double distance = 0;
         if (details) {
-            log("Heading:" + getHeading());
-            log("Total tics: " + totalTics);
-            log("Acceleration distance: " + accelerationDistance);
-            log("Deceleration distance: " + decelerationDistance);
-            log("Post Cruise distance: " + postCruiseDistance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + totalTics);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+            teamUtil.log("Post Cruise distance: " + postCruiseDistance);
         }
 //acceleration
         while (distance < accelerationDistance) {
@@ -653,8 +649,8 @@ public class Drive {
             }
         }
         if (details) {
-            log("Heading:" + getHeading());
-            log("distance after acceleration: " + distance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distance);
         }
 //cruise
         while (distance < postCruiseDistance) {
@@ -663,8 +659,8 @@ public class Drive {
             driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
         }
         if (details) {
-            log("Heading:" + getHeading());
-            log("distance after cruise: " + distance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distance);
         }
 
 
@@ -678,21 +674,21 @@ public class Drive {
 
         }
         if (details) {
-            log("distance after deceleration: " + distance);
+            teamUtil.log("distance after deceleration: " + distance);
         }
         if (endVelocity <= MIN_END_VELOCITY) {
             stopMotors();
             if (details) {
-                log("Went below or was min end velocity");
+                teamUtil.log("Went below or was min end velocity");
             }
         }
         lastVelocity = endVelocity;
-        log("MoveCM--Finished");
+        teamUtil.log("MoveCM--Finished");
 
     }
 
     public void moveStraightCmWithStrafeEncoder(double maxVelocity, double centimeters, int strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
-        log("MoveStraightCMwStrafeEnc cms:" + centimeters + " strafe:" + strafeTarget + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
+        teamUtil.log("MoveStraightCMwStrafeEnc cms:" + centimeters + " strafe:" + strafeTarget + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
         float strafeFactor = .02f; // convert strafe encoder error into heading declination
         float maxHeadingDeclination = 20f; // don't veer off of straight more than this number of degrees
@@ -729,11 +725,11 @@ public class Drive {
         }
         double distance = 0;
         if (details) {
-            log("Heading:" + getHeading());
-            log("Total tics: " + totalTics);
-            log("Acceleration distance: " + accelerationDistance);
-            log("Deceleration distance: " + decelerationDistance);
-            log("Post Cruise distance: " + postCruiseDistance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + totalTics);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+            teamUtil.log("Post Cruise distance: " + postCruiseDistance);
         }
 
         //acceleration
@@ -749,8 +745,8 @@ public class Drive {
             }
         }
         if (details) {
-            log("Heading:" + getHeading());
-            log("distance after acceleration: " + distance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distance);
         }
 
         //cruise
@@ -762,8 +758,8 @@ public class Drive {
             driveMotorsHeadingsFR(driveHeading + MathUtils.clamp((strafeEncoder.getCurrentPosition() - strafeTarget)*strafeFactor, -maxHeadingDeclination, maxHeadingDeclination) * headingFactor, robotHeading, maxVelocity);
         }
         if (details) {
-            log("Heading:" + getHeading());
-            log("distance after cruise: " + distance);
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distance);
         }
 
         //deceleration
@@ -779,16 +775,16 @@ public class Drive {
 
         }
         if (details) {
-            log("distance after deceleration: " + distance);
+            teamUtil.log("distance after deceleration: " + distance);
         }
         if (endVelocity <= MIN_END_VELOCITY) {
             stopMotors();
             if (details) {
-                log("Went below or was at min end velocity");
+                teamUtil.log("Went below or was at min end velocity");
             }
         }
         lastVelocity = endVelocity;
-        log("MoveStraightCMwStrafeEnc--Finished");
+        teamUtil.log("MoveStraightCMwStrafeEnc--Finished");
 
     }
 
@@ -822,22 +818,22 @@ public class Drive {
             }
         }
         if (details) {
-            log("turning left: " + rightCoefficient);
-            log("current heading: " + currentHeading);
-            log("heading goal: " + (heading + DRIFT_SPINS));
+            teamUtil.log("turning left: " + rightCoefficient);
+            teamUtil.log("current heading: " + currentHeading);
+            teamUtil.log("heading goal: " + (heading + DRIFT_SPINS));
         }
         if (details) {
-            log("crossing 0/360 barrier");
+            teamUtil.log("crossing 0/360 barrier");
         }
         while (Math.abs(currentHeading - heading) > SPIN_END_OF_MAX_VELOCITY) {
             setMotorVelocities(leftCoefficient * velocity, rightCoefficient * velocity, leftCoefficient * velocity, rightCoefficient * velocity);
             currentHeading = getHeading();
         }
         if (details) {
-            log("current heading: " + currentHeading);
-            log("heading cutoff (greater): " + adjustAngle(heading - CRAWL_DISTANCE_SPINS));
-            log("done with max velocity phase");
-            log("heading: " + currentHeading);
+            teamUtil.log("current heading: " + currentHeading);
+            teamUtil.log("heading cutoff (greater): " + adjustAngle(heading - CRAWL_DISTANCE_SPINS));
+            teamUtil.log("done with max velocity phase");
+            teamUtil.log("heading: " + currentHeading);
         }
         while (Math.abs(currentHeading - heading) > CRAWL_DISTANCE_SPINS) {
             currentHeading = getHeading();
@@ -849,8 +845,8 @@ public class Drive {
         }
 
         if (details) {
-            log("done with deceleration phase");
-            log("heading: " + currentHeading);
+            teamUtil.log("done with deceleration phase");
+            teamUtil.log("heading: " + currentHeading);
         }
         while (Math.abs(currentHeading - heading) > DRIFT_SPINS) {
             currentHeading = getHeading();
@@ -859,8 +855,8 @@ public class Drive {
         }
 
         if (details) {
-            log("done with crawl phase");
-            log("heading: " + currentHeading);
+            teamUtil.log("done with crawl phase");
+            teamUtil.log("heading: " + currentHeading);
         }
 
         setMotorsBrake();
@@ -887,25 +883,25 @@ public class Drive {
         double distance = getUltrasonicDistance();
 
         if (details) {
-            log("starting distance: " + distance);
-            log("goal distance: " + distanceFromWall);
+            teamUtil.log("starting distance: " + distance);
+            teamUtil.log("goal distance: " + distanceFromWall);
         }
         if (distance <= distanceFromWall) {
             if (details) {
-                log("already within distance");
+                teamUtil.log("already within distance");
             }
             return;
         }
         while (distanceFromWall < distance) {
             //log("in while loop");
             distance = getUltrasonicDistance();
-            log("distance: " + distance);
+            teamUtil.log("distance: " + distance);
             //double velocity = MIN_END_VELOCITY+Math.abs(distance-distanceFromWall)*VELOCITY_DECREASE_PER_CM;
             //log("Velocity: "+velocity);
             driveMotorsHeadingsFR(driveHeading, robotHeading, 500); // TODO: Tested at 500, could be faster?
         }
         if (details) {
-            log("distance before pause: " + distance);
+            teamUtil.log("distance before pause: " + distance);
         }
         stopMotors();
         setMotorsBrake();
@@ -914,7 +910,7 @@ public class Drive {
 
         distance = getUltrasonicDistance();
         if (details) {
-            log("distance at end: " + distance);
+            teamUtil.log("distance at end: " + distance);
         }
     }
 
@@ -922,35 +918,35 @@ public class Drive {
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
     public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout) {
-        log("Drive To Tape");
+        teamUtil.log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
         if (tapeSensor1.isOnTape()) {
-            log("Drive To Tape-Saw 1, looking for 2");
+            teamUtil.log("Drive To Tape-Saw 1, looking for 2");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
         } else if (tapeSensor2.isOnTape()) {
-            log("Drive To Tape-Saw 2, looking for 1");
+            teamUtil.log("Drive To Tape-Saw 2, looking for 1");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
         } else {
-            log("Drive To Tape-Looking for either");
+            teamUtil.log("Drive To Tape-Looking for either");
             while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             }
         }
         if (System.currentTimeMillis() > timeOutTime) {
-            log("Drive To Tape-TIMED OUT!");
+            teamUtil.log("Drive To Tape-TIMED OUT!");
         } else {
-            log("Drive To Tape-Finished");
+            teamUtil.log("Drive To Tape-Finished");
         }
 
         return System.currentTimeMillis() < timeOutTime;
     }
 
     public boolean driveToTapeSetPower(float power, long timeout) {
-        log("Drive To Tape");
+        teamUtil.log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
         setMotorPower(-power);
         while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
@@ -958,9 +954,9 @@ public class Drive {
         }
         setMotorPower(0);
         if (System.currentTimeMillis() > timeOutTime) {
-            log("Drive To Tape-TIMED OUT!");
+            teamUtil.log("Drive To Tape-TIMED OUT!");
         } else {
-            log("Drive To Tape-Finished");
+            teamUtil.log("Drive To Tape-Finished");
         }
 
         return System.currentTimeMillis() < timeOutTime;
@@ -970,7 +966,7 @@ public class Drive {
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
     public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout) {
-        log("Drive To Tape");
+        teamUtil.log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
         while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
@@ -1007,7 +1003,7 @@ public class Drive {
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
     public boolean driveToProximity(double driveHeading, double robotHeading, double velocity, long timeout) {
-        log("Drive To Proximity");
+        teamUtil.log("Drive To Proximity");
         long timeOutTime = System.currentTimeMillis() + timeout;
         while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !getLeftProximity() && !getRightProximity()) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
@@ -1041,7 +1037,7 @@ public class Drive {
         //start with a minimum of 40 cms from the wall
         boolean details = false;
         findLineProcesser.details = details;
-        log("Drive To Stack");
+        teamUtil.log("Drive To Stack");
         int driftPixels = (int) (findLineProcesser.CAMWIDTH * .075);
         long timeOutTime = System.currentTimeMillis() + timeout;
         findLineProcesser.reset();
@@ -1050,13 +1046,13 @@ public class Drive {
 
         double startEncoderValue = fl.getCurrentPosition();
         while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
-            if(fl.getCurrentPosition()-startEncoderValue>=20*COUNTS_PER_CENTIMETER){
+            if(fl.getCurrentPosition()-startEncoderValue>=25*COUNTS_PER_CENTIMETER){
                 stopMotors();
-                log("Drive To Stack Failed");
+                teamUtil.log("Drive To Stack Failed to See Line");
                 return false;
             }
             if (details) {
-                log("Looking for Line. ");
+                teamUtil.log("Looking for Line. ");
             }
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             teamUtil.pause(50); // give CPU time to image processing
@@ -1067,7 +1063,7 @@ public class Drive {
         stopMotors();
         teamUtil.pause(250);
 
-        log("Strafing to Line");
+        teamUtil.log("Strafing to Line");
         if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
             // TODO: Need another failsafe here to make sure we don't strafe off of the tile
             while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
@@ -1091,14 +1087,14 @@ public class Drive {
         int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
         int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
         double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
-        log("Driving to wall: " + cmsToStack);
-        moveCm(400, cmsToStack, driveHeading, robotHeading, 0);
+        teamUtil.log("Driving to wall: " + cmsToStack);
+        moveCm(MAX_VELOCITY, cmsToStack, driveHeading, robotHeading, 0); // maxVelocity was 400
         stopMotors();
 
         if (System.currentTimeMillis() > timeOutTime) {
-            log("Drive To Stack --TIMED OUT!");
+            teamUtil.log("Drive To Stack --TIMED OUT!");
         } else {
-            log("Drive To Stack - Finished");
+            teamUtil.log("Drive To Stack - Finished");
         }
         return true;
     }
@@ -1127,13 +1123,13 @@ public class Drive {
             List<AprilTagDetection> detections = aprilTag.getDetections();
             for (AprilTagDetection detection : detections) {
                 if (detection.id == id) {
-                    log("April Tag Detected");
+                    teamUtil.log("April Tag Detected");
 
                     return detection.ftcPose.x * CMS_PER_INCH;
                 }
             } // TODO: do more tries
         }
-        log("No April Tag Seen");
+        teamUtil.log("No April Tag Seen");
         return noAprilTag;
     }
 
@@ -1142,7 +1138,7 @@ public class Drive {
     // Returns false if it fails or times out.
     public boolean getRobotBackdropOffset(org.opencv.core.Point p) {
         if (!aprilTagProcessorRunning) {
-            log("ERROR: getRobotBackdropOffset called without April Tag Processor Running");
+            teamUtil.log("ERROR: getRobotBackdropOffset called without April Tag Processor Running");
             return false;
         } else {
             List<AprilTagDetection> detections = aprilTag.getDetections();
@@ -1179,7 +1175,7 @@ public class Drive {
     // returns an x offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
     public float getRobotBackdropXOffset() {
         if (!aprilTagProcessorRunning) {
-            log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
+            teamUtil.log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
             return (float) noAprilTag;
         } else {
             List<AprilTagDetection> detections = aprilTag.getDetections();
@@ -1214,17 +1210,17 @@ public class Drive {
     // Y is cms from the April tags
     // TODO: SPEED UP IDEA: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
-        log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
+        teamUtil.log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
         boolean details = false;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
         float driftCms = 2;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
-        log("Continue on Initial Heading");
+        teamUtil.log("Continue on Initial Heading");
         while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(initialDriveHeading, robotHeading, initialVelocity); // continue on initial heading until we see a tag
         }
-        log("Driving based on tags");
+        teamUtil.log("Driving based on tags");
         while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
             double cmsToStrafe = tagOffset.x - xOffset;
             double cmsToBackup = tagOffset.y - yOffset;
@@ -1255,14 +1251,14 @@ public class Drive {
             teamUtil.log("driveToAprilTagOffset - TIMED OUT!");
             return false;
         } else {
-            log("Drive to April Tag Offset - FINISHED");
+            teamUtil.log("Drive to April Tag Offset - FINISHED");
             return true;
         }
     }
 
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
-        log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
+        teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
         while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
@@ -1271,7 +1267,7 @@ public class Drive {
             teamUtil.log("strafeToEncoder - TIMED OUT!");
             return false;
         } else {
-            log("strafeToEncoder - FINISHED : Current: " + strafeEncoder.getCurrentPosition());
+            teamUtil.log("strafeToEncoder - FINISHED : Current: " + strafeEncoder.getCurrentPosition());
             return true;
         }
     }

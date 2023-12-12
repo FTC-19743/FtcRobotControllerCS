@@ -427,11 +427,11 @@ public class Output {
         }
     }
     // Grab the pixels and get into scoring position
-    public void goToScore(int level, double rotatorPosition) {
+    public void goToScore(float level, double rotatorPosition) {
         moving.set(true);
         loading.set(false);
 
-        int elevDestination = elevatorMinScoreLevel + (level-1)*elevatorScoreInc;
+        int elevDestination = (int)(elevatorMinScoreLevel + (level-1f)*elevatorScoreInc);
         log("level" + level);
         log("elev Destination " + elevDestination);
 
@@ -482,7 +482,7 @@ public class Output {
     }
 
 
-    public void goToScoreNoWait(int level, double rotatorPosition) {
+    public void goToScoreNoWait(float level, double rotatorPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
             log("states in go to score");
 
@@ -493,7 +493,7 @@ public class Output {
             return;
         } else {
             moving.set(true);
-            teamUtil.log("Launching Thread to Stow Output System");
+            teamUtil.log("Launching Thread to Go To Score");
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {

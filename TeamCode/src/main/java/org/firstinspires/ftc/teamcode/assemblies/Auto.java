@@ -93,7 +93,7 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
             teamUtil.telemetry.addLine("------------------------------------");
-            teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad L/R to grab/release)");
+            teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad L/R to grab/release) - DON'T GRAB ON WING!!!!!!!!");
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
@@ -110,7 +110,7 @@ public class Auto extends LinearOpMode {
 
         waitForStart();
         teamUtil.pause(delay*1000); // Delay start if needed
-        robot.autoV2(robot.drive.findTeamPropProcesser.propPosition,true);
+        robot.autoV3(robot.drive.findTeamPropProcesser.getPropPosition(),true);
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
     }
 }
