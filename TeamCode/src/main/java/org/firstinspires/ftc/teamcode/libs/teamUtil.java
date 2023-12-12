@@ -40,7 +40,7 @@ public class teamUtil {
 
     // log something so we can filter out the FTC robot log info
     public static void log(String logString) {
-        RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
+        RobotLog.d("19743LOG:T" + Thread.currentThread().getId()+" "+ Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
     }
 
     // A helper method to see if a long running operation should continue.
