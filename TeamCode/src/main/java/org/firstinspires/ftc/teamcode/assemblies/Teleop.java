@@ -13,9 +13,6 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 @TeleOp(name = "Teleop", group = "LinearOpMode")
 public class Teleop extends LinearOpMode {
 
-    public static void log(String logString) {
-        RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
-    }
     Robot robot;
 
     Blinkin blinkin;
@@ -35,6 +32,7 @@ public class Teleop extends LinearOpMode {
             robot.calibrate();
         }
         telemetry.addLine("Ready to start");
+        telemetry.addLine("ALLIANCE : "+ teamUtil.alliance);
         telemetry.update();
         double manualSpeedElevator = 100;
         robot.output.lastLevel = 2;

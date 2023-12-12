@@ -23,11 +23,6 @@ public class Robot {
 
     public int straferDistanceFarStack = 17790;
 
-    public static void log(String logString) {
-        RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
-
-    }
-
     public Robot() {
         telemetry = teamUtil.theOpMode.telemetry;
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -85,13 +80,6 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
-            /*
-            drive.moveCm(drive.MAX_VELOCITY,80, fieldSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 30 : 330 , 180, 0); // was fieldSide() + 300 on RED
-            drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,  23 , 0, 180, 1000);
-
-             */
             drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 1000);
@@ -100,27 +88,6 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,8.5, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
         }
-        /*
-        switch (path) { /
-            case 1:
-                drive.moveCm(67, fieldSide());
-                drive.moveCm(30, fieldSide() + 50);
-                drive.moveCm(10, driverSide());
-                drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 78 : 23, 0, 180, 1000);
-                break;
-            case 2:
-                drive.moveCm(86, fieldSide());
-                drive.moveCm(8.5, driverSide());
-                drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
-                break;
-            case 3:
-                drive.moveCm(80, fieldSide());
-                drive.moveCm(30, fieldSide() + 300);
-                drive.moveCm(13, driverSide());
-                drive.moveCm(drive.MAX_VELOCITY, teamUtil.alliance == RED ? 23 : 78, 0, 180, 1000);
-                break;
-        }
-        */
         return true;
     }
 
@@ -250,7 +217,7 @@ public class Robot {
         //drive.driveToTapeSetPower(.1f, 3000);
 
         long cycleTime = System.currentTimeMillis() - startTime;
-        log("cycleTime: " + cycleTime); // without blocking GoToLoad at end
+        teamUtil.log("cycleTime: " + cycleTime); // without blocking GoToLoad at end
 
         if (operateArms) {
             if (!lastTime)
@@ -328,9 +295,9 @@ public class Robot {
             //TODO check return value on cycle for failsafe issues
         //}
         long elapsedTime = System.currentTimeMillis() - startTime;
-        log("elapsedTime: " + elapsedTime);
+        teamUtil.log("elapsedTime: " + elapsedTime);
         //teamUtil.pause(30000-elapsedTime-500); // Allow output to get back to loading position with correct time
-        log("Finished Auto");
+        teamUtil.log("Finished Auto");
     }
 
 
@@ -344,7 +311,7 @@ public class Robot {
     public float getPathOffset(int path) {
         float robotBackdropXOffset = drive.getRobotBackdropXOffset();
         if (robotBackdropXOffset > 900) {
-            log("No April Tag Detected");
+            teamUtil.log("No April Tag Detected");
             return 0;
         } else {
             if (path == 2) {
@@ -686,7 +653,7 @@ public class Robot {
             drive.moveCm(65 + (teamUtil.alliance == teamUtil.Alliance.RED ? drive.TAG_CENTER_TO_CENTER : -drive.TAG_CENTER_TO_CENTER), fieldSide());
         }
         drive.moveCm(20, 0);
-        log("Auto-Finished");
+        teamUtil.log("Auto-Finished");
     }
 
     public void auto(int path, teamUtil.Side side) { // TODO: Lose the "left" parameter and use TeamUtil.SIDE instead
@@ -705,8 +672,8 @@ public class Robot {
             float aprilTagOffset = getPathOffset(path);
 
 
-            log("aprilTagOffset: " + aprilTagOffset);
-            log("aprilTagOffset" + aprilTagOffset);
+            teamUtil.log("aprilTagOffset: " + aprilTagOffset);
+            teamUtil.log("aprilTagOffset" + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
@@ -913,7 +880,7 @@ public class Robot {
             drive.moveCm(75, 0, 0);//TODO:change to min end when callibrated (also, should be more like 80)
             teamUtil.pause(1000);
             float aprilTagOffset = getPathOffset(path);
-            log("aprilTagOffset" + aprilTagOffset);
+            teamUtil.log("aprilTagOffset" + aprilTagOffset);
             drive.moveCm(25, 0, 350);
             /*
             drive.getRobotBackdropXOffset();
@@ -987,7 +954,7 @@ public class Robot {
             } else {
                 aprilTagOffset = drive.returnAprilTagIDOffset(2, 500);
             }
-            log("aprilTagOffset: " + aprilTagOffset);
+            teamUtil.log("aprilTagOffset: " + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate
@@ -1047,9 +1014,9 @@ public class Robot {
                 aprilTagOffset = drive.returnAprilTagIDOffset(3, 500);
             }
             drive.moveCm(40, 0, 350);
-            log("aprilTagOffset: " + aprilTagOffset);
+            teamUtil.log("aprilTagOffset: " + aprilTagOffset);
 
-            log("aprilTagOffset" + aprilTagOffset);
+            teamUtil.log("aprilTagOffset" + aprilTagOffset);
 
             // TODO: There are many issues with this while loop.  It needs to hold the heading, have a timeout, and be responsive to someone
             // TODO: shutting down the op mode.  You need methods for operations like this.  study this example and emulate

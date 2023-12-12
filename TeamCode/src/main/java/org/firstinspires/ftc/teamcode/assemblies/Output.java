@@ -18,10 +18,6 @@ public class Output {
     Telemetry telemetry;
     HardwareMap hardwareMap;
 
-    public static void log(String logString) {
-        RobotLog.d("19743LOG:" + Thread.currentThread().getStackTrace()[3].getMethodName() + ": " + logString);
-    }
-
     public AtomicBoolean loading = new AtomicBoolean(false);
     public static int elevatorMax = 2100; //Could maybe go to 2200 but playing it safe for now
     public static int elevatorMin = 0; //bottom
@@ -115,11 +111,11 @@ public class Output {
     }
 
     public void calibrate(){ //reset and initialize arms
-        log("Output Calibrate called");
+        teamUtil.log("Output Calibrate called");
         moving.set(true);
         elevRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         elevLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        log("Calibrate: Running down slowly");
+        teamUtil.log("Calibrate: Running down slowly");
         elevRight.setPower(-.1);
         elevLeft.setPower(-.1);
         int lastLeftPosition = elevLeft.getCurrentPosition();
@@ -128,25 +124,25 @@ public class Output {
         while(elevLeft.getCurrentPosition()!=lastLeftPosition || elevRight.getCurrentPosition()!=lastRightPosition){
             lastLeftPosition = elevLeft.getCurrentPosition();
             lastRightPosition = elevRight.getCurrentPosition();
-            log("Calibrate: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
+            teamUtil.log("Calibrate: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
 
             teamUtil.pause(50);
         }
         elevRight.setPower(0);
         elevLeft.setPower(0);
-        log("Calibrate: Stopped Motors");
+        teamUtil.log("Calibrate: Stopped Motors");
         elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevRight.setTargetPosition(elevRight.getCurrentPosition());
         elevLeft.setTargetPosition(elevLeft.getCurrentPosition());
-        log("Calibrate Final: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
+        teamUtil.log("Calibrate Final: Left: "+elevLeft.getCurrentPosition() + " Right: "+ elevRight.getCurrentPosition());
         elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         ///elevRight.setVelocity(elevatorMaxVelocity);
         ///elevLeft.setVelocity(elevatorMaxVelocity);
         moving.set(false);
 
-        log("Output Calibrate finished");
+        teamUtil.log("Output Calibrate finished");
     }
 
     public void dropPixels(){
@@ -159,7 +155,7 @@ public class Output {
         }
     }
     public void dropAndGoToLoad() {
-        log("Drop and Stow");
+        teamUtil.log("Drop and Stow");
         grabber.setPosition(GrabberOpen);
         teamUtil.pause(1000);
         goToLoad();
@@ -239,7 +235,7 @@ public class Output {
            teamUtil.log("WARNING: Attempt to move elevator while output system is moving--ignored");
            return;
        } else {
-           log("Elev Manual: " + increment);
+           teamUtil.log("Elev Manual: " + increment);
            elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + increment, elevatorMinScoreLevel, elevatorMax)));
            elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + increment, elevatorMinScoreLevel, elevatorMax)));
        }
@@ -358,42 +354,42 @@ public class Output {
 
     public void goToLoadNoElevator() {
         moving.set(true);
-        log("Go To Load No Elevator");
+        teamUtil.log("Go To Load No Elevator");
          // Move servos to correct position and wait for them to complete
         setServosToLoad();
-        log("Go To Load No Elevator-Finished");
+        teamUtil.log("Go To Load No Elevator-Finished");
         moving.set(false);
         loading.set(true);
     }
 
     // SAFELY Return the output mechanisms to their position for loading pixels
     public void goToLoad() {
-        log("Elev Current position in goToLoad: " + elevLeft.getCurrentPosition());
+        teamUtil.log("Elev Current position in goToLoad: " + elevLeft.getCurrentPosition());
         lastLevel = Math.round(((float)elevLeft.getCurrentPosition()-(float)elevatorMinScoreLevel)/(float)elevatorScoreInc+1);
-        log("lastLevel: " +lastLevel);
+        teamUtil.log("lastLevel: " +lastLevel);
         moving.set(true);
-        log("Go To Load");
+        teamUtil.log("Go To Load");
 
         if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.1f){
-            log("Strafing to Middle");
+            teamUtil.log("Strafing to Middle");
 
             grabberStrafer.setPosition(StraferLoad);
             teamUtil.pause(1000);
         }
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             // we don't know where the servos are so we need to go up to a safe level to move them
-            log("Go To Load: Raising to safe level");
+            teamUtil.log("Go To Load: Raising to safe level");
             elevRight.setTargetPosition(elevatorSafeStrafeLevel+50);
             elevLeft.setTargetPosition(elevatorSafeStrafeLevel+50);
             while (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             }
         }
         // Move servos to correct position and wait for them to complete
-        log("Go To Load: Positioning Servos");
+        teamUtil.log("Go To Load: Positioning Servos");
         setServosToLoad();
 
         // Take elevator to the bottom
-        log("Go To Load: Running to Bottom");
+        teamUtil.log("Go To Load: Running to Bottom");
         elevRight.setTargetPosition(elevatorMin);
         elevLeft.setTargetPosition(elevatorMin); // TODO LATER: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
         long timeOutTime = System.currentTimeMillis() + 4000;
@@ -401,7 +397,7 @@ public class Output {
         }
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
-        log("Go To Load-Finished");
+        teamUtil.log("Go To Load-Finished");
         moving.set(false);
         loading.set(true);
 
@@ -409,9 +405,9 @@ public class Output {
 
     public void goToLoadNoWait() {
         if (moving.get()||loading.get()) { // Output system is already moving in a long running operation
-            log("states in go to load");
-            log("moving" + moving.get());
-            log("loading" + loading.get());
+            teamUtil.log("states in go to load");
+            teamUtil.log("moving" + moving.get());
+            teamUtil.log("loading" + loading.get());
             teamUtil.log("WARNING: Attempt to goToLoad while output system is moving--ignored");
             return;
         } else {
@@ -432,19 +428,19 @@ public class Output {
         loading.set(false);
 
         int elevDestination = (int)(elevatorMinScoreLevel + (level-1f)*elevatorScoreInc);
-        log("level" + level);
-        log("elev Destination " + elevDestination);
+        teamUtil.log("level" + level);
+        teamUtil.log("elev Destination " + elevDestination);
 
         elevLeft.setVelocity(elevatorMaxVelocity);
         elevRight.setVelocity(elevatorMaxVelocity);
-        log("Go To Score");
+        teamUtil.log("Go To Score");
 
         if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
                 grabber.setPosition(GrabberClosed);
                 teamUtil.pause(250);
                 if(details){
-                    log("Grabbing 2 pixels");
+                    teamUtil.log("Grabbing 2 pixels");
                 }
             }
         }
@@ -453,7 +449,7 @@ public class Output {
                 grabber.setPosition(GrabberOnePixel);
                 teamUtil.pause(300);
                 if(details){
-                    log("Grabbing 1 pixel");
+                    teamUtil.log("Grabbing 1 pixel");
                 }
             }
             //In theory this would grab either one or two pixels depending on whether or not twoPixelsPresent() is true
@@ -477,17 +473,17 @@ public class Output {
         while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
         }
 
-        log("Go To Score-Finished");
+        teamUtil.log("Go To Score-Finished");
         moving.set(false);
     }
 
 
     public void goToScoreNoWait(float level, double rotatorPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
-            log("states in go to score");
+            teamUtil.log("states in go to score");
 
-            log("moving" + moving.get());
-            log("loading" + loading.get());
+            teamUtil.log("moving" + moving.get());
+            teamUtil.log("loading" + loading.get());
 
             teamUtil.log("WARNING: Attempt to goToScore while output system is moving--ignored");
             return;
