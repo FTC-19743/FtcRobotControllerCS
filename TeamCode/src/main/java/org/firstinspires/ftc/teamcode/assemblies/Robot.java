@@ -204,7 +204,12 @@ public class Robot {
         drive.runRearAprilTagProcessor();
         drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
         if (operateArms) {
-            output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2); // TODO Adjust height for different paths?
+            //if((teamUtil.SIDE==teamUtil.Side.WING&&path==1&&teamUtil.alliance==teamUtil.alliance.RED)||teamUtil.SIDE==teamUtil.Side.WING&&path==3&&teamUtil.alliance==teamUtil.alliance.BLUE){
+                //output.goToScoreNoWait(3.5,output.GrabberRotatorHorizontal2);
+            //}else{
+                output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2);
+            //}
+             // TODO Adjust height for different paths?
         }
         drive.moveCm(drive.MAX_VELOCITY, 48, teamUtil.alliance==RED ? 300 : 60, 180, 1000); // Heading was fixed at 300
         if(!drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000)){
@@ -232,7 +237,7 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public void autoV3(int path, boolean operateArms) {
+    public void autoV3(int path, boolean operateArms, boolean cycle) {
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
 
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -287,13 +292,13 @@ public class Robot {
         } else {
             teamUtil.pause(100);
         }
-        //if (true) return;
-        //if((teamUtil.SIDE==teamUtil.Side.WING&&path==3&&teamUtil.alliance==teamUtil.alliance.RED)||teamUtil.SIDE==teamUtil.Side.WING&&path==1&&teamUtil.alliance==teamUtil.alliance.BLUE){
-            // Not enough time to reliably cycle :( yet.
-        //} else {
+        if(cycle){
             cycleV3(xOffset, operateArms,path, true); // One for now...
-            //TODO check return value on cycle for failsafe issues
-        //}
+        }
+        else{
+            teamUtil.pause(3000);
+        }// One for now...
+            //TODO check return value on cycle for failsafe issue
         long elapsedTime = System.currentTimeMillis() - startTime;
         teamUtil.log("elapsedTime: " + elapsedTime);
         //teamUtil.pause(30000-elapsedTime-500); // Allow output to get back to loading position with correct time

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
@@ -37,6 +38,19 @@ public class Teleop extends LinearOpMode {
         double manualSpeedElevator = 100;
         robot.output.lastLevel = 2;
         robot.drive.setHeading(180);
+        while (!opModeIsActive()) {
+            driverGamepad.loop();
+            if(driverGamepad.wasRightBumperPressed()||driverGamepad.wasLeftBumperPressed()){
+                if(teamUtil.alliance == teamUtil.Alliance.BLUE){
+                    teamUtil.alliance = teamUtil.Alliance.RED;
+                }else{
+                    teamUtil.alliance= teamUtil.Alliance.BLUE;
+                }
+            }
+            telemetry.addLine("Ready to start");
+            telemetry.addLine("ALLIANCE : "+ teamUtil.alliance);
+            telemetry.update();
+        }
         waitForStart();
 
 
@@ -71,7 +85,7 @@ public class Teleop extends LinearOpMode {
                 robot.drive.setHeldHeading(robot.fieldSide());
             }
             if(driverGamepad.wasXPressed()||driverGamepad.wasBPressed()){
-                robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?180:0);
+                robot.drive.setHeldHeading(180);
             }
             //if(driverGamepad.wasBPressed()){
                 //robot.drive.setHeldHeading(teamUtil.alliance== teamUtil.Alliance.RED?0:180);

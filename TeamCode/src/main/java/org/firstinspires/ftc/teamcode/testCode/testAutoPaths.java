@@ -98,7 +98,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV3(1, useArms);
+                robot.autoV3(1, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -106,7 +106,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV3(2, useArms);
+                robot.autoV3(2, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -114,7 +114,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV3(3, useArms);
+                robot.autoV3(3, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -122,7 +122,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV3(1, useArms);
+                robot.autoV3(1, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -131,7 +131,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV3(2, useArms);
+                robot.autoV3(2, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -140,7 +140,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV3(3, useArms);
+                robot.autoV3(3, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
