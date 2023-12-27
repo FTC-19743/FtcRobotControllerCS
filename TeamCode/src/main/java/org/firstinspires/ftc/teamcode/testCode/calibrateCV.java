@@ -149,7 +149,7 @@ public class calibrateCV extends LinearOpMode
         rearBuilder.addProcessor(aprilTag);
         // Can also set resolution and stream format if we want to optimize resource usage.        rearBuilder.addProcessor(aprilTag);
         rearVisionPortal = rearBuilder.build();
-        stopStreaming(rearVisionPortal);
+        //stopStreaming(rearVisionPortal);
 
         // Set up side Camera
         teamUtil.log("Setting up sideVisionPortal");
@@ -161,7 +161,7 @@ public class calibrateCV extends LinearOpMode
         sideBuilder.addProcessor(findTeamPropProcesser);
         // Can also set resolution and stream format if we want to optimize resource usage.
         sideVisionPortal = sideBuilder.build();
-        stopStreaming(sideVisionPortal);
+        //stopStreaming(sideVisionPortal);
 
         // Set up front Camera
         teamUtil.log("Setting up frontVisionPortal");
@@ -173,7 +173,7 @@ public class calibrateCV extends LinearOpMode
         frontBuilder.addProcessor(findLineProcesser);
         // Can also set resolution and stream format if we want to optimize resource usage.        frontBuilder.addProcessor(findLineProcesser);
         frontVisionPortal = frontBuilder.build();
-        stopStreaming(frontVisionPortal);
+        //stopStreaming(frontVisionPortal);
 
         teamUtil.log("Initializing Drive CV - FINISHED");
     }
@@ -285,7 +285,17 @@ public class calibrateCV extends LinearOpMode
             teamUtil.telemetry.update();
         }
 
-        initCV(false); // All portals and cameras are now ready, nothing is streaming
+        initCV(true); // All portals and cameras are now ready, nothing is streaming
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
+
+
+            teamUtil.telemetry.addLine("Initializing cameras");
+
+
+            teamUtil.telemetry.addLine("Press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
         // Establish Min and Max Gains and Exposure.  Then set a low exposure with high gain
         getAllCameraSettings();
 

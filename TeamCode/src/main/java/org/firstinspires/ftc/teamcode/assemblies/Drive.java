@@ -297,6 +297,8 @@ public class Drive {
         findTeamPropProcessorRunning = true;
     }
 
+
+
     public double getUltrasonicDistance() {
         double voltage = ultLeft.getVoltage();
         double distance = (260 / 3 * (voltage - .55) + 36) * 2.54; // based on real world distances measured
@@ -317,6 +319,21 @@ public class Drive {
 
     public boolean getRightProximity() {
         return !prxRight.getState();
+    }
+
+    public void backgroundProximityCheck(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(!getRightProximity()&&!getLeftProximity()){
+                }
+                teamUtil.log("Object detected within proximity distance");
+                stopMotors();
+                teamUtil.log("Motors Stopped because of Proximity");
+            }
+        });
+        thread.start();
+
     }
 
     public void driveMotorTelemetry() {
