@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 @TeleOp(name = "Shooter", group = "LinearOpMode")
+@Disabled
 public class shooterOpMode extends LinearOpMode {
     TeamGamepad gamepad;
 
