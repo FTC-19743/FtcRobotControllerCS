@@ -103,6 +103,30 @@ public class calibrateCV extends LinearOpMode
         }
     }
 
+    public void setAutoExposure(VisionPortal portal) {
+        teamUtil.log("Set Auto Exposure");
+
+        // Wait for the camera to be STREAMING to use CameraControls (FTC SDK requirement)
+        if (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            while (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+                teamUtil.pause(20);
+            }
+        }
+        ExposureControl exposureControl = portal.getCameraControl(ExposureControl.class);
+        if (exposureControl == null) {
+            teamUtil.log("Failed to get ExposureControl object");
+            return;
+        }
+        teamUtil.log("Current Mode: "+ exposureControl.getMode());
+
+        if (exposureControl.getMode() != ExposureControl.Mode.Auto) {
+            teamUtil.log("Switching to Auto Mode");
+            exposureControl.setMode(ExposureControl.Mode.Auto);
+            teamUtil.pause(50);
+        }
+        teamUtil.log("Set Auto Exposure - FINISHED");
+    }
+
     // Assumes portal is either currently STREAMING or in process of starting STREAMING
     public void stopStreaming(VisionPortal portal) {
         teamUtil.log("Stop Streaming ");
@@ -373,6 +397,19 @@ public class calibrateCV extends LinearOpMode
             }
             if (gamepad.wasYPressed()){
                 toggleCV();
+            }
+            if (gamepad.wasAPressed()){
+                switch (currentCam) {
+                    case REAR_APRILTAG:
+                        setAutoExposure(rearVisionPortal);
+                        break;
+                    case FRONT_LINE:
+                        setAutoExposure(frontVisionPortal);
+                        break;
+                    case SIDE_PROP:
+                        setAutoExposure(sideVisionPortal);
+                        break;
+                }
             }
 
             sleep(20);
