@@ -46,7 +46,8 @@ public class calibrateCV extends LinearOpMode
     public WebcamName frontCam;
     public WebcamName backCam;
     public WebcamName sideCam;
-    public enum cvCam {REAR_APRILTAG, SIDE_PROP, FRONT_LINE};
+    public enum cvCam {NONE, REAR_APRILTAG, SIDE_PROP, FRONT_LINE};
+    public cvCam currentCam = cvCam.NONE;
     public double CMS_PER_INCH = 2.54;
 
 
@@ -117,7 +118,7 @@ public class calibrateCV extends LinearOpMode
         }
     }
     public void initCV(boolean enableLiveView) { //should be false for comp code
-        teamUtil.log("Initializing CV");
+        teamUtil.log("Initializing CV: LiveView: "+enableLiveView);
 
         // Setup a separate VisionPortal for each camera.  We will switch between cameras and processers as needed
         aprilTag = new AprilTagProcessor.Builder().build();
@@ -137,6 +138,7 @@ public class calibrateCV extends LinearOpMode
 
         // In order to build multiple VisionPortals, you must first set up a MultiPortalView, even if you don't plan to run them at the same time
         int[] visionPortalViewIDs = VisionPortal.makeMultiPortalView(3, VisionPortal.MultiPortalLayout.HORIZONTAL);
+        //teamUtil.log("Multiportal: "+visionPortalViewIDs[0]+"/"+visionPortalViewIDs[1]+"/"+visionPortalViewIDs[2]);
 
 
         // Set up rear Camera
@@ -144,36 +146,41 @@ public class calibrateCV extends LinearOpMode
         VisionPortal.Builder rearBuilder = new VisionPortal.Builder();
         rearBuilder.setCamera(backCam);
         rearBuilder.setLiveViewContainerId(visionPortalViewIDs[0]);
-        rearBuilder.enableLiveView(enableLiveView);
-        rearBuilder.setAutoStopLiveView(true);
+        if (!enableLiveView) {
+            rearBuilder.enableLiveView(false);
+        }
         rearBuilder.addProcessor(aprilTag);
-        // Can also set resolution and stream format if we want to optimize resource usage.        rearBuilder.addProcessor(aprilTag);
+        // Can also set resolution and stream format if we want to optimize resource usage.
         rearVisionPortal = rearBuilder.build();
-        //stopStreaming(rearVisionPortal);
+        stopStreaming(rearVisionPortal);
 
         // Set up side Camera
         teamUtil.log("Setting up sideVisionPortal");
         VisionPortal.Builder sideBuilder = new VisionPortal.Builder();
-        sideBuilder.setCamera(backCam);
+        sideBuilder.setCamera(sideCam);
         sideBuilder.setLiveViewContainerId(visionPortalViewIDs[1]);
-        sideBuilder.enableLiveView(enableLiveView);
-        sideBuilder.setAutoStopLiveView(true);
+        if (!enableLiveView) {
+            sideBuilder.enableLiveView(false);
+        }
         sideBuilder.addProcessor(findTeamPropProcesser);
         // Can also set resolution and stream format if we want to optimize resource usage.
         sideVisionPortal = sideBuilder.build();
-        //stopStreaming(sideVisionPortal);
+        stopStreaming(sideVisionPortal);
 
         // Set up front Camera
         teamUtil.log("Setting up frontVisionPortal");
         VisionPortal.Builder frontBuilder = new VisionPortal.Builder();
-        frontBuilder.setCamera(backCam);
+        frontBuilder.setCamera(frontCam);
         frontBuilder.setLiveViewContainerId(visionPortalViewIDs[2]);
-        frontBuilder.enableLiveView(enableLiveView);
-        frontBuilder.setAutoStopLiveView(true);
+        if (!enableLiveView) {
+            frontBuilder.enableLiveView(false);
+        }
         frontBuilder.addProcessor(findLineProcesser);
-        // Can also set resolution and stream format if we want to optimize resource usage.        frontBuilder.addProcessor(findLineProcesser);
+        // Can also set resolution and stream format if we want to optimize resource usage.
         frontVisionPortal = frontBuilder.build();
-        //stopStreaming(frontVisionPortal);
+        stopStreaming(frontVisionPortal);
+
+        currentCam = cvCam.NONE;
 
         teamUtil.log("Initializing Drive CV - FINISHED");
     }
@@ -198,9 +205,24 @@ public class calibrateCV extends LinearOpMode
     }
     public void switchCV(cvCam newCam) {
         teamUtil.log("Switching CV to " + newCam);
-        stopCV();
+        teamUtil.log("Stopping " + currentCam);
+        switch (currentCam) {
+            case REAR_APRILTAG:
+                rearVisionPortal.stopStreaming();
+                aprilTagProcessorRunning = false;
+                break;
+            case FRONT_LINE:
+                teamUtil.log("Switching CV to " + newCam);
+                frontVisionPortal.stopStreaming();
+                findLineProcessorRunning = false;
+                break;
+            case SIDE_PROP:
+                teamUtil.log("Switching CV to " + newCam);
+                sideVisionPortal.stopStreaming();
+                findTeamPropProcessorRunning = false;
+                break;
+        }
         teamUtil.log("Starting " + newCam);
-
         switch (newCam) {
             case REAR_APRILTAG:
                 rearVisionPortal.resumeStreaming();
@@ -215,13 +237,14 @@ public class calibrateCV extends LinearOpMode
                 findTeamPropProcessorRunning = true;
                 break;
         }
+        currentCam = newCam;
         teamUtil.log("switchCV - Finished ");
     }
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // Code specific to calibrateCV op mode
-    int currentCam = 1;
+    int currentCamNum = 0;
     private int[]     myExposure = new int[4] ;
     private int[]     minExposure = new int[4] ;
     private int[]     maxExposure = new int[4] ;
@@ -229,11 +252,11 @@ public class calibrateCV extends LinearOpMode
     private int[]     minGain = new int[4]  ;
     private int[]     maxGain = new int[4]  ;
     public void toggleCV() {
-        currentCam++;
-        if (currentCam > 3) {
-            currentCam = 1;
+        currentCamNum++;
+        if (currentCamNum > 3) {
+            currentCamNum = 1;
         }
-        switch(currentCam) {
+        switch(currentCamNum) {
             case 1:
                 switchCV(cvCam.REAR_APRILTAG);
                 break;
@@ -248,8 +271,8 @@ public class calibrateCV extends LinearOpMode
     }
 
     public void writeTelemetry () {
-        telemetry.addData("Exposure","%d  (%d - %d)", myExposure[currentCam], minExposure[currentCam], maxExposure[currentCam]);
-        telemetry.addData("Gain","%d  (%d - %d)", myGain[currentCam], minGain[currentCam], maxGain[currentCam]);
+        telemetry.addData("Exposure","%d  (%d - %d)", myExposure[currentCamNum], minExposure[currentCamNum], maxExposure[currentCamNum]);
+        telemetry.addData("Gain","%d  (%d - %d)", myGain[currentCamNum], minGain[currentCamNum], maxGain[currentCamNum]);
         if (aprilTagProcessorRunning) {
             //findPixelProcesser.outputTelemetry();
             //TODO: Consider adding backdrop offset results to this;
@@ -284,30 +307,25 @@ public class calibrateCV extends LinearOpMode
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
-
+        teamUtil.telemetry.addLine("Initializing CV. Please wait.");
+        teamUtil.telemetry.update();
         initCV(true); // All portals and cameras are now ready, nothing is streaming
-        while(!gamepad.wasAPressed()){
-            gamepad.loop();
 
-
-            teamUtil.telemetry.addLine("Initializing cameras");
-
-
-            teamUtil.telemetry.addLine("Press A on Game Pad 1 to move on");
-            teamUtil.telemetry.update();
-        }
+        teamUtil.telemetry.addLine("Setting up Exposure/Gain data. Please wait.");
+        teamUtil.telemetry.update();
         // Establish Min and Max Gains and Exposure.  Then set a low exposure with high gain
         getAllCameraSettings();
+        teamUtil.pause(1500);
 
-        // No Cams are streaming but several might be shutting down
+        // All cams should be in READY state.
         switchCV(cvCam.REAR_APRILTAG);
-        currentCam = 1;
+        currentCamNum = 1;
         while (!isStopRequested() && (rearVisionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
             teamUtil.log("Waiting for rear camera to come on line: " + rearVisionPortal.getCameraState());
             sleep(100);
         }
 
-        telemetry.addLine("Ready");
+        telemetry.addLine("Ready to Start Op Mode");
         telemetry.update();
         waitForStart();
 
@@ -322,34 +340,34 @@ public class calibrateCV extends LinearOpMode
             telemetry.update();
 
             if (gamepad.wasLeftBumperPressed()) {
-                myExposure[currentCam] = Range.clip(myExposure[currentCam] + 1, minExposure[currentCam], maxExposure[currentCam]);
-                updateCVManualExposure(currentCam==1 ? rearVisionPortal : currentCam==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCam], myGain[currentCam]);
+                myExposure[currentCamNum] = Range.clip(myExposure[currentCamNum] + 1, minExposure[currentCamNum], maxExposure[currentCamNum]);
+                updateCVManualExposure(currentCamNum==1 ? rearVisionPortal : currentCamNum==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCamNum], myGain[currentCamNum]);
             }
             if (gamepad.wasLeftTriggerPressed()) {
-                myExposure[currentCam] = Range.clip(myExposure[currentCam] - 1, minExposure[currentCam], maxExposure[currentCam]);
-                updateCVManualExposure(currentCam==1 ? rearVisionPortal : currentCam==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCam], myGain[currentCam]);
+                myExposure[currentCamNum] = Range.clip(myExposure[currentCamNum] - 1, minExposure[currentCamNum], maxExposure[currentCamNum]);
+                updateCVManualExposure(currentCamNum==1 ? rearVisionPortal : currentCamNum==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCamNum], myGain[currentCamNum]);
             }
             if (gamepad.wasRightBumperPressed()) {
-                myGain[currentCam] = Range.clip(myGain[currentCam] + 1, minGain[currentCam], maxGain[currentCam]);
-                updateCVManualExposure(currentCam==1 ? rearVisionPortal : currentCam==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCam], myGain[currentCam]);
+                myGain[currentCamNum] = Range.clip(myGain[currentCamNum] + 10, minGain[currentCamNum], maxGain[currentCamNum]);
+                updateCVManualExposure(currentCamNum==1 ? rearVisionPortal : currentCamNum==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCamNum], myGain[currentCamNum]);
             }
             if (gamepad.wasRightTriggerPressed()) {
-                myGain[currentCam] = Range.clip(myGain[currentCam] - 1, minGain[currentCam], maxGain[currentCam]);
-                updateCVManualExposure(currentCam==1 ? rearVisionPortal : currentCam==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCam], myGain[currentCam]);
+                myGain[currentCamNum] = Range.clip(myGain[currentCamNum] - 10, minGain[currentCamNum], maxGain[currentCamNum]);
+                updateCVManualExposure(currentCamNum==1 ? rearVisionPortal : currentCamNum==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCamNum], myGain[currentCamNum]);
             }
             if (gamepad.wasUpPressed()) {
-                if (currentCam==1) {
+                if (currentCamNum==3) {
                     // TODO: adjust saturation thresholds and maybe rectangles
                 }
-                if (currentCam==2) {
+                if (currentCamNum==2) {
                     findLineProcesser.whiteThreshold++;
                 }
             }
             if (gamepad.wasDownPressed()) {
-                if (currentCam==1) {
+                if (currentCamNum==3) {
                     // TODO: adjust saturation thresholds
                 }
-                if (currentCam==2) {
+                if (currentCamNum==2) {
                     findLineProcesser.whiteThreshold--;
                 }
             }
@@ -414,6 +432,7 @@ public class calibrateCV extends LinearOpMode
         }
         myExposure[cam] = Math.min(5, minExposure[cam]);
         myGain[cam] = maxGain[cam];
+
         updateCVManualExposure(portal, myExposure[cam], myGain[cam]);
     }
 }
