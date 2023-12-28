@@ -94,7 +94,7 @@ public class Auto extends LinearOpMode {
         teamUtil.telemetry.addLine("Please wait");
         teamUtil.telemetry.update();
         robot.drive.initCV(false); // no live stream enabled means better FPS
-        robot.drive.runSideTeamPropFinderProcessor();
+        robot.drive.switchCV(Drive.cvCam.SIDE_PROP);
 
         while(!gamepad.wasAPressed()){
             gamepad.loop();

@@ -112,11 +112,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasRightPressed()){
-                while(armsGamepad.wasRightPressed()){
-                    robot.intake.grabOnePixel();
-                }
-
-
+                robot.intake.grabOnePixel();
             }
             /*
             if(driverGamepad.wasDownPressed()){

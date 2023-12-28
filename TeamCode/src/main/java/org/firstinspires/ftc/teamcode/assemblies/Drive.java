@@ -26,6 +26,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.libs.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
+import org.firstinspires.ftc.teamcode.testCode.calibrateCV;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -66,23 +67,29 @@ public class Drive {
     public DigitalChannel prxLeft = null, prxRight = null;
 
     // Image Processors and Cameras
+
+    public VisionPortal rearVisionPortal, sideVisionPortal, frontVisionPortal;
+
     public AprilTagProcessor aprilTag;
-    private int aprilTagExposure = 5; // frame exposure in ms (use TestDrive opMode to calibrate)
-    private int aprilTagGain = 230; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
+    private int aprilTagExposure = 3; // frame exposure in ms (use TestDrive opMode to calibrate)
+    private int aprilTagGain = 255; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
     public OpenCVFindLine findLineProcesser;
     //public OpenCVYellowPixelDetector findPixelProcesser;
 
     public OpenCVPropFinder findTeamPropProcesser;
 
-    public VisionPortal visionPortal;
+
 
     public double noAprilTag = 999.0;
     public float TAG_CENTER_TO_CENTER = 15.2f;
 
+    public enum cvCam {NONE, REAR_APRILTAG, SIDE_PROP, FRONT_LINE};
 
-    boolean aprilTagProcessorRunning = false;
-    boolean findLineProcessorRunning = false;
-    boolean findTeamPropProcessorRunning = false;
+    public Drive.cvCam currentCam = Drive.cvCam.NONE;
+
+
+
+
     public WebcamName frontCam;
     public WebcamName backCam;
     public WebcamName sideCam;
@@ -146,12 +153,11 @@ public class Drive {
         setMotorsBrake();
         teamUtil.log("Initializing Drive - FINISHED");
     }
+    //////////////////////////
+    public void initCV(boolean enableLiveView) { //should be false for comp code
+        teamUtil.log("Initializing CV: LiveView: "+enableLiveView);
 
-    public void initCV(boolean liveStreamEnabled) {
-        teamUtil.log("Initializing Drive CV");
-
-        // Setup a single VisionPortal with all cameras and all processers
-        // We will switch betwen cameras and processers as needed
+        // Setup a separate VisionPortal for each camera.  We will switch between cameras and processers as needed
         aprilTag = new AprilTagProcessor.Builder().build();
         //findPixelProcesser = new OpenCVYellowPixelDetector();
         findLineProcesser = new OpenCVFindLine();
@@ -159,143 +165,212 @@ public class Drive {
 
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
         frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
-        if (teamUtil.alliance == RED) {
+        if (teamUtil.alliance == teamUtil.Alliance.RED) {
             sideCam = hardwareMap.get(WebcamName.class, "Webcam Right");
         } else {
             sideCam = hardwareMap.get(WebcamName.class, "Webcam Left");
         }
 
-        CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(backCam, sideCam, frontCam); // This order is important, so backCam is running first
+        teamUtil.log("Getting Multiportal");
 
-        // Create the vision portal by using a builder.
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(switchableCamera)
-                .addProcessor(aprilTag)
-                //.addProcessor(findPixelProcesser)
-                .addProcessor(findLineProcesser)
-                .addProcessor(findTeamPropProcesser)
-                .enableLiveView(liveStreamEnabled)
-                .build();
+        // In order to build multiple VisionPortals, you must first set up a MultiPortalView, even if you don't plan to run them at the same time
+        int[] visionPortalViewIDs = VisionPortal.makeMultiPortalView(3, VisionPortal.MultiPortalLayout.HORIZONTAL);
+        //teamUtil.log("Multiportal: "+visionPortalViewIDs[0]+"/"+visionPortalViewIDs[1]+"/"+visionPortalViewIDs[2]);
 
-        teamUtil.log("Waiting for Vision Portal to start Streaming");
-        // Wait for the initial camera (backCam) to be STREAMING
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-                teamUtil.pause(20);
-            }
+
+        // Set up rear Camera
+        teamUtil.log("Setting up rearVisionPortal");
+        VisionPortal.Builder rearBuilder = new VisionPortal.Builder();
+        rearBuilder.setCamera(backCam);
+        rearBuilder.setLiveViewContainerId(visionPortalViewIDs[0]);
+        if (!enableLiveView) {
+            rearBuilder.enableLiveView(false);
         }
+        rearBuilder.addProcessor(aprilTag);
+        // Can also set resolution and stream format if we want to optimize resource usage.
+        rearVisionPortal = rearBuilder.build();
+        stopStreaming(rearVisionPortal);
+
+        // Set up side Camera
+        teamUtil.log("Setting up sideVisionPortal");
+        VisionPortal.Builder sideBuilder = new VisionPortal.Builder();
+        sideBuilder.setCamera(sideCam);
+        sideBuilder.setLiveViewContainerId(visionPortalViewIDs[1]);
+        if (!enableLiveView) {
+            sideBuilder.enableLiveView(false);
+        }
+        sideBuilder.addProcessor(findTeamPropProcesser);
+        // Can also set resolution and stream format if we want to optimize resource usage.
+        sideVisionPortal = sideBuilder.build();
+        stopStreaming(sideVisionPortal);
+
+        // Set up front Camera
+        teamUtil.log("Setting up frontVisionPortal");
+        VisionPortal.Builder frontBuilder = new VisionPortal.Builder();
+        frontBuilder.setCamera(frontCam);
+        frontBuilder.setLiveViewContainerId(visionPortalViewIDs[2]);
+        if (!enableLiveView) {
+            frontBuilder.enableLiveView(false);
+        }
+        frontBuilder.addProcessor(findLineProcesser);
+        // Can also set resolution and stream format if we want to optimize resource usage.
+        frontVisionPortal = frontBuilder.build();
+        stopStreaming(frontVisionPortal);
+
+        teamUtil.log("Updating Exposure Settings");
+        switchCV(cvCam.REAR_APRILTAG);
+        updateCVManualExposure(rearVisionPortal,aprilTagExposure,aprilTagGain);
+
+        switchCV(cvCam.FRONT_LINE);
+        updateCVManualExposure(frontVisionPortal, findLineProcesser.lineExposure, findLineProcesser.lineGain);
+        switchCV(cvCam.NONE);
+
+
+        currentCam = Drive.cvCam.NONE;
 
         teamUtil.log("Initializing Drive CV - FINISHED");
     }
 
-    public void setAutoExposure() {
+
+
+    private boolean updateCVManualExposure(VisionPortal portal, int exposureMS, int gain) {
+        teamUtil.log("Setting Manual Exposure");
+        // Ensure Vision Portal has been setup.
+        if (portal == null) {
+            return false;
+        }
+
+        // Wait for the camera to be open
+        if (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting");
+            telemetry.update();
+            while (!teamUtil.theOpMode.isStopRequested() && (portal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                teamUtil.pause(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+
+        // Set camera controls unless we are stopping.
+        if (!teamUtil.theOpMode.isStopRequested())
+        {
+            // Set exposure.  Make sure we are in Manual Mode for these values to take effect.
+            ExposureControl exposureControl = portal.getCameraControl(ExposureControl.class);
+            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+                teamUtil.log("Switching to Manual Mode");
+                exposureControl.setMode(ExposureControl.Mode.Manual);
+                teamUtil.pause(50);
+            }
+            teamUtil.log("Setting Exposure");
+
+            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
+            teamUtil.pause(20);
+
+            // Set Gain.
+            GainControl gainControl = portal.getCameraControl(GainControl.class);
+            if (gainControl == null) { // FTC software has a bug where this isn't supported on switchableCameras!
+            } else {
+                teamUtil.log("Setting Gain");
+                gainControl.setGain(gain);
+            }
+            teamUtil.pause(20);
+            teamUtil.log("Setting Manual - Finished");
+            return (true);
+        } else {
+            teamUtil.log("Setting Manual - Finished");
+            return (false);
+        }
+    }
+
+    public void setAutoExposure(VisionPortal portal) {
+        teamUtil.log("Set Auto Exposure");
+
         // Wait for the camera to be STREAMING to use CameraControls (FTC SDK requirement)
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+        if (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            while (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
                 teamUtil.pause(20);
             }
         }
-        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+        ExposureControl exposureControl = portal.getCameraControl(ExposureControl.class);
         if (exposureControl == null) {
             teamUtil.log("Failed to get ExposureControl object");
             return;
         }
+        teamUtil.log("Current Mode: "+ exposureControl.getMode());
+
         if (exposureControl.getMode() != ExposureControl.Mode.Auto) {
+            teamUtil.log("Switching to Auto Mode");
             exposureControl.setMode(ExposureControl.Mode.Auto);
             teamUtil.pause(50);
         }
+        teamUtil.log("Set Auto Exposure - FINISHED");
     }
 
-    public void setAutoExposureNoWait() {
-        teamUtil.log("Switching to AutoExposure on WebCams");
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setAutoExposure();
-            }
-        });
-        thread.start();
-    }
+    // Assumes portal is either currently STREAMING or in process of starting STREAMING
+    public void stopStreaming(VisionPortal portal) {
+        boolean details = false;
+        teamUtil.log("Stop Streaming ");
 
-    public void setCamExposure(long exposure, int gain) {
-        // Wait for the camera to be STREAMING to mess with controls (FTC SDK requirement)
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            while (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-                teamUtil.pause(20);
-            }
+        while (!teamUtil.theOpMode.isStopRequested() && (portal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+            if (details) {teamUtil.log("Waiting for Camera to finish coming on line: " + portal.getCameraState());}
+            teamUtil.pause(100);
         }
-        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        if (exposureControl == null) {
-            teamUtil.log("Failed to get ExposureControl object");
-            return;
+        portal.stopStreaming();
+        while (!teamUtil.theOpMode.isStopRequested() && (portal.getCameraState() != VisionPortal.CameraState.CAMERA_DEVICE_READY)) {
+            if (details) {teamUtil.log("Waiting for Camera to stop: " + portal.getCameraState());}
+            teamUtil.pause(100);
         }
-        if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
-            exposureControl.setMode(ExposureControl.Mode.Manual);
-            teamUtil.pause(50);
+    }
+
+    public void stopCV() {
+        teamUtil.log("Stopping any running Cams");
+        if (rearVisionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            teamUtil.log("Stopping Rear Cam");
+            rearVisionPortal.stopStreaming();
         }
-        exposureControl.setExposure(exposure, TimeUnit.MILLISECONDS);
-        teamUtil.pause(20);
+        if (frontVisionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            teamUtil.log("Stopping Front Cam");
+            frontVisionPortal.stopStreaming();
+        }
+        if (sideVisionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            teamUtil.log("Stopping Side Cam");
+            sideVisionPortal.stopStreaming();
+        }
 
-        // FTC bug with no gain control on switchable cameras prevents this
-        //GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-        //if (gainControl==null) {
-        //    teamUtil.log("Failed to get GainControl object");
-        //    return;
-        //}
-        //gainControl.setGain(aprilTagGain);
-        //teamUtil.pause(20);
+    }
+    public void switchCV(Drive.cvCam newCam) {
+        teamUtil.log("Switching CV to " + newCam);
+        teamUtil.log("Stopping " + currentCam);
+        switch (currentCam) {
+            case REAR_APRILTAG:
+                rearVisionPortal.stopStreaming();
+                break;
+            case FRONT_LINE:
+                teamUtil.log("Switching CV to " + newCam);
+                frontVisionPortal.stopStreaming();
+                break;
+            case SIDE_PROP:
+                teamUtil.log("Switching CV to " + newCam);
+                sideVisionPortal.stopStreaming();
+                break;
+        }
+        teamUtil.log("Starting " + newCam);
+        switch (newCam) {
+            case REAR_APRILTAG:
+                rearVisionPortal.resumeStreaming();
+                break;
+            case FRONT_LINE:
+                frontVisionPortal.resumeStreaming();
+                break;
+            case SIDE_PROP:
+                sideVisionPortal.resumeStreaming();
+                break;
+        }
+        currentCam = newCam;
+        teamUtil.log("switchCV - Finished ");
     }
 
-    public void setCamExposureNoWait(long exposure, int gain) {
-        teamUtil.log("Switching to AprilTag Exposure on WebCams");
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setCamExposure(exposure, gain);
-            }
-        });
-        thread.start();
-    }
-
-    public void runRearAprilTagProcessor() {
-        visionPortal.setActiveCamera(backCam);
-        setCamExposureNoWait(aprilTagExposure, aprilTagGain);
-        visionPortal.setProcessorEnabled(findLineProcesser, false);
-        findLineProcessorRunning = false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser, false);
-        findTeamPropProcessorRunning = false;
-        visionPortal.setProcessorEnabled(aprilTag, true);
-        //visionPortal.setProcessorEnabled(findPixelProcesser,true);
-        aprilTagProcessorRunning = true;
-    }
-
-    public void runFrontLineFinderProcessor() {
-        visionPortal.setActiveCamera(frontCam);
-        setCamExposureNoWait(findLineProcesser.lineExposure, findLineProcesser.lineGain);
-        //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
-        visionPortal.setProcessorEnabled(aprilTag, false);
-        //visionPortal.setProcessorEnabled(findPixelProcesser,false);
-        aprilTagProcessorRunning = false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser, false);
-        findTeamPropProcessorRunning = false;
-        visionPortal.setProcessorEnabled(findLineProcesser, true);
-        findLineProcesser.reset();
-        findLineProcessorRunning = true;
-    }
-
-    public void runSideTeamPropFinderProcessor() {
-        visionPortal.setActiveCamera(sideCam);
-        setCamExposureNoWait(findTeamPropProcesser.propExposure, findTeamPropProcesser.propGain);
-        //setAutoExposureNoWait(); // FTC Bug: Doesn't work after setting Manual?
-        visionPortal.setProcessorEnabled(aprilTag, false);
-        //visionPortal.setProcessorEnabled(findPixelProcesser,false);
-        aprilTagProcessorRunning = false;
-        visionPortal.setProcessorEnabled(findLineProcesser, false);
-        findLineProcessorRunning = false;
-        visionPortal.setProcessorEnabled(findTeamPropProcesser, true);
-        findTeamPropProcessorRunning = true;
-    }
+//////////////////////
 
 
 
@@ -352,19 +427,19 @@ public class Drive {
     }
 
     public void visionTelemetry() {
-        if (aprilTagProcessorRunning) {
+        if (currentCam==cvCam.REAR_APRILTAG) {
             //findPixelProcesser.outputTelemetry();
             //telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
-            telemetry.addLine("RearCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
+            telemetry.addLine("RearCam:" + rearVisionPortal.getCameraState() + " FPS:" + rearVisionPortal.getFps());
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
             }
-        } else if (findLineProcessorRunning) {
-            telemetry.addLine("FrontCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
+        } else if (currentCam==cvCam.FRONT_LINE) {
+            telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState() + " FPS:" + frontVisionPortal.getFps());
             findLineProcesser.outputTelemetry();
-        } else if (findTeamPropProcessorRunning) {
-            telemetry.addLine("SideCam:" + visionPortal.getCameraState() + " FPS:" + visionPortal.getFps());
+        } else if (currentCam==cvCam.SIDE_PROP) {
+            telemetry.addLine("SideCam:" + sideVisionPortal.getCameraState() + " FPS:" + sideVisionPortal.getFps());
             findTeamPropProcesser.outputTelemetry();
         }
     }
@@ -1153,12 +1228,23 @@ public class Drive {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // returns an x,y offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
     // Returns false if it fails or times out.
-    public boolean getRobotBackdropOffset(org.opencv.core.Point p) {
-        if (!aprilTagProcessorRunning) {
+    public boolean getRobotBackdropOffset(org.opencv.core.Point p,boolean freshDetection) {
+        if (currentCam!=cvCam.REAR_APRILTAG) {
             teamUtil.log("ERROR: getRobotBackdropOffset called without April Tag Processor Running");
             return false;
         } else {
-            List<AprilTagDetection> detections = aprilTag.getDetections();
+            List<AprilTagDetection> detections;
+            if(freshDetection){
+                 detections = aprilTag.getFreshDetections();
+
+            }else{
+                detections = aprilTag.getDetections();
+
+            }
+            if(detections==null){
+                teamUtil.log("no fresh detections");
+                return false;
+            }
             float xOffsetTotal = 0, yOffsetTotal = 0;
             int numTags = 0;
             for (AprilTagDetection detection : detections) { // Average whatever readings we have
@@ -1191,7 +1277,7 @@ public class Drive {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // returns an x offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
     public float getRobotBackdropXOffset() {
-        if (!aprilTagProcessorRunning) {
+        if (currentCam!=cvCam.REAR_APRILTAG) {
             teamUtil.log("ERROR: getRobotBackdropXOffset called without April Tag Processor Running");
             return (float) noAprilTag;
         } else {
@@ -1234,7 +1320,8 @@ public class Drive {
         float driftCms = 2;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
         teamUtil.log("Continue on Initial Heading");
-        while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(timeOutTime)) {
+        aprilTag.getFreshDetections();
+        while (!getRobotBackdropOffset(tagOffset,true) && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(initialDriveHeading, robotHeading, initialVelocity); // continue on initial heading until we see a tag
         }
         teamUtil.log("Driving based on tags");
@@ -1258,7 +1345,7 @@ public class Drive {
                 teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
             aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
-            while (!getRobotBackdropOffset(tagOffset) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
+            while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
                 if (details) teamUtil.log("WARNING: Lost sight of tags!");
             }
 

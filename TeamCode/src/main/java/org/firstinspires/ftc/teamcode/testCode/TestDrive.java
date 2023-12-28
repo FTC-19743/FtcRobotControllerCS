@@ -26,12 +26,7 @@ public class TestDrive extends LinearOpMode {
     Launcher launcher;
     TeamGamepad gamepad;
     int currentCam = 0;
-    private int     myExposure  ;
-    private int     minExposure ;
-    private int     maxExposure ;
-    private int     myGain      ;
-    private int     minGain ;
-    private int     maxGain ;
+
     public void toggleCamera() {
         currentCam++;
         if (currentCam > 3) {
@@ -40,60 +35,23 @@ public class TestDrive extends LinearOpMode {
         switch(currentCam) {
             case 1:
                 teamUtil.log("Toggling LineFinder On");
-                drive.runFrontLineFinderProcessor();
+                drive.switchCV(Drive.cvCam.FRONT_LINE);
                 break;
             case 2:
                 teamUtil.log("Toggling AprilTag Finder On");
-                drive.runRearAprilTagProcessor();
+                drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+                ;
                 break;
             case 3:
                 teamUtil.log("Toggling TeamProp Finder On");
-                drive.runSideTeamPropFinderProcessor();
+                drive.switchCV(Drive.cvCam.SIDE_PROP);
                 break;
             default:
         }
     }
 
-    public void cycle(double xOffset){
-        drive.runFrontLineFinderProcessor();
-        drive.moveCm(86+(xOffset>0?1:-1)*(Math.sqrt(xOffset*xOffset*2)), 135, 800);
-        drive.moveCm(drive.MAX_VELOCITY, 194-xOffset, 180, 180, 350);
 
-    } // TODO: DELETE MEEEEEEEEEEEEEEEEEEEEEEEEEE
-    private void getCameraSettings() {
-        // Ensure Vision Portal has been setup.
-        if (drive.visionPortal == null) {
-            return;
-        }
 
-        // Wait for the camera to be open
-        if (drive.visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            telemetry.addData("Camera", "Waiting");
-            telemetry.update();
-            while (!isStopRequested() && (drive.visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
-                sleep(20);
-            }
-            telemetry.addData("Camera", "Ready");
-            telemetry.update();
-        }
-
-        // Get camera control values unless we are stopping.
-        if (!isStopRequested()) {
-            ExposureControl exposureControl = drive.visionPortal.getCameraControl(ExposureControl.class);
-            minExposure = (int) exposureControl.getMinExposure(TimeUnit.MILLISECONDS) + 1;
-            maxExposure = (int) exposureControl.getMaxExposure(TimeUnit.MILLISECONDS);
-
-            GainControl gainControl = drive.visionPortal.getCameraControl(GainControl.class);
-            if (gainControl == null) { // FTC software has a bug where this isn't supported on switchableCameras!
-                minGain = 0;
-                maxGain = 0;
-            } else {
-                minGain = gainControl.getMinGain();
-                maxGain = gainControl.getMaxGain();
-            }
-
-        }
-    }
 
 
 @Override
@@ -135,11 +93,9 @@ public class TestDrive extends LinearOpMode {
             teamUtil.telemetry.update();
         }
 
-
+        telemetry.addLine("Initializing CV");
+        telemetry.update();
         drive.initCV(true);
-        getCameraSettings();
-        drive.runRearAprilTagProcessor();
-        //drive.runSideTeamPropFinderProcessor();
         double velocity = drive.MAX_VELOCITY;
         telemetry.addLine("Ready");
         telemetry.update();
@@ -156,22 +112,6 @@ public class TestDrive extends LinearOpMode {
                 drive.findLineProcesser.nextView(); ;
                 //drive.findPixelProcesser.nextView(); ;
             }
-            if(gamepad.wasLeftPressed()) {
-                drive.findLineProcesser.whiteThreshold = drive.findLineProcesser.whiteThreshold-10;
-            }
-            if(gamepad.wasRightPressed()) {
-                drive.findLineProcesser.whiteThreshold = drive.findLineProcesser.whiteThreshold+10;
-            }
-            if(gamepad.wasYPressed()) {
-                myExposure = myExposure+1;
-                drive.setCamExposure(myExposure,0);
-            }
-            if(gamepad.wasAPressed()) {
-                myExposure = myExposure-1;
-                drive.setCamExposure(myExposure,0);
-            }
-            telemetry.addData("Exposure","%d  (%d - %d)", myExposure, minExposure, maxExposure);
-            telemetry.addData("Gain","%d  (%d - %d)", myGain, minGain, maxGain);
 
             intake.outputTelemetry();
             drive.sensorTelemetry();
@@ -205,9 +145,9 @@ public class TestDrive extends LinearOpMode {
 
             if(gamepad.wasRightBumperPressed()){
                 toggleCamera();
-                //drive.setHeading(180);
-                //drive.moveCm(1000, 20, 180, 180, 1000);
-                //drive.centerOnAprilTag(8, 40, 0, 180);
+            }
+            if (gamepad.wasRightTriggerPressed()) {
+                drive.stopCV();
             }
             if(gamepad.wasLeftBumperPressed()){
                 launcher.toggleRelease();

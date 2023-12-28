@@ -24,7 +24,7 @@ public class testAutoPaths extends LinearOpMode {
     public long startTime;
     public long elapsedTime;
 
-
+    private boolean enableLiveView = true;
 
     public void runOpMode() {
         teamUtil.init(this);
@@ -32,9 +32,26 @@ public class testAutoPaths extends LinearOpMode {
         driverGamepad.initilize(true);
         armsGamepad = new TeamGamepad();
         armsGamepad.initilize(false);
+        telemetry.addLine("Initializing.  Please wait.");
+        telemetry.update();
         robot = new Robot();
         robot.drive.initalize();
-        robot.drive.initCV(true);
+
+        while(!driverGamepad.wasAPressed()){
+            driverGamepad.loop();
+            if(driverGamepad.wasLeftPressed()){ enableLiveView = !enableLiveView;}
+            if(driverGamepad.wasRightPressed()){ enableLiveView = !enableLiveView;}
+
+            teamUtil.telemetry.addLine("LiveView Enabled? (use Game Pad 1 DPad)");
+            teamUtil.telemetry.addLine("LiveView: " + enableLiveView);
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+
+        robot.drive.initCV(enableLiveView);
+        telemetry.addLine("Initializing CV.  Please wait.");
+        telemetry.update();
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
@@ -51,7 +68,7 @@ public class testAutoPaths extends LinearOpMode {
             telemetry.addLine("Alliance: "+ teamUtil.alliance);
             telemetry.addLine("Use Arms: "+ useArms);
             telemetry.addLine("Strafe: "+ robot.drive.strafeEncoder.getCurrentPosition());
-            telemetry.addLine("FPS: "+ robot.drive.visionPortal.getFps());
+            telemetry.addLine("Rear Vision Portal FPS: "+ robot.drive.rearVisionPortal.getFps());
 
 
             ////////// Drive
@@ -87,10 +104,10 @@ public class testAutoPaths extends LinearOpMode {
             if (driverGamepad.wasLeftTriggerPressed()) {
                 if (liveStream) {
                     liveStream = false;
-                    robot.drive.visionPortal.stopLiveView();
+                    robot.drive.sideVisionPortal.stopLiveView();
                 } else {
                     liveStream = true;
-                    robot.drive.visionPortal.resumeLiveView();
+                    robot.drive.sideVisionPortal.resumeLiveView();
                 }
             }
 
