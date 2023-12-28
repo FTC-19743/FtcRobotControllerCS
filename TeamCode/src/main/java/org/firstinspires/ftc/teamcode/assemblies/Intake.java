@@ -11,6 +11,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class Intake {
     HardwareMap hardwareMap;
     Telemetry telemetry;
@@ -28,11 +30,15 @@ public class Intake {
 
     public static double PIXELSENSORTIME = 300;
 
+    public long grabOneOperationTime=800;
+
+    public AtomicBoolean grabbingOnePixel = new AtomicBoolean(false);
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
     public double leftKnockerStore = 0.72;
     public double leftKnockerSweep = 0.44;
+    public double leftKnockerReady = 0.44;
     public double leftKnockerDrop = 0.32;
 
     public double leftKnockerCollect = 0.19;
@@ -40,6 +46,7 @@ public class Intake {
 
     public double rightKnockerStore = 0.25;
     public double rightKnockerSweep = 0.54;
+    public double rightKnockerReady = 0.55;
     public double rightKnockerDrop = .68;
 
     public double rightKnockerCollect = 0.81;
@@ -73,8 +80,8 @@ public class Intake {
     }
 
     public void ready() {
-        lKnocker.setPosition(leftKnockerDrop);
-        rKnocker.setPosition(rightKnockerDrop);
+        lKnocker.setPosition(leftKnockerReady);
+        rKnocker.setPosition(rightKnockerReady);
     }
     public void collect() {
         lKnocker.setPosition(leftKnockerCollect);
@@ -116,13 +123,66 @@ public class Intake {
         }
     }
 
+
+
     public void grabOnePixel(){
+        grabbingOnePixel.set(true);
         collect();
         teamUtil.pause(500); // TENATIVE VALUE
         store();
+        grabbingOnePixel.set(false);
     }
 
+    public void grabOnePixelNoWait(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                grabOnePixel();
+            }
+        });
+        thread.start();
+
+
+    }
+
+    public void grabOnePixelToReady(){
+        grabbingOnePixel.set(true);
+        collect();
+        teamUtil.pause(300); // TENATIVE VALUE
+        ready();
+        teamUtil.pause(250);
+        grabbingOnePixel.set(false);
+    }
+
+    public void grabOnePixelToReadyNoWait(){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                grabOnePixelToReady();
+                if(!teamUtil.theOpMode.gamepad2.dpad_left){
+                    store();
+                }
+            }
+        });
+        thread.start();
+
+
+    }
+
+    public void grabOnePixelLoop(boolean buttonPressed){
+        if(buttonPressed){
+            if(grabbingOnePixel.get()){
+                teamUtil.log("Grab One Pixel Loop Triggered While already grabbing");
+            }else{
+                grabOnePixelToReadyNoWait();
+
+            }
+        }
+    }
+
+
     public void grabTwoPixels(){
+
         collect();
         teamUtil.pause(500); // TENATIVE VALUE
 

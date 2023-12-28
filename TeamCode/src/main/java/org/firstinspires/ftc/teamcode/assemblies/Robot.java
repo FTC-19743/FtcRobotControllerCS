@@ -34,7 +34,7 @@ public class Robot {
     }
 
     public void initialize() {
-        drive.initalize();
+        drive.initalize(output);
         intake.initalize();
         output.initialize();
         lift.initialize();
@@ -241,6 +241,8 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     public void autoV3(int path, boolean operateArms, boolean cycle) {
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
 

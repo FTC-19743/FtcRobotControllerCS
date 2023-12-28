@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.assemblies.Robot;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -24,7 +28,7 @@ public class testAutoPaths extends LinearOpMode {
     public long startTime;
     public long elapsedTime;
 
-    private boolean enableLiveView = true;
+    private boolean enableLiveView = false;
 
     public void runOpMode() {
         teamUtil.init(this);
@@ -35,7 +39,7 @@ public class testAutoPaths extends LinearOpMode {
         telemetry.addLine("Initializing.  Please wait.");
         telemetry.update();
         robot = new Robot();
-        robot.drive.initalize();
+
 
         while(!driverGamepad.wasAPressed()){
             driverGamepad.loop();
@@ -54,6 +58,7 @@ public class testAutoPaths extends LinearOpMode {
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
+        robot.drive.initalize(robot.output);
 
         telemetry.addLine("Ready to start");
         telemetry.update();
@@ -158,6 +163,19 @@ public class testAutoPaths extends LinearOpMode {
 
                 robot.autoV3(3, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
+
+            }
+            //test for cycle pathing
+            if(driverGamepad.wasDownPressed()){
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OCEANPALETTE);
+                robot.drive.setHeading(180);
+                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 125, 0,0, 180, robot.drive.MAX_VELOCITY);
+                robot.drive.moveStraightCmWithStrafeEncoderWithGoToScore(robot.drive.MAX_VELOCITY, 215, 0,130,0, 180, 600);
+                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 91, 0,0, 180, 1000);
+                robot.drive.moveCm(robot.drive.MAX_VELOCITY, 80, 315, 180, 0);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                robot.output.dropAndGoToLoad();
 
             }
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);

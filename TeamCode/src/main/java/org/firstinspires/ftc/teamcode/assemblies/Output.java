@@ -424,6 +424,13 @@ public class Output {
     }
     // Grab the pixels and get into scoring position
     public void goToScore(float level, double rotatorPosition) {
+        //Reset encoders so they are in unison
+        elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         moving.set(true);
         loading.set(false);
 

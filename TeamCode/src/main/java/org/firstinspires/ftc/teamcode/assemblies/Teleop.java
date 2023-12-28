@@ -99,28 +99,22 @@ public class Teleop extends LinearOpMode {
                 robot.intake.toggleIntake();
             }
 
-            if(armsGamepad.wasUpPressed()){
-                robot.intake.collect();
+            if(armsGamepad.wasRightPressed()){
+                //Needs to be implemented; free for now
             }
-            if (armsGamepad.wasLeftPressed())
-            {
-                robot.intake.grabOnePixel();
+
+            if(gamepad2.dpad_left){
+                robot.intake.grabOnePixelLoop(gamepad2.dpad_left);
 
             }
             if(armsGamepad.wasDownPressed()){
                 robot.intake.store();
             }
 
-            if(armsGamepad.wasRightPressed()){
-                robot.intake.grabOnePixel();
-            }
-            /*
-            if(driverGamepad.wasDownPressed()){
-                robot.auto(1,false);
+            if(armsGamepad.wasUpPressed()){
+                robot.intake.ready();
             }
 
-
-             */
 
 
             ////////// Lift

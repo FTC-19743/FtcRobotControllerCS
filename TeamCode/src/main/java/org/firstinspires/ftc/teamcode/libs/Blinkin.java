@@ -22,18 +22,18 @@ public class Blinkin {
         RED,
         DARK_GREEN,
         YELLOW,
-        INIT,
+        OCEANPALETTE,
         INIT_RED,
         INIT_BLUE,
-        READY_TO_START,
+        COLORWAVESFORESTPALETTE,
         SIGNAL_3,
 
 
-        SHARED,
+        VIOLET,
         MIDDLE,
         TOP,
 
-        HEAVY_CUBE,
+        SPARKLY,
 
         RED_AUTO,
         BLUE_AUTO,
@@ -96,17 +96,18 @@ public class Blinkin {
                 break;
             case DARK_GREEN :
                 current = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
+
                 blinkinLedDriver.setPattern(current);
                 break;
             case RED:
                 current = RevBlinkinLedDriver.BlinkinPattern.RED;
                 blinkinLedDriver.setPattern(current);
                 break;
-            case INIT:
-                current = RevBlinkinLedDriver.BlinkinPattern.SINELON_FOREST_PALETTE;
+            case OCEANPALETTE:
+                current = RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
-            case READY_TO_START :
+            case COLORWAVESFORESTPALETTE :
                 current = RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_FOREST_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
@@ -123,7 +124,7 @@ public class Blinkin {
                 blinkinLedDriver.setPattern(current);
                 break;
 
-            case SHARED:
+            case VIOLET:
                 current = RevBlinkinLedDriver.BlinkinPattern.VIOLET;
                 blinkinLedDriver.setPattern(current);
                 break;
@@ -134,11 +135,11 @@ public class Blinkin {
                 break;
 
             case TOP:
-                current = RevBlinkinLedDriver.BlinkinPattern.SINELON_LAVA_PALETTE;
+                current = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
                 blinkinLedDriver.setPattern(current);
                 break;
 
-            case HEAVY_CUBE:
+            case SPARKLY:
                 current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_WITH_GLITTER;
                 blinkinLedDriver.setPattern(current);
                 break;

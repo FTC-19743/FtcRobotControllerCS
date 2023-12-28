@@ -69,7 +69,7 @@ public class TestDrive extends LinearOpMode {
         launcher = new Launcher();
         launcher.initialize();
         drive = new Drive();
-        drive.initalize();
+        drive.initalize(output);
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             if(gamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
