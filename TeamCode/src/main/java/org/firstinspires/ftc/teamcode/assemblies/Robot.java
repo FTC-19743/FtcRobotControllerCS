@@ -194,6 +194,8 @@ public class Robot {
             intake.stopIntake();
             return false;
         }
+        teamUtil.log("Line Detector FPS: " + drive.frontVisionPortal.getFps());
+
         drive.stopCV(); // shut down line detector early to help april tag detector get started
         if (operateArms) {
             intake.grabTwoPixels();
@@ -215,6 +217,7 @@ public class Robot {
         if(!drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000)){
             return false;
         }
+        teamUtil.log("April Tag FPS: " + drive.rearVisionPortal.getFps());
         drive.stopCV(); // shut down April Tag detector early to help next detector get started
 
         drive.moveCm(drive.MAX_VELOCITY,17, 0, 180, 0);

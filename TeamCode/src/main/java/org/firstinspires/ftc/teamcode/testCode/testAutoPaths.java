@@ -48,10 +48,9 @@ public class testAutoPaths extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
-
-        robot.drive.initCV(enableLiveView);
         telemetry.addLine("Initializing CV.  Please wait.");
         telemetry.update();
+        robot.drive.initCV(enableLiveView);
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
