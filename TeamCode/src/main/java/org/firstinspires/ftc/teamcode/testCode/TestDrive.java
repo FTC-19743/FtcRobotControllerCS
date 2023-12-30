@@ -183,8 +183,21 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasBPressed()){
                 intake.toggleIntake();
             }
+            /*
             if(gamepad.wasXPressed()){
                 intake.reverseIntake();
+            }
+
+             */
+            if(gamepad.wasYPressed()){
+                drive.moveCm(2000, 40,180, 180, 1000);
+                drive.driveToStackNoStop(180,180,1000,500,2000);
+            }
+            if(gamepad.wasXPressed()){
+                drive.setHeading(180);
+                drive.moveCm(2000, 40,180, 180, 350);
+                drive.driveToStackNoStopWithStrafe(180,180,1000,2000);
+
             }
 
             /*

@@ -1297,6 +1297,166 @@ public class Drive {
         return true;
     }
 
+    public boolean driveToStackNoStop(double driveHeading, double robotHeading, double velocity, double endVelocity, long timeout) {
+        //start with a minimum of 40 cms from the wall
+        boolean details = false;
+        findLineProcesser.details = details;
+        teamUtil.log("Drive To Stack");
+        int driftPixels = (int) (findLineProcesser.CAMWIDTH * .075);
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        findLineProcesser.reset();
+
+        // Drive until we see the line
+
+        double startEncoderValue = fl.getCurrentPosition();
+        while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
+            if(fl.getCurrentPosition()-startEncoderValue>=25*COUNTS_PER_CENTIMETER){
+                stopMotors();
+                teamUtil.log("Drive To Stack Failed to See Line");
+                return false;
+            }
+            if (details) {
+                teamUtil.log("Looking for Line. ");
+            }
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            teamUtil.pause(50); // give CPU time to image processing
+        }
+
+
+
+
+        double cmsDiagonally;
+
+        //vertical data
+        int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
+        int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
+        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5;
+        teamUtil.log("Cms to Stack (vertical): " + cmsToStack);
+
+        //horizontal data
+        //leftmidpoint = 48 (robots right)
+        //rightmidpoint = 581 (robots left) (8cm away)
+        //distance in pixels to middle divided by distance in cm to middle
+        float horizontalCmsPerPixel = 8f/(581f-findLineProcesser.MIDPOINTTARGET);
+        float horizontalDistanceToStackPixels =Math.abs(findLineProcesser.lastValidMidPoint.get() - findLineProcesser.MIDPOINTTARGET);
+        teamUtil.log("Horizontal Last Valid Midpoint: " + findLineProcesser.lastValidMidPoint.get());
+
+        float horizontalDistanceToStackCms =horizontalDistanceToStackPixels*horizontalCmsPerPixel;
+        teamUtil.log("Horizontal Distance To Stack Pixels: " + horizontalDistanceToStackPixels);
+
+        teamUtil.log("Horizontal Distance To Stack Cms: " + horizontalDistanceToStackCms);
+
+
+        cmsDiagonally=Math.sqrt(Math.pow(horizontalDistanceToStackCms,2)*2);
+        teamUtil.log("Cms to travel diagonally " + cmsDiagonally);
+
+        moveCm(velocity,cmsDiagonally,findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET? 135 : 225,180,endVelocity);
+
+
+            /*
+            // TODO: Need another failsafe here to make sure we don't strafe off of the tile
+            while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(90, 180, velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+
+             */
+
+
+            /*
+            // TODO: And here!
+            while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(270, 180,velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+
+             */
+
+        findLineProcesser.details = false; // Don't continue to clutter up log
+        /*
+        // kill strafe momentum
+        stopMotors();
+        teamUtil.pause(250);
+
+         */
+
+        // Use proximity to end of tape to adjust distance to wall
+         // Assume Camera view is linear.  Might not be
+        double cmsLeftToStack = cmsToStack-horizontalDistanceToStackCms;
+        teamUtil.log("Driving to wall: " + cmsLeftToStack);
+        moveCm(500, cmsToStack-horizontalDistanceToStackCms, driveHeading, robotHeading, 0); // maxVelocity was 400
+        stopMotors();
+
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("Drive To Stack --TIMED OUT!");
+        } else {
+            teamUtil.log("Drive To Stack - Finished");
+        }
+        return true;
+    }
+
+    public boolean driveToStackNoStopWithStrafe(double driveHeading, double robotHeading, double velocity, long timeout) {
+        //start with a minimum of 40 cms from the wall
+        boolean details = false;
+        findLineProcesser.details = details;
+        teamUtil.log("Drive To Stack");
+        int driftPixels = (int) (findLineProcesser.CAMWIDTH * .075);
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        findLineProcesser.reset();
+
+        // Drive until we see the line
+
+        double startEncoderValue = fl.getCurrentPosition();
+        while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
+            if(fl.getCurrentPosition()-startEncoderValue>=25*COUNTS_PER_CENTIMETER){
+                stopMotors();
+                teamUtil.log("Drive To Stack Failed to See Line");
+                return false;
+            }
+            if (details) {
+                teamUtil.log("Looking for Line. ");
+            }
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            teamUtil.pause(50); // give CPU time to image processing
+        }
+
+
+
+
+        teamUtil.log("Strafing to Line");
+        if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
+            // TODO: Need another failsafe here to make sure we don't strafe off of the tile
+            while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(90, 180, velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+        } else {
+            // TODO: And here!
+            while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(270, 180, velocity);
+                teamUtil.pause(50); // give CPU time to image processing
+            }
+        }
+        findLineProcesser.details = false; // Don't continue to clutter up log
+
+
+
+        // Use proximity to end of tape to adjust distance to wall
+        int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
+        int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
+        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
+        teamUtil.log("Driving to wall: " + cmsToStack);
+        moveCm(MAX_VELOCITY, cmsToStack, driveHeading, robotHeading, 0); // maxVelocity was 400
+        stopMotors();
+
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("Drive To Stack --TIMED OUT!");
+        } else {
+            teamUtil.log("Drive To Stack - Finished");
+        }
+        return true;
+    }
+
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset) {
         int quadrant; // the quad the goal point would be in if the current spot was the origin
         if (rightDist < xOffset && forwardsDist > yOffset) {
