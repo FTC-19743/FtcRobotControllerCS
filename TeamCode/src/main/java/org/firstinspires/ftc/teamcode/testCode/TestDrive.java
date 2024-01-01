@@ -304,6 +304,7 @@ public class TestDrive extends LinearOpMode {
             intake.outputTelemetry();
             drive.sensorTelemetry();
             drive.visionTelemetry();
+            drive.frontLineCameraDimensionTelemetry();
             telemetry.addLine("Path: "+drive.findTeamPropProcesser.getPropPosition());
             telemetry.update();
         }

@@ -190,7 +190,7 @@ public class Robot {
             intake.startIntake();
         }
 
-        if(!drive.driveToStack(180, 180, 350, 5000)){
+        if(!drive.driveToStackNoStopWithStrafe(180, 180, 1000, 5000)){
             intake.stopIntake();
             return false;
         }
@@ -301,8 +301,10 @@ public class Robot {
             teamUtil.pause(100);
         }
         if(cycle){
-            cycleV3(xOffset, operateArms,path, true); // One for now...
+            cycleV3(xOffset, operateArms,path, false);
+            cycleV3(-drive.TAG_CENTER_TO_CENTER, operateArms,path, true);
         }
+
         else{
             teamUtil.pause(3000);
         }// One for now...
