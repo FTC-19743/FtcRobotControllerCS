@@ -216,12 +216,18 @@ public class Intake {
     }
 
     public boolean twoPixelsPresent(){
-        if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
+
+        //if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
+        if (pixelSensor.green()>600){
             return true;
         }
+
+
         else{
             return false;
         }
+
+
     }
     public void outputTelemetry() {
         telemetry.addData("PixelSensor  ", "RGBA: %d %d %d %d ",

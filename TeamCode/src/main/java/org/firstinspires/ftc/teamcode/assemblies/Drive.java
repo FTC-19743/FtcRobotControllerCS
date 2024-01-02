@@ -1706,8 +1706,8 @@ public class Drive {
         boolean details = true;
 
         float DEADBAND = 0.1f;
-        float SLOPE = .8f;
-        float FASTSLOPE = 1.8f;
+        float SLOPE = 1.6f;
+        float FASTSLOPE = 3.6f;
         float SLOWSPEED = .1f;
         float STRAFESLOWSPEED = 0.25f;
         //float SLOPE = 1 / (1 - DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
@@ -1737,27 +1737,27 @@ public class Drive {
         }
         if(leftJoyStickX == 0){ // NEW Power Curves
             leftX = 0;
-        } else if(Math.abs(leftJoyStickX)<.5){
+        } else if(Math.abs(leftJoyStickX)<.75){
             leftX = leftJoyStickX>0? STRAFESLOWSPEED:-STRAFESLOWSPEED;
         } else{
             if (isFast) {
-                leftX = leftJoyStickX * FASTSLOPE + (leftJoyStickX>0? -.8f:.8f);
+                leftX = leftJoyStickX * FASTSLOPE + (leftJoyStickX>0? -2.6f:2.6f);
             }
             else{
-                leftX = leftJoyStickX * SLOPE + (leftJoyStickX>0? -.3f:.3f);
+                leftX = leftJoyStickX * SLOPE + (leftJoyStickX>0? -1.1f:1.1f);
             }
         }
 
         if(leftJoyStickY == 0){
             leftY = 0;
-        } else if(Math.abs(leftJoyStickY)<.5){
+        } else if(Math.abs(leftJoyStickY)<.75){
             leftY = leftJoyStickY>0? SLOWSPEED:-SLOWSPEED;
         } else{
             if (isFast) {
-                leftY = leftJoyStickY * FASTSLOPE + (leftJoyStickY>0? -.8f:.8f);
+                leftY = leftJoyStickY * FASTSLOPE + (leftJoyStickY>0? -2.6f:2.6f);
             }
             else{
-                leftY = leftJoyStickY *SLOPE + (leftJoyStickY>0? -.3f:.3f);
+                leftY = leftJoyStickY *SLOPE + (leftJoyStickY>0? -1.1f:1.1f);
             }
         }
 //
@@ -1872,6 +1872,210 @@ public class Drive {
         br.setPower(backRight);
         bl.setPower(backLeft);
 
+        //TODO: take out soon just for testing purposes
+        telemetry.addLine("Left Joystick Y: " + leftJoyStickY);
+        telemetry.addLine("Left Joystick X: " + leftJoyStickX);
+
+        telemetry.addLine("fl power: " + frontLeft);
+        telemetry.addLine("fr power: " + frontRight);
+        telemetry.addLine("bl power: " + backLeft);
+        telemetry.addLine("br power: " + backRight);
+
+
+    }
+
+    public void driveJoyStickV2(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, boolean isSlow) {
+        boolean details = true;
+
+        float DEADBAND = 0.1f;
+        float SLOWSLOPE =0.22f;
+        float SLOWSLOPESTRAFE =0.35f;
+        float SLOPE = 0.55f;
+        float FASTSLOPE = 1f;
+        float SLOWSPEED = .1f;
+        //float STRAFESLOWSPEED = 0.25f;
+        //float SLOPE = 1 / (1 - DEADBAND); // linear from edge of dead band to full power  TODO: Should this be a curve?
+
+        float POWERFACTOR = 1; // MAKE LESS THAN 0 to cap upperlimit of power
+        float leftX;
+        float leftY;
+        float rotationAdjustment;
+
+        float scaleAmount = isFast ? 1f : 0.5f; // full power is "fast", half power is "slow"
+
+        float frontLeft, frontRight, backRight, backLeft;
+
+        // Ensure nothing happens if we are inside the deadband
+        if (Math.abs(leftJoyStickX) < DEADBAND) {
+            leftJoyStickX = 0;
+        }
+        if (Math.abs(leftJoyStickY) < DEADBAND) {
+            leftJoyStickY = 0;
+        }
+        if (Math.abs(rightJoyStickX) < DEADBAND) {
+            rightJoyStickX = 0;
+        }
+
+        if (movingAutonomously.get() && (leftJoyStickX != 0 || rightJoyStickX != 0 || leftJoyStickY != 0)) { // Do we need to interrupt an autonomous operation?
+            manualInterrupt.set(true);
+        }
+        if(leftJoyStickX == 0){ // NEW Power Curves
+            leftX = 0;
+        } else if(isSlow){
+            leftX = leftJoyStickX*SLOWSLOPESTRAFE+(leftJoyStickX>0? -0.078f:0.078f);
+        } else if(isFast){
+            leftX = leftJoyStickX * FASTSLOPE ;
+        }
+        //medium speed
+        else{
+            leftX = leftJoyStickX*SLOPE+(leftJoyStickX>0? -0.055f:0.055f);
+
+        }
+
+        if(leftJoyStickY == 0){
+            leftY = 0;
+        } else if(isSlow){
+            leftY = leftJoyStickY*SLOWSLOPE+(leftJoyStickY>0? -0.078f:0.078f);
+        } else if(isFast){
+            leftY = leftJoyStickY * FASTSLOPE ;
+        }
+        //medium speed
+        else{
+            leftY = leftJoyStickY*SLOPE+(leftJoyStickY>0? -0.055f:0.055f);
+
+        }
+//
+//        if(leftJoyStickX>0){ // apply power curve to x value
+//            if(Math.abs(leftJoyStickX)<.5){
+//                leftX = SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftX = leftJoyStickX * FASTSLOPE + (-.8f);
+//                }
+//                else{
+//                    leftX = leftJoyStickX *SLOPE + (-.3f);
+//                }
+//            }
+//
+//
+//        }
+//        else if (leftJoyStickX<0) {
+//            if(Math.abs(leftJoyStickX)<.5){
+//                leftX = -SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftX = leftJoyStickX * FASTSLOPE + .8f;
+//                }
+//                else{
+//                    leftX = leftJoyStickX *SLOPE + .3f;
+//                }
+//            }
+//        }
+//        else{
+//            leftX = 0;
+//        }
+//
+//        if(leftJoyStickY>0){
+//            if(Math.abs(leftJoyStickY)<.5){
+//                leftY = SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftY = leftJoyStickY * FASTSLOPE + (-.8f);
+//                }
+//                else{
+//                    leftY = leftJoyStickY *SLOPE + (-.3f);
+//                }
+//            }
+//
+//
+//        }
+//        else if (leftJoyStickY<0) {
+//            if(Math.abs(leftJoyStickY)<.5){
+//                leftY = -SLOWSPEED;
+//            }
+//            else{
+//                if (isFast) {
+//                    leftY = leftJoyStickY * FASTSLOPE + .8f;
+//                }
+//                else{
+//                    leftY = leftJoyStickY * SLOPE + .3f;
+//                }
+//            }
+//        }
+//        else{
+//            leftY = 0;
+//        }
+
+//        if (leftJoyStickX > 0) {
+//            leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else if (leftJoyStickX < 0) {
+//            leftX = (leftJoyStickX + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else {
+//            leftX = 0;
+//        }
+//        if (leftJoyStickY > 0) {
+//            leftY = (leftJoyStickY - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else if (leftJoyStickY < 0) {
+//            leftY = (leftJoyStickY + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
+//        } else {
+//            leftY = 0;
+//        }
+
+        final float MAXROTATIONFACTOR = 0.8f;
+        if (Math.abs(rightJoyStickX) > DEADBAND) { // driver is turning the robot
+            rotationAdjustment = (float) (rightJoyStickX * 0.525 * scaleAmount);
+            holdingHeading = false;
+        } else { // Need to automatically hold the current heading
+            if (!holdingHeading) { // start to hold current heading
+                heldHeading = getHeading();
+                holdingHeading = true;
+            }
+            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .05f; // auto rotate to held heading
+            rotationAdjustment = rotationAdjustment * Math.min(Math.max(Math.abs(leftX), Math.abs(leftY)), 0.7f); // make it proportional to speed
+            rotationAdjustment = MathUtils.clamp(rotationAdjustment, -MAXROTATIONFACTOR,MAXROTATIONFACTOR ); // clip rotation so it doesn't obliterate translation
+        }
+
+        frontLeft = -(leftY - leftX - rotationAdjustment);
+        frontRight = (-leftY - leftX - rotationAdjustment);
+        backRight = (-leftY + leftX - rotationAdjustment);
+        backLeft = -(leftY + leftX - rotationAdjustment);
+
+        if (details) {
+
+            teamUtil.telemetry.addLine("Joy X/Y: "+ leftJoyStickX+ "/"+ leftJoyStickY+ " X/Y: "+ leftX+ "/"+leftY);
+            if (holdingHeading) {
+                teamUtil.telemetry.addData("HOLDING:", heldHeading);
+            }
+        }
+
+        fl.setPower(frontLeft);
+        fr.setPower(frontRight);
+        br.setPower(backRight);
+        bl.setPower(backLeft);
+
+        String currentSpeedState;
+        if(isSlow){
+            currentSpeedState="Is Slow";
+        }else if(isFast){
+            currentSpeedState="Is Fast";
+        }else{
+            currentSpeedState="Is Medium";
+        }
+        telemetry.addLine("Current Speed State " + currentSpeedState);
+
+        //TODO: take out soon just for testing purposes
+        telemetry.addLine("Left Joystick Y: " + leftJoyStickY);
+        telemetry.addLine("Left Joystick X: " + leftJoyStickX);
+
+        telemetry.addLine("fl power: " + frontLeft);
+        telemetry.addLine("fr power: " + frontRight);
+        telemetry.addLine("bl power: " + backLeft);
+        telemetry.addLine("br power: " + backRight);
+
+
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1887,6 +2091,19 @@ public class Drive {
         float rotatedLeftY = (float) (Math.sin(angleInRadians) * leftX + Math.cos(angleInRadians) * leftY);
 
         driveJoyStick(rotatedLeftX, rotatedLeftY, rightX, isFast);
+    }
+
+    public void universalDriveJoystickV2(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast,boolean isSlow, double robotHeading) {
+        double angleInRadians = robotHeading * Math.PI / 180;
+        float leftX = leftJoyStickX;
+        float leftY = leftJoyStickY;
+        float rightX = rightJoyStickX;
+
+        //rotate to obtain new coordinates
+        float rotatedLeftX = (float) (Math.cos(angleInRadians) * leftX - Math.sin(angleInRadians) * leftY);
+        float rotatedLeftY = (float) (Math.sin(angleInRadians) * leftX + Math.cos(angleInRadians) * leftY);
+
+        driveJoyStickV2(rotatedLeftX, rotatedLeftY, rightX, isFast,isSlow);
     }
 
     public void geoFenceDriveJoystick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, double robotHeading) {
