@@ -782,6 +782,9 @@ public class Drive {
     }
 
     public void moveStraightCmWithStrafeEncoder(double maxVelocity, double centimeters, int strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
+        teamUtil.log("Strafe Target" + strafeTarget);
+        teamUtil.log("Strafe Start Value" + strafeEncoder.getCurrentPosition());
+
         teamUtil.log("MoveStraightCMwStrafeEnc cms:" + centimeters + " strafe:" + strafeTarget + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
         float strafeFactor = .02f; // convert strafe encoder error into heading declination
@@ -878,6 +881,8 @@ public class Drive {
             }
         }
         lastVelocity = endVelocity;
+        teamUtil.log("Strafe Encoder End Value" + strafeEncoder.getCurrentPosition());
+
         teamUtil.log("MoveStraightCMwStrafeEnc--Finished");
 
     }

@@ -170,10 +170,13 @@ public class Robot {
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.switchCV(Drive.cvCam.FRONT_LINE);
-        if((path==3&&teamUtil.alliance== teamUtil.alliance.RED)||(path==1&&teamUtil.alliance== teamUtil.alliance.BLUE)){
+        /*
+        if(!lastTime&&(path==3&&teamUtil.alliance== teamUtil.alliance.RED)||!lastTime&&(path==1&&teamUtil.alliance== teamUtil.alliance.BLUE)){
             drive.moveCm(drive.MAX_VELOCITY, drive.TAG_CENTER_TO_CENTER, fieldSide(), 180, 800);
             xOffset=0;
         }
+
+         */
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         int desiredStrafeEncoder;
         if(teamUtil.alliance == teamUtil.alliance.RED){
@@ -181,6 +184,7 @@ public class Robot {
         }else{
             desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE-61*drive.TICS_PER_CM_STRAFE);
         }
+        teamUtil.log("Desired Strafe Encoder: " + desiredStrafeEncoder);
 
         // Strafe and drive across the field to where we can almost see the white tape
         double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
@@ -297,12 +301,19 @@ public class Robot {
 
         if (operateArms) {
             output.dropAndGoToLoadNoWait();
+            teamUtil.pause(500);
         } else {
             teamUtil.pause(100);
         }
         if(cycle){
-            cycleV3(xOffset, operateArms,path, false);
-            cycleV3(-drive.TAG_CENTER_TO_CENTER, operateArms,path, true);
+            if(cycleV3(xOffset, operateArms,path, false)){
+                teamUtil.pause(500);
+                cycleV3(teamUtil.alliance == RED? -drive.TAG_CENTER_TO_CENTER: drive.TAG_CENTER_TO_CENTER, operateArms,path, true);
+            }else{
+                teamUtil.log("Cycle Failed");
+
+            }
+
         }
 
         else{

@@ -166,18 +166,18 @@ public class testAutoPaths extends LinearOpMode {
 
             }
             //test for cycle pathing
-            if(driverGamepad.wasDownPressed()){
-                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OCEANPALETTE);
-                robot.drive.setHeading(180);
-                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 125, 0,0, 180, robot.drive.MAX_VELOCITY);
-                robot.drive.moveStraightCmWithStrafeEncoderWithGoToScore(robot.drive.MAX_VELOCITY, 215, 0,130,0, 180, 600);
-                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 91, 0,0, 180, 1000);
-                robot.drive.moveCm(robot.drive.MAX_VELOCITY, 80, 315, 180, 0);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.dropAndGoToLoad();
-
-            }
+//            if(driverGamepad.wasDownPressed()){
+//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OCEANPALETTE);
+//                robot.drive.setHeading(180);
+//                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 125, 0,0, 180, robot.drive.MAX_VELOCITY);
+//                robot.drive.moveStraightCmWithStrafeEncoderWithGoToScore(robot.drive.MAX_VELOCITY, 215, 0,130,0, 180, 600);
+//                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 91, 0,0, 180, 1000);
+//                robot.drive.moveCm(robot.drive.MAX_VELOCITY, 80, 315, 180, 0);
+//                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+//                robot.output.dropAndGoToLoad();
+//
+//            }
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);
             telemetry.update();
 

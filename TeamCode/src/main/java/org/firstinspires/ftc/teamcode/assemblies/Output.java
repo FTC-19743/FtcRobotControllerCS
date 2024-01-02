@@ -52,11 +52,16 @@ public class Output {
 
     public static int lastStraferPosition; //1=left,2=load,3=right
 
-    public static double StraferIncrement = 0.025;
+    public static double StraferIncrement = 0.015;
+
+    public static long lastStraferServoSkew = 0;
+
+    public static long servoSkewTimeMs = 100; //tentative value
     public static double GrabberOpen = 0.55;
     public static double GrabberClosed = 0.73;
     public static double GrabberOnePixel = .81;
     public static int StallBuffer = 225;
+    public static double ElevCrawlIncrement = 30;
 
     public DcMotorEx elevLeft;
     public DcMotorEx elevRight;
@@ -228,7 +233,33 @@ public class Output {
         }
     }
 
+    public void elevManualV2(double joystickValue){
+        if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("WARNING: Attempt to move elevator while output system is moving--ignored");
+            return;
+        } else {
+            if(Math.abs(joystickValue) < 0.75){
+                if(joystickValue<0){
+                    teamUtil.log("Elev Manual: " + ElevCrawlIncrement);
 
+                    elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() - ElevCrawlIncrement, elevatorMinScoreLevel, elevatorMax)));
+                    elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() - ElevCrawlIncrement, elevatorMinScoreLevel, elevatorMax)));
+                }else{
+                    teamUtil.log("Elev Manual: " + ElevCrawlIncrement);
+                    elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + ElevCrawlIncrement, elevatorMinScoreLevel, elevatorMax)));
+                    elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + ElevCrawlIncrement, elevatorMinScoreLevel, elevatorMax)));
+                }
+            }
+            else{
+
+                double fastIncrement = joystickValue*100;
+                teamUtil.log("Elev Manual: " + fastIncrement);
+                elevLeft.setTargetPosition((int) (clamp(elevLeft.getCurrentPosition() + fastIncrement, elevatorMinScoreLevel, elevatorMax)));
+                elevRight.setTargetPosition((int) (clamp(elevRight.getCurrentPosition() + fastIncrement, elevatorMinScoreLevel, elevatorMax)));
+            }
+
+        }
+    }
 
    public void elevManual(double increment){
        if (moving.get() || loading.get()) { // Output system is already moving in a long running operation
@@ -341,6 +372,26 @@ public class Output {
            }
        }
    }
+
+    public void straferManualV2 (boolean left, boolean right) {
+        if (left) {
+            teamUtil.log("skewing left");
+            if (System.currentTimeMillis() > lastStraferServoSkew+ servoSkewTimeMs && (grabberStrafer.getPosition() + StraferIncrement)<StraferLeft) {
+                // skew left
+                grabberStrafer.setPosition(grabberStrafer.getPosition()+StraferIncrement);
+                teamUtil.log("Position: "+(grabberStrafer.getPosition()+StraferIncrement));
+
+                lastStraferServoSkew = System.currentTimeMillis();
+            }
+        } else if (right) {
+            teamUtil.log("skewing right");
+            if (System.currentTimeMillis() > lastStraferServoSkew + servoSkewTimeMs && (grabberStrafer.getPosition() - StraferIncrement)>StraferRight) {
+                // skew right
+                grabberStrafer.setPosition(grabberStrafer.getPosition()-StraferIncrement);
+                lastStraferServoSkew = System.currentTimeMillis();
+            }
+        }
+    }
 
     public void setServosToLoad() {
         grabberStrafer.setPosition(StraferLoad);
