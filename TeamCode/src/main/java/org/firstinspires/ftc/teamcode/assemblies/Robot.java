@@ -52,6 +52,7 @@ public class Robot {
         //output.goToLoad(); // ready to load
     }
 
+
     public int fieldSide() { // helper method that returns heading out towards the field
         return teamUtil.alliance == RED ? 90 : 270;
     }
@@ -166,7 +167,7 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public boolean cycleV3(double xOffset, boolean operateArms, int path, boolean lastTime) {
+    public boolean cycleV3(double xOffset, boolean operateArms, int path) {
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.switchCV(Drive.cvCam.FRONT_LINE);
@@ -233,10 +234,7 @@ public class Robot {
         teamUtil.log("cycleTime: " + cycleTime); // without blocking GoToLoad at end
 
         if (operateArms) {
-            if (!lastTime)
-                output.dropAndGoToLoadNoWait();
-            else
-                output.dropAndGoToLoad(); // block until finished
+            output.dropAndGoToLoadNoWait();
         } else {
             teamUtil.pause(100);
         }
@@ -306,9 +304,9 @@ public class Robot {
             teamUtil.pause(100);
         }
         if(cycle){
-            if(cycleV3(xOffset, operateArms,path, false)){
+            if(cycleV3(xOffset, operateArms,path)){
                 teamUtil.pause(500);
-                cycleV3(teamUtil.alliance == RED? -drive.TAG_CENTER_TO_CENTER: drive.TAG_CENTER_TO_CENTER, operateArms,path, true);
+                cycleV3(teamUtil.alliance == RED? -drive.TAG_CENTER_TO_CENTER: drive.TAG_CENTER_TO_CENTER, operateArms,path);
             }else{
                 teamUtil.log("Cycle Failed");
 
@@ -322,6 +320,7 @@ public class Robot {
             //TODO check return value on cycle for failsafe issue
         long elapsedTime = System.currentTimeMillis() - startTime;
         teamUtil.log("elapsedTime: " + elapsedTime);
+
         //teamUtil.pause(30000-elapsedTime-500); // Allow output to get back to loading position with correct time
         teamUtil.log("Finished Auto");
     }

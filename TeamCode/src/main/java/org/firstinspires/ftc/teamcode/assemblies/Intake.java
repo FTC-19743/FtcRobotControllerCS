@@ -95,7 +95,7 @@ public class Intake {
 
     public void reverseIntake(){
         sweeper.setPower(-1*sweeperDirection);
-        kicker.setPower(.1*kickerDirection);
+        kicker.setPower(-1*kickerDirection);
     }
 
     public void stopIntake(){
@@ -218,7 +218,7 @@ public class Intake {
     public boolean twoPixelsPresent(){
 
         //if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
-        if (pixelSensor.green()>600){
+        if (pixelSensor.green()>1000){
             return true;
         }
 

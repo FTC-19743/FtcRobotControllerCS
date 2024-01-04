@@ -59,6 +59,9 @@ public class Teleop extends LinearOpMode {
         if (!teamUtil.justRanAuto) { // Auto already took care of this, so save time.
             robot.calibrate();
         }
+        if(!teamUtil.finishedGoToLoad){
+            robot.output.goToLoad();
+        }
         telemetry.addLine("Ready to start");
         telemetry.addLine("ALLIANCE : "+ teamUtil.alliance);
         telemetry.update();

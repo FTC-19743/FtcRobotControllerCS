@@ -190,8 +190,9 @@ public class TestDrive extends LinearOpMode {
 
              */
             if(gamepad.wasYPressed()){
-                drive.moveCm(2000, 40,180, 180, 1000);
-                drive.driveToStackNoStop(180,180,1000,500,2000);
+                //drive.moveCm(2000, 40,180, 180, 1000);
+                //drive.driveToStackNoStop(180,180,1000,500,2000);
+                intake.reverseIntake();
             }
             if(gamepad.wasXPressed()){
                 drive.setHeading(180);

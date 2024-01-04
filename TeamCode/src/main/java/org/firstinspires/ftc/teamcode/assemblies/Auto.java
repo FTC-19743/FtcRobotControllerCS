@@ -129,7 +129,18 @@ public class Auto extends LinearOpMode {
         robot.drive.stopCV(); // shut down prop detector
         teamUtil.pause(delay*1000); // Delay start if needed
         robot.autoV3(robot.drive.findTeamPropProcesser.getPropPosition(),true, cycle);
+        while(opModeIsActive()){
+        }
+        if(!robot.output.loading.get()) {
+            teamUtil.log("USING SECRET CHEATER TIME");
+            teamUtil.pause(400);
+        }
         teamUtil.justRanAuto = true; // avoid recalibration at start of teleop
+        if(robot.output.loading.get()){
+            teamUtil.finishedGoToLoad = true;
+        }else{
+            teamUtil.finishedGoToLoad = false;
+        }
     }
 }
 

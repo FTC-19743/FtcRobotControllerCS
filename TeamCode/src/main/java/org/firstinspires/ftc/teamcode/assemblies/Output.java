@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -150,6 +151,8 @@ public class Output {
         teamUtil.log("Output Calibrate finished");
     }
 
+
+
     public void dropPixels(){
         if (moving.get()) { // Output system is already moving in a long running operation
             teamUtil.log("WARNING: Attempt to drop pixels while output system is moving--ignored");
@@ -164,7 +167,7 @@ public class Output {
         grabber.setPosition(GrabberOpen);
         teamUtil.pause(1000);
         goToLoad();
-    }
+            }
 
     public void dropAndGoToLoadNoWait() {
         if (moving.get()||loading.get()) { // Output system is already moving in a long running operation
@@ -427,12 +430,13 @@ public class Output {
             grabberStrafer.setPosition(StraferLoad);
             teamUtil.pause(1000);
         }
+        long timeOutTime1 = System.currentTimeMillis() + 1500;
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
-            // we don't know where the servos are so we need to go up to a safe level to move them
+             // we don't know where the servos are so we need to go up to a safe level to move them
             teamUtil.log("Go To Load: Raising to safe level");
             elevRight.setTargetPosition(elevatorSafeStrafeLevel+50);
             elevLeft.setTargetPosition(elevatorSafeStrafeLevel+50);
-            while (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
+            while (teamUtil.keepGoing(timeOutTime1)&&elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || teamUtil.keepGoing(timeOutTime1)&&elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
             }
         }
         // Move servos to correct position and wait for them to complete
@@ -443,8 +447,8 @@ public class Output {
         teamUtil.log("Go To Load: Running to Bottom");
         elevRight.setTargetPosition(elevatorMin);
         elevLeft.setTargetPosition(elevatorMin); // TODO LATER: Might want to turn motors off once we are at bottom to conserve power for driving, etc.
-        long timeOutTime = System.currentTimeMillis() + 4000;
-        while (teamUtil.keepGoing(timeOutTime)&&elevLeft.getCurrentPosition() > elevatorMin+10 && elevRight.getCurrentPosition() > elevatorMin+10) {
+        long timeOutTime2 = System.currentTimeMillis() + 4000;
+        while (teamUtil.keepGoing(timeOutTime2)&&elevLeft.getCurrentPosition() > elevatorMin+10 && elevRight.getCurrentPosition() > elevatorMin+10) {
         }
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);

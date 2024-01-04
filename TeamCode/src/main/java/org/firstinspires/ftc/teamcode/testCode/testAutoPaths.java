@@ -116,6 +116,7 @@ public class testAutoPaths extends LinearOpMode {
             }
 
             if(driverGamepad.wasLeftPressed()) {
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.LARSONSCANNERGRAY);
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();

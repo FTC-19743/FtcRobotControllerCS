@@ -36,9 +36,9 @@ public class Blinkin {
         SPARKLY,
 
         RED_AUTO,
-        BLUE_AUTO,
+        LARSONSCANNERGRAY,
 
-        CURIOSITY,
+        DROPANDGOTOLOAD,
 
         RED_PATH_1,
         RED_PATH_2,
@@ -92,6 +92,10 @@ public class Blinkin {
 
             case YELLOW :
                 current = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                blinkinLedDriver.setPattern(current);
+                break;
+            case DROPANDGOTOLOAD:
+                current = RevBlinkinLedDriver.BlinkinPattern.SINELON_RAINBOW_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
             case DARK_GREEN :
@@ -149,8 +153,8 @@ public class Blinkin {
                 blinkinLedDriver.setPattern(current);
                 break;
 
-            case BLUE_AUTO:
-                current = RevBlinkinLedDriver.BlinkinPattern.TWINKLES_OCEAN_PALETTE;
+            case LARSONSCANNERGRAY:
+                current = RevBlinkinLedDriver.BlinkinPattern.LARSON_SCANNER_GRAY;
                 blinkinLedDriver.setPattern(current);
                 break;
 

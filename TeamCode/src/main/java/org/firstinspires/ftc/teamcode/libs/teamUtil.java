@@ -18,6 +18,7 @@ public class teamUtil {
 
     public static Blinkin theBlinkin =null;
 
+    public static boolean finishedGoToLoad = true;
 
     public static boolean LEFT = true; // Don't use this anymore!
 

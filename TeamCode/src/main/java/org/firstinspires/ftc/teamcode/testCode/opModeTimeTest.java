@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.testCode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -7,21 +8,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
-@Disabled //TODO: remove this when making a copy
-@TeleOp(name = "Basic Linear Op Mode", group = "LinearOpMode")
-public class SampleOpMode extends LinearOpMode {
-    TeamGamepad gamepad;
+
+@Autonomous(name = "opModeTimeTest", group = "LinearOpMode")
+public class opModeTimeTest extends LinearOpMode {
 
     @Override
     public void runOpMode(){
         teamUtil.init(this);
-        gamepad = new TeamGamepad();
-        gamepad.initilize(true);
 
         waitForStart();
         while (opModeIsActive()) {
-            gamepad.loop();
-
+            teamUtil.log("Entering the op mode");
+            while(opModeIsActive()){}
+            teamUtil.log("Op mode is no longer active");
+            teamUtil.pause(400);
         }
     }
 }
