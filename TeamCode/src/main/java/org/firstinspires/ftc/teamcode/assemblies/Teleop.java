@@ -61,6 +61,7 @@ public class Teleop extends LinearOpMode {
         }
         if(!teamUtil.finishedGoToLoad){
             robot.output.goToLoad();
+
         }
         telemetry.addLine("Ready to start");
         telemetry.addLine("ALLIANCE : "+ teamUtil.alliance);
@@ -192,6 +193,7 @@ public class Teleop extends LinearOpMode {
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad);
             }
 
@@ -225,6 +227,7 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasStartPressed()){
                 robot.intake.reverseIntake();
             }
+
             /*
             if(armsGamepad.wasOptionsPressed()) {
                 loopRunTimeCalculate(loopRunNumber,armsGamepad.wasOptionsPressed());

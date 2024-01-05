@@ -3,6 +3,7 @@
     <Webcam name="Webcam Rear" serialNumber="BB3B2F40" />
     <Webcam name="Webcam Front" serialNumber="72807370" />
     <Webcam name="Webcam Right" serialNumber="12D5F020" />
+<!--    <Webcam name="Webcam Left" serialNumber="1E982FD0" />-->
     <Webcam name="Webcam Left" serialNumber="SN0001" />
 
     <!---<Webcam name="Webcam Left" serialNumber="989ECEC0" /> -->

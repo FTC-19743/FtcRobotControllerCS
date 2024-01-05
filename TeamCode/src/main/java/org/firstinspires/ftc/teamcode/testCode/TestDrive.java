@@ -151,6 +151,7 @@ public class TestDrive extends LinearOpMode {
             }
             if(gamepad.wasLeftBumperPressed()){
                 launcher.toggleRelease();
+
             }
             if (gamepad.wasDownPressed()) {
                 drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
@@ -194,10 +195,20 @@ public class TestDrive extends LinearOpMode {
                 //drive.driveToStackNoStop(180,180,1000,500,2000);
                 intake.reverseIntake();
             }
-            if(gamepad.wasXPressed()){
+            if(gamepad1.x){
+                while (gamepad1.x){
+                    intake.sweeper.setPower(-1);
+                    if(gamepad1.right_trigger>0.1){
+                        intake.kicker.setPower(gamepad1.right_trigger);
+                    }
+                }
+                intake.stopIntake();
+                /*
                 drive.setHeading(180);
                 drive.moveCm(2000, 40,180, 180, 350);
                 drive.driveToStackNoStopWithStrafe(180,180,1000,2000);
+
+                 */
 
             }
 

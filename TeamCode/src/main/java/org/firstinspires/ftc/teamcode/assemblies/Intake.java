@@ -102,9 +102,6 @@ public class Intake {
         intakeRunning = false;
         sweeper.setPower(0);
         kicker.setPower(0);
-        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-
-
     }
 
     public void toggleIntake(){
@@ -213,6 +210,25 @@ public class Intake {
                 lastTimePixelSeen = 0;
             }
         }
+    }
+
+    public void autoOffLoop(long timeOut){
+        long timeOutTime = System.currentTimeMillis() + timeOut;
+        while(intakeRunning && teamUtil.keepGoing(timeOutTime)) {
+            autoOff();
+            teamUtil.pause(50);
+        }
+    }
+
+    public void autoOffLoopNoWait(long timeOut){
+        teamUtil.log("Auto Off Loop No Wait");
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                autoOffLoop(timeOut);
+            }
+        });
+        thread.start();
     }
 
     public boolean twoPixelsPresent(){

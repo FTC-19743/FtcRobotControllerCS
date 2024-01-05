@@ -82,6 +82,7 @@ public class Blinkin {
     }
 
     public void setSignal(Signals signal){
+        teamUtil.log("Blinkin: " + signal);
 
         switch(signal) {
             case OFF :

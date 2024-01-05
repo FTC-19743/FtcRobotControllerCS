@@ -791,7 +791,7 @@ public class Drive {
         float maxHeadingDeclination = 20f; // don't veer off of straight more than this number of degrees
         float headingFactor = Math.abs(driveHeading-180)<.01 ? 1 : -1; // reverse correction for going backwards
 
-        details = false;
+        details = true;
         MotorData data = new MotorData();
         getDriveMotorData(data);
 

@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class Robot {
@@ -75,6 +76,7 @@ public class Robot {
     public boolean pushPurplePixelScoreV3(int path) {
         teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
         // TODO: SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths, Maybe don't stop between all the movements
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Under the Rigging
             drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
@@ -189,7 +191,7 @@ public class Robot {
 
         // Strafe and drive across the field to where we can almost see the white tape
         double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
-        drive.moveCm(drive.MAX_VELOCITY, 100 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 800); // Heading was fixed at 135
+        drive.moveCm(drive.MAX_VELOCITY, 100 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 500); // Heading was fixed at 135
         drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 188 - distanceOffset, desiredStrafeEncoder,180, 180, 350); // was 183
         if (operateArms) {
             intake.startIntake();
@@ -208,6 +210,7 @@ public class Robot {
             teamUtil.pause(1000);//grabTwoPixels
 
         }
+        intake.autoOffLoopNoWait(3000);
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.moveCm(drive.MAX_VELOCITY, 210, 0, 180, 1000);
         if (operateArms) {
@@ -275,6 +278,7 @@ public class Robot {
 
 
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            intake.autoOffLoopNoWait(3000);
 
 
             // Drive around the purple pixel (could be optimized for different paths)
@@ -306,7 +310,9 @@ public class Robot {
         if(cycle){
             if(cycleV3(xOffset, operateArms,path)){
                 teamUtil.pause(500);
-                cycleV3(teamUtil.alliance == RED? -drive.TAG_CENTER_TO_CENTER: drive.TAG_CENTER_TO_CENTER, operateArms,path);
+                if(teamUtil.SIDE == teamUtil.Side.SCORE) {
+                    cycleV3(teamUtil.alliance == RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, operateArms, path);
+                }
             }else{
                 teamUtil.log("Cycle Failed");
 

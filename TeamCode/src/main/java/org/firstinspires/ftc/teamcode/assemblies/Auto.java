@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
@@ -116,16 +117,36 @@ public class Auto extends LinearOpMode {
 
 
         while(!opModeIsActive()){
+            int path = robot.drive.findTeamPropProcesser.getPropPosition();
+
             telemetry.addLine("Ready to Go!");
             telemetry.addLine("Delay Seconds: "+delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
             telemetry.addLine("Alliance: "+teamUtil.alliance.toString());
             telemetry.addLine("Side: "+teamUtil.SIDE.toString());
-            telemetry.addLine("Path: "+robot.drive.findTeamPropProcesser.getPropPosition());
+            telemetry.addLine("Path: "+path);
             telemetry.update();
+
+
+
+
+            if(path == 1 && teamUtil.alliance == teamUtil.alliance.RED){
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED_PATH_1);
+            } else if (path == 2 && teamUtil.alliance == teamUtil.alliance.RED) {
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED_PATH_2);
+            } else if (path == 3 && teamUtil.alliance == teamUtil.alliance.RED) {
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED_PATH_3);
+            } else if (path == 1 && teamUtil.alliance == teamUtil.alliance.BLUE) {
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.BLUE_PATH_1);
+            } else if (path == 2 && teamUtil.alliance == teamUtil.alliance.BLUE) {
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.BLUE_PATH_2);
+            } else{
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.BLUE_PATH_3);
+            }
         }
 
         waitForStart();
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         robot.drive.stopCV(); // shut down prop detector
         teamUtil.pause(delay*1000); // Delay start if needed
         robot.autoV3(robot.drive.findTeamPropProcesser.getPropPosition(),true, cycle);
