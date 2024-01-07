@@ -87,10 +87,12 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 1000);
         } else { // Path 2, middle for either Alliance
-            drive.moveCm(drive.MAX_VELOCITY,86, fieldSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,8.5, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 86, fieldSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
         }
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
         return true;
     }
 
@@ -131,6 +133,7 @@ public class Robot {
             }
             drive.moveCm(drive.MAX_VELOCITY, 78, 180, 180,400); // was 81
             drive.setMotorsFloat(); // coast to wall
+
             drive.stopMotors();
             teamUtil.pause(250);
             drive.setMotorsBrake();
@@ -195,6 +198,7 @@ public class Robot {
         drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 188 - distanceOffset, desiredStrafeEncoder,180, 180, 350); // was 183
         if (operateArms) {
             intake.startIntake();
+            intake.ready();
         }
 
         if(!drive.driveToStackNoStopWithStrafe(180, 180, 1000, 5000)){

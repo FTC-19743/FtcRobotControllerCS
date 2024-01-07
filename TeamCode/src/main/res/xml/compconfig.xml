@@ -3,10 +3,9 @@
     <Webcam name="Webcam Rear" serialNumber="BB3B2F40" />
     <Webcam name="Webcam Front" serialNumber="72807370" />
     <Webcam name="Webcam Right" serialNumber="12D5F020" />
-<!--    <Webcam name="Webcam Left" serialNumber="1E982FD0" />-->
-    <Webcam name="Webcam Left" serialNumber="SN0001" />
-
-    <!---<Webcam name="Webcam Left" serialNumber="989ECEC0" /> -->
+    <Webcam name="Webcam Left" serialNumber="1E982FD0" />
+<!--    <Webcam name="Webcam Left" serialNumber="SN0001" /> -->
+<!--    <Webcam name="Webcam Left" serialNumber="989ECEC0" /> -->
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
@@ -35,7 +34,8 @@
             <goBILDA5202SeriesMotor name="frm" port="2" />
             <goBILDA5202SeriesMotor name="brm" port="3" />
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
-            <RevColorSensorV3 name="pixelSensor" port="0" bus="1" />
+            <RevColorSensorV3 name="pixelSensor" port="0" bus="2" />
+            <RevColorSensorV3 name="onePixelSensor" port="0" bus="1" />
 
             <Servo name="liftArm" port="4" />
             <Servo name="grabber" port="3" />

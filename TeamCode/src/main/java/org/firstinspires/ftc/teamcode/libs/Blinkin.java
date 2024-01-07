@@ -160,30 +160,30 @@ public class Blinkin {
                 break;
 
             case RED_PATH_1:
-                current = RevBlinkinLedDriver.BlinkinPattern.RED;
+                current = RevBlinkinLedDriver.BlinkinPattern.SINELON_LAVA_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
 
             case RED_PATH_2:
-                current = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
+                current = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED;
                 blinkinLedDriver.setPattern(current);
                 break;
 
             case RED_PATH_3:
-                current = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+                current = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
                 blinkinLedDriver.setPattern(current);
                 break;
 
             case BLUE_PATH_1:
-                current = RevBlinkinLedDriver.BlinkinPattern.BLUE;
+                current = RevBlinkinLedDriver.BlinkinPattern.SINELON_OCEAN_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
             case BLUE_PATH_2:
-                current = RevBlinkinLedDriver.BlinkinPattern.BLUE_GREEN;
+                current = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE;
                 blinkinLedDriver.setPattern(current);
                 break;
             case BLUE_PATH_3:
-                current = RevBlinkinLedDriver.BlinkinPattern.GREEN;
+                current = RevBlinkinLedDriver.BlinkinPattern.STROBE_BLUE;
                 blinkinLedDriver.setPattern(current);
                 break;
 

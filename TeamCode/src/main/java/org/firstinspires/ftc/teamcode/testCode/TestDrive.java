@@ -157,7 +157,14 @@ public class TestDrive extends LinearOpMode {
                 drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
             }
             if (gamepad.wasOptionsPressed()) {
-                drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                drive.moveCm(drive.MAX_VELOCITY, 30, 180, 180,400); // was 81
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.SPARKLY);
+                drive.setMotorsFloat(); // coast to wall
+
+                drive.stopMotors();
+                teamUtil.pause(250);
+                drive.setMotorsBrake();
+                //drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if (gamepad.wasUpPressed()) {
                 drive.driveToAprilTagOffset(1000, 0, 180, 0, 30, 4000);
@@ -181,26 +188,46 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasAPressed()){
                 output.goToLoad();
             }
+
+            intake.autoOff();
+
             if(gamepad.wasBPressed()){
                 intake.toggleIntake();
             }
+
+
             /*
             if(gamepad.wasXPressed()){
                 intake.reverseIntake();
             }
 
              */
+
             if(gamepad.wasYPressed()){
                 //drive.moveCm(2000, 40,180, 180, 1000);
                 //drive.driveToStackNoStop(180,180,1000,500,2000);
                 intake.reverseIntake();
             }
-            if(gamepad1.x){
-                while (gamepad1.x){
-                    intake.sweeper.setPower(-1);
-                    if(gamepad1.right_trigger>0.1){
-                        intake.kicker.setPower(gamepad1.right_trigger);
+            if(gamepad.wasXPressed()){
+                double kickerSpeed = 0;
+                double sweeperSpeed = 0;
+                while (!gamepad.wasXPressed()){
+                    gamepad.loop();
+                    if(gamepad.wasUpPressed()){
+                        kickerSpeed=kickerSpeed+0.1;
+                    }else if(gamepad.wasDownPressed()){
+                        kickerSpeed = kickerSpeed - 0.1;
+                    }else if(gamepad.wasLeftPressed()){
+                        sweeperSpeed = sweeperSpeed - 0.1;
                     }
+                    else if(gamepad.wasRightPressed()){
+                        sweeperSpeed = sweeperSpeed + 0.1;
+                    }
+                    intake.kicker.setPower(kickerSpeed);
+                    intake.sweeper.setPower(-sweeperSpeed);
+                    telemetry.addLine("Sweeper Power: " + sweeperSpeed);
+                    telemetry.addLine("Kicker Power: " + kickerSpeed);
+                    telemetry.update();
                 }
                 intake.stopIntake();
                 /*

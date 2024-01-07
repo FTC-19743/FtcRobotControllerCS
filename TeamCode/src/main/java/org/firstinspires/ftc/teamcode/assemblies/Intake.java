@@ -23,7 +23,8 @@ public class Intake {
 
 
 
-    private ColorSensor pixelSensor;
+    private ColorSensor pixelSensorTop;
+    private ColorSensor pixelSensorBottom;
     //public DistanceSensor pixelDistance;
 
     private long lastTimePixelSeen = 0;
@@ -36,20 +37,25 @@ public class Intake {
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
-    public double leftKnockerStore = 0.72;
+    public double leftKnockerFullCollect = 0.05;
+
+
+    public double leftKnockerStore = 0.68;
     public double leftKnockerSweep = 0.44;
     public double leftKnockerReady = 0.44;
     public double leftKnockerDrop = 0.32;
 
-    public double leftKnockerCollect = 0.19;
+    public double leftKnockerCollect = 0.16;
+    public double leftKnockerCollectAuto = 0.19;
 
-
-    public double rightKnockerStore = 0.25;
+    public double rightKnockerFullCollect = 0.93;
+    public double rightKnockerStore = 0.29;
     public double rightKnockerSweep = 0.54;
     public double rightKnockerReady = 0.55;
     public double rightKnockerDrop = .68;
 
-    public double rightKnockerCollect = 0.81;
+    public double rightKnockerCollect = 0.84;
+    public double rightKnockerCollectAuto = 0.81;
 
 
     public boolean intakeRunning = false;
@@ -68,7 +74,9 @@ public class Intake {
         rKnocker = hardwareMap.get(Servo.class,"rKnocker");
         lKnocker = hardwareMap.get(Servo.class,"lKnocker");
         store();
-        pixelSensor = hardwareMap.get(RevColorSensorV3.class, "pixelSensor");
+        pixelSensorTop = hardwareMap.get(RevColorSensorV3.class, "pixelSensor");
+        pixelSensorBottom = hardwareMap.get(RevColorSensorV3.class, "onePixelSensor");
+
         //pixelDistance = hardwareMap.get(DistanceSensor.class, "pixelSensor");
 
         teamUtil.log("Intake Initialized ");
@@ -83,11 +91,22 @@ public class Intake {
         lKnocker.setPosition(leftKnockerReady);
         rKnocker.setPosition(rightKnockerReady);
     }
-    public void collect() {
+    public void collectTeleop() {
         lKnocker.setPosition(leftKnockerCollect);
         rKnocker.setPosition(rightKnockerCollect);
 
     }
+    public void collectAuto() {
+        lKnocker.setPosition(leftKnockerCollectAuto);
+        rKnocker.setPosition(rightKnockerCollectAuto);
+
+    }
+
+    public void collectFull(){
+        lKnocker.setPosition(leftKnockerFullCollect);
+        rKnocker.setPosition(rightKnockerFullCollect);
+    }
+
     public void startIntake(){
         sweeper.setPower(1*sweeperDirection);
         kicker.setPower(1*kickerDirection);
@@ -124,7 +143,7 @@ public class Intake {
 
     public void grabOnePixel(){
         grabbingOnePixel.set(true);
-        collect();
+        collectTeleop();
         teamUtil.pause(500); // TENATIVE VALUE
         store();
         grabbingOnePixel.set(false);
@@ -144,7 +163,7 @@ public class Intake {
 
     public void grabOnePixelToReady(){
         grabbingOnePixel.set(true);
-        collect();
+        collectTeleop();
         teamUtil.pause(300); // TENATIVE VALUE
         ready();
         teamUtil.pause(250);
@@ -180,22 +199,31 @@ public class Intake {
 
     public void grabTwoPixels(){
 
-        collect();
-        teamUtil.pause(500); // TENATIVE VALUE
+        collectAuto();
+        teamUtil.pause(300); // TENATIVE VALUE
 
         ready();
-        teamUtil.pause(250); // TENATIVE VALUE
+        teamUtil.pause(350); // TENATIVE VALUE
 
-        collect();
-        teamUtil.pause(250); // TENATIVE VALUE
+        collectFull();
+        teamUtil.pause(350); // TENATIVE VALUE
 
-        store();
+        //store();
 
     }
 
+
+
     public void autoOff(){
         if(intakeRunning) {
-            if(twoPixelsPresent() == true){
+            if(onlyOnePixelPresent()){
+                teamUtil.log("only one pixel present");
+                sweeper.setPower(-1);
+                kicker.setPower(.3);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.YELLOW);
+            }
+            else if(twoPixelsPresent()){
+                teamUtil.log("both pixels present");
                 if(lastTimePixelSeen == 0) {
                     lastTimePixelSeen = System.currentTimeMillis();
                 }
@@ -230,11 +258,18 @@ public class Intake {
         });
         thread.start();
     }
-
+    public boolean onlyOnePixelPresent(){
+        if (pixelSensorBottom.green()>1000 && pixelSensorTop.green()<1000){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
     public boolean twoPixelsPresent(){
 
         //if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
-        if (pixelSensor.green()>1000){
+        if (pixelSensorTop.green()>1000){
             return true;
         }
 
@@ -246,8 +281,11 @@ public class Intake {
 
     }
     public void outputTelemetry() {
-        telemetry.addData("PixelSensor  ", "RGBA: %d %d %d %d ",
-                pixelSensor.red(), pixelSensor.green(), pixelSensor.blue(), pixelSensor.alpha());
+        telemetry.addData("PixelSensorTop  ", "RGBA: %d %d %d %d ",
+                pixelSensorTop.red(), pixelSensorTop.green(), pixelSensorTop.blue(), pixelSensorTop.alpha());
+        telemetry.addData("PixelSensorTop  ", "RGBA: %d %d %d %d ",
+                pixelSensorBottom.red(), pixelSensorBottom.green(), pixelSensorBottom.blue(), pixelSensorBottom.alpha());
+        telemetry.addData("OnlyOnePixelPresent: ", "TF: %b", onlyOnePixelPresent());
         telemetry.addData("TwoPixelsPresent  ", "TF: %b ", twoPixelsPresent());
         //telemetry.addData("PixelDistance ", "Distance:%.3f", pixelDistance.getDistance(DistanceUnit.MM));
     }

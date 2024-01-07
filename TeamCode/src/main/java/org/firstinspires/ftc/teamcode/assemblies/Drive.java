@@ -787,7 +787,7 @@ public class Drive {
 
         teamUtil.log("MoveStraightCMwStrafeEnc cms:" + centimeters + " strafe:" + strafeTarget + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
-        float strafeFactor = .02f; // convert strafe encoder error into heading declination
+        float strafeFactor = .04f; // convert strafe encoder error into heading declination
         float maxHeadingDeclination = 20f; // don't veer off of straight more than this number of degrees
         float headingFactor = Math.abs(driveHeading-180)<.01 ? 1 : -1; // reverse correction for going backwards
 
@@ -1473,10 +1473,17 @@ public class Drive {
         int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
         double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
         teamUtil.log("Driving to wall: " + cmsToStack);
-        moveCm(MAX_VELOCITY, cmsToStack-3.5, driveHeading, robotHeading, 0); // maxVelocity was 400
-        moveCm(350, .5, 0, robotHeading, 0); // little back up
+        //moveCm(MAX_VELOCITY, cmsToStack-3.5, driveHeading, robotHeading, 0); // maxVelocity was 400
+        //moveCm(350, .5, 0, robotHeading, 0); // little back up
+        //stopMotors();
+        moveCm(MAX_VELOCITY, cmsToStack-8.5, 180, 180,400); // was 81
+        setMotorsFloat(); // coast to wall
 
         stopMotors();
+        teamUtil.pause(250);
+        setMotorsBrake();
+        //moveCm(350, .5, 0, robotHeading, 0); // little back up
+
 
         if (System.currentTimeMillis() > timeOutTime) {
             teamUtil.log("Drive To Stack --TIMED OUT!");

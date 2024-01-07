@@ -152,6 +152,7 @@ public class Teleop extends LinearOpMode {
 
             if(armsGamepad.wasRightPressed()){
                 //Needs to be implemented; free for now
+                robot.intake.grabTwoPixels();
             }
 
             if(gamepad2.dpad_left){
