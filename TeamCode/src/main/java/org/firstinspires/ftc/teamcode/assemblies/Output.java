@@ -93,11 +93,26 @@ public class Output {
 
     public void initialize(){
         teamUtil.log("Initializing Output");
-        elevLeft = hardwareMap.get(DcMotorEx.class, "elevLeft");
-        elevRight = hardwareMap.get(DcMotorEx.class, "elevRight");
-        elevLeft.setDirection(DcMotor.Direction.REVERSE); // Positive is UP on both motors
-        moving = new AtomicBoolean(false);
+        initializeElevs();
+        initializeServos();
 
+        teamUtil.log("Output Initialized ");
+    }
+
+    public void reset(){
+        initializeElevs();
+        elevLeft.setVelocity(elevatorMaxVelocity);
+        elevRight.setVelocity(elevatorMaxVelocity);
+        elevLeft.setTargetPosition(elevatorSafeFlipRotateLevel);
+        elevRight.setTargetPosition(elevatorSafeFlipRotateLevel);
+        elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        teamUtil.pause(1000);
+        initializeServos();
+        teamUtil.pause(1500);
+    }
+
+    public void initializeServos(){
         flipper = hardwareMap.get(Servo.class,"flipper");
         flipper.setPosition(flipperLoad);
         grabber = hardwareMap.get(Servo.class,"grabber");
@@ -106,14 +121,21 @@ public class Output {
         grabberRotater.setPosition(GrabberRotatorLoad);
         grabberStrafer = hardwareMap.get(Servo.class,"grabberStrafer");
         grabberStrafer.setPosition(StraferLoad);
+    }
+
+    public void initializeElevs(){
+        moving = new AtomicBoolean(false);
         loading.set(true);
+
+        elevLeft = hardwareMap.get(DcMotorEx.class, "elevLeft");
+        elevRight = hardwareMap.get(DcMotorEx.class, "elevRight");
+        elevLeft.setDirection(DcMotor.Direction.REVERSE); // Positive is UP on both motors
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
         elevLeft.setTargetPosition(elevLeft.getCurrentPosition());
         elevRight.setTargetPosition(elevRight.getCurrentPosition());
         elevLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         elevRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        teamUtil.log("Output Initialized ");
     }
 
     public void calibrate(){ //reset and initialize arms
@@ -167,7 +189,7 @@ public class Output {
         grabber.setPosition(GrabberOpen);
         teamUtil.pause(1000);
         goToLoad();
-            }
+    }
 
     public void dropAndGoToLoadNoWait() {
         if (moving.get()||loading.get()) { // Output system is already moving in a long running operation

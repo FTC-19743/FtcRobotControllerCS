@@ -57,7 +57,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             rectMiddle = new Rect(200, 100, 100, 100);
             rectRight = new Rect(500, 125, 110, 100);
         } else if(teamUtil.alliance== teamUtil.Alliance.BLUE&&teamUtil.SIDE==teamUtil.Side.SCORE) {
-            rectLeft = new Rect(50, 130, 110, 120);
+            rectLeft = new Rect(0, 130, 110, 120);
             rectMiddle = new Rect(350, 100, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
         } else if(teamUtil.alliance== teamUtil.Alliance.RED&&teamUtil.SIDE==teamUtil.Side.WING) {
@@ -65,8 +65,8 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             rectMiddle = new Rect(200, 80, 100, 100);
             rectRight = new Rect(520, 90, 100, 100);
         } else  {//blue wing
-            rectLeft = new Rect(50, 180, 110, 120);
-            rectMiddle = new Rect(350, 150, 100, 100);
+            rectLeft = new Rect(0, 130, 110, 120);
+            rectMiddle = new Rect(360, 120, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
         }
         teamUtil.log("Initialized OpenCVPropFinder processor");

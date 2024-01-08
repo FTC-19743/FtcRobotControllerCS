@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -154,7 +156,11 @@ public class TestDrive extends LinearOpMode {
 
             }
             if (gamepad.wasDownPressed()) {
-                drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
+                drive.moveCm(drive.MAX_VELOCITY,58, 90, 180,1000);
+                drive.moveCm(drive.MAX_VELOCITY,40,  teamUtil.alliance==RED ? 30 : 330, 180,0);
+                drive.moveCm(drive.MAX_VELOCITY,10, 270, 180, 0);
+
+                //drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
             }
             if (gamepad.wasOptionsPressed()) {
                 drive.moveCm(drive.MAX_VELOCITY, 30, 180, 180,400); // was 81
@@ -167,7 +173,15 @@ public class TestDrive extends LinearOpMode {
                 //drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if (gamepad.wasUpPressed()) {
-                drive.driveToAprilTagOffset(1000, 0, 180, 0, 30, 4000);
+                drive.moveCm(drive.MAX_VELOCITY,71, 90, 180,0); // Was 71
+                drive.moveCm(drive.MAX_VELOCITY,28, teamUtil.alliance==RED ? 150:210, 180,0);
+                drive.moveCm(drive.MAX_VELOCITY,6, 270, 180, 800);
+                drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,1000);
+                drive.driveToAprilTagOffset(1000, 0, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER, 30, 4000);
+                drive.moveCm(drive.MAX_VELOCITY,17, 0, 180, 0);
+
+
+                //drive.driveToAprilTagOffset(1000, 0, 180, 0, 30, 4000);
                 //drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 0, 180, 0);
                 //cycle((drive.TAG_CENTER_TO_CENTER));
             }

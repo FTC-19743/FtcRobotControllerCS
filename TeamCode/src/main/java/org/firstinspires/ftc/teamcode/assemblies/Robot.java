@@ -78,10 +78,17 @@ public class Robot {
         // TODO: SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths, Maybe don't stop between all the movements
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Under the Rigging
-            drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,71,fieldSide(), 180,0); // Was 71
+            drive.moveCm(drive.MAX_VELOCITY,28, teamUtil.alliance==RED ? 150:210, 180,0);
+            drive.moveCm(drive.MAX_VELOCITY,8, driverSide(), 180, 800);
+            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,1000);
+            /*
+            drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 1000);
             drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
             drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
+
+             */
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
             drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
@@ -105,8 +112,8 @@ public class Robot {
         boolean details = false;
 
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
-            drive.moveCm(drive.MAX_VELOCITY,71, fieldSide(), 180,0); // Was 71
-            drive.moveCm(drive.MAX_VELOCITY,28,  teamUtil.alliance==RED ? 135 : 225, 180,0);
+            drive.moveCm(drive.MAX_VELOCITY,88, teamUtil.alliance==RED ? 114 : 246, 180,0); // Was 71
+            //drive.moveCm(drive.MAX_VELOCITY,24,  teamUtil.alliance==RED ? 135 : 225, 180,0);
             if (!drive.strafeToEncoder(driverSide(), 180, 400, (teamUtil.alliance==RED ? 1 : -1)*9300, 2000)) {
                 drive.stopMotors();
                 return false;
@@ -286,7 +293,7 @@ public class Robot {
 
 
             // Drive around the purple pixel (could be optimized for different paths)
-            drive.moveCm(400, 3, 0, 180, 400);
+            drive.moveCm(400, 1.5, 0, 180, 400);
 
             drive.moveCm(drive.MAX_VELOCITY,51, fieldSide(), 180, 800);
             intake.stopIntake();

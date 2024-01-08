@@ -1437,14 +1437,23 @@ public class Drive {
         teamUtil.log("Horizontal Distance To Stack Cms: " + horizontalDistanceToStackCms);
 
         teamUtil.log("Strafing to Line");
-
+        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double strafeEncoderTarget = (horizontalDistanceToStackCms-1)*TICS_PER_CM_STRAFE;
         if(horizontalDistanceToStackCms<1){
             teamUtil.log("No strafe needed; within 1 cm of stack line");
 
         }
+
         else if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
+            teamUtil.log("To The Left Of the Line");
+            if(horizontalDistanceToStackCms>5){
+                teamUtil.log("Has to correct strafe distance because too far away");
+
+                strafeEncoderTarget=strafeEncoderTarget-2*TICS_PER_CM_STRAFE;
+            }
             // TODO: Need another failsafe here to make sure we don't strafe off of the tile
-            moveCm(350, horizontalDistanceToStackCms, 90, 180, 500); // maxVelocity was 400
+            //moveCm(350, horizontalDistanceToStackCms, 90, 180, 500); // maxVelocity was 400
+            strafeToEncoder(90,180,400,strafeEncoderTarget,2000);
 
             /*
             while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
@@ -1454,8 +1463,11 @@ public class Drive {
 
              */
         } else {
+            teamUtil.log("To The Right Of the Line");
+
             // TODO: And here!
-            moveCm(350, horizontalDistanceToStackCms, 270, 180, 500); // maxVelocity was 400
+            //moveCm(350, horizontalDistanceToStackCms, 270, 180, 500); // maxVelocity was 400
+            strafeToEncoder(270,180,400,-strafeEncoderTarget,2000);
             /*
             while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
                 driveMotorsHeadingsFR(270, 180, 350);
@@ -1691,6 +1703,7 @@ public class Drive {
         while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
         }
+        lastVelocity=velocity;
         if (System.currentTimeMillis() > timeOutTime) {
             teamUtil.log("strafeToEncoder - TIMED OUT!");
             return false;
