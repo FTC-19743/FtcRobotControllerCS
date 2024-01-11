@@ -37,6 +37,7 @@
             <RevColorSensorV3 name="pixelSensor" port="0" bus="2" />
             <RevColorSensorV3 name="onePixelSensor" port="0" bus="1" />
 
+            <Servo name="pixellid" port="5" />
             <Servo name="liftArm" port="4" />
             <Servo name="grabber" port="3" />
             <Servo name="grabberRotator" port="2" />

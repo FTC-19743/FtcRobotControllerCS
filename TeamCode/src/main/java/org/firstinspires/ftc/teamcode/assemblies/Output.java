@@ -446,6 +446,8 @@ public class Output {
         moving.set(true);
         teamUtil.log("Go To Load");
 
+        intake.openLid(); // opens intake lid
+
         if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.1f){
             teamUtil.log("Strafing to Middle");
 
@@ -474,6 +476,7 @@ public class Output {
         }
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
+        intake.closeLid();
         teamUtil.log("Go To Load-Finished");
         moving.set(false);
         loading.set(true);
@@ -519,6 +522,8 @@ public class Output {
         elevRight.setVelocity(elevatorMaxVelocity);
         teamUtil.log("Go To Score");
 
+        intake.openLid(); //opens the hatch at the top of intake
+
         if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
                 grabber.setPosition(GrabberClosed);
@@ -540,6 +545,7 @@ public class Output {
         }
 
         intake.stopIntake();
+
 
 
         elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));

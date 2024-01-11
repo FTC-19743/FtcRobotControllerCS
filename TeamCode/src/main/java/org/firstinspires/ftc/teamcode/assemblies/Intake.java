@@ -18,6 +18,7 @@ public class Intake {
     Telemetry telemetry;
     public Servo lKnocker;
     public Servo rKnocker;
+    public Servo pixelLid;
     public CRServo kicker;
     public CRServo sweeper;
 
@@ -37,6 +38,8 @@ public class Intake {
     public double kickerDirection = 1;
     public double sweeperDirection = -1;
 
+    public double lidOpen = 0.8;
+    public double lidClosed = 0.25;
     public double leftKnockerFullCollect = 0.05;
 
 
@@ -71,9 +74,14 @@ public class Intake {
         teamUtil.log("Initializing Intake");
         sweeper = hardwareMap.get(CRServo.class,"sweeper");
         kicker = hardwareMap.get(CRServo.class,"kicker");
+
         rKnocker = hardwareMap.get(Servo.class,"rKnocker");
         lKnocker = hardwareMap.get(Servo.class,"lKnocker");
+        pixelLid = hardwareMap.get(Servo.class,"pixellid");
+
         store();
+        openLid();
+
         pixelSensorTop = hardwareMap.get(RevColorSensorV3.class, "pixelSensor");
         pixelSensorBottom = hardwareMap.get(RevColorSensorV3.class, "onePixelSensor");
 
@@ -82,6 +90,12 @@ public class Intake {
         teamUtil.log("Intake Initialized ");
     }
 
+    public void openLid () {
+        pixelLid.setPosition(lidOpen);
+    }
+    public void closeLid() {
+        pixelLid.setPosition(lidClosed);
+    }
     public void store() {
         lKnocker.setPosition(leftKnockerStore);
         rKnocker.setPosition(rightKnockerStore);
@@ -128,12 +142,14 @@ public class Intake {
             intakeRunning=true;
             sweeper.setPower(1*sweeperDirection);
             kicker.setPower(1*kickerDirection);
+            closeLid();
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED);
         }
         else{
             intakeRunning=false;
             sweeper.setPower(0);
             kicker.setPower(.1);
+            openLid();
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
         }
@@ -218,9 +234,7 @@ public class Intake {
         if(intakeRunning) {
             if(onlyOnePixelPresent()){
                 teamUtil.log("only one pixel present");
-                sweeper.setPower(-1);
-                kicker.setPower(.3);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.YELLOW);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOLD);
             }
             else if(twoPixelsPresent()){
                 teamUtil.log("both pixels present");
@@ -232,6 +246,7 @@ public class Intake {
                     sweeper.setPower(0);
                     kicker.setPower(.1);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
+                    openLid();
                 }
             }
             else{
