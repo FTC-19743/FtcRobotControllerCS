@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class slappyOp extends LinearOpMode {
     TeamGamepad gamepad;
     DcMotorEx leftMotor, rightMotor;
-    Servo headServo;
+    Servo headServo, hatchServo;
     AprilTagProcessor aprilTag;
     boolean trackingAprilTags = false;
     VisionPortal visionPortal;
@@ -39,6 +39,9 @@ public class slappyOp extends LinearOpMode {
     long lastServoSkew = 0;
     double HEAD_MIDDLE = 0.518;
     double HEAD_APRIL_TURN = .15;
+
+    double HATCH_CLOSED = 0.62;
+    double HATCH_OPEN = 0.22;
 
 
 
@@ -54,7 +57,7 @@ public class slappyOp extends LinearOpMode {
         telemetry.update();
         setUp();
         headServo.setPosition(0.5);
-        telemetry.addLine("Servo Skew Time in ms: " + servoSkewTimeMs);
+        //telemetry.addLine("Servo Skew Time in ms: " + servoSkewTimeMs);
 
         telemetry.addLine("Ready! Press Play to Slap");
         telemetry.update();
@@ -81,6 +84,12 @@ public class slappyOp extends LinearOpMode {
             } else {
                 turnHead(gamepad.gamepad.left_trigger, gamepad.gamepad.right_trigger);
             }
+            if (gamepad.wasLeftBumperPressed()) {
+                openHatch();
+            }
+            if (gamepad.wasRightBumperPressed()) {
+                closeHatch();
+            }
             telemetry.update();
         }
         visionPortal.close();
@@ -92,6 +101,8 @@ public class slappyOp extends LinearOpMode {
         rightMotor = hardwareMap.get(DcMotorEx.class, "rm");
         armMotor = hardwareMap.get(DcMotorEx.class, "am");
         headServo = hardwareMap.get(Servo.class,"headServo");
+        hatchServo = hardwareMap.get(Servo.class,"hatchServo");
+
         aprilTag = new AprilTagProcessor.Builder().build();
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
@@ -131,13 +142,42 @@ public class slappyOp extends LinearOpMode {
 
     public void trackAprilTags() {
         List<AprilTagDetection> detections = aprilTag.getDetections();
-        for (AprilTagDetection detection : detections) {
-            if (detection.center != null) {
-                telemetry.addLine("April Tag x: " + detection.center.x);
-                telemetry.addLine("position:" + (HEAD_MIDDLE + (detection.center.x-320f)/320f*HEAD_APRIL_TURN));
-                headServo.setPosition(HEAD_MIDDLE + (detection.center.x-320f)/320f*HEAD_APRIL_TURN);
+        if (detections.size() > 0) { // found an april tag
+            for (AprilTagDetection detection : detections) {
+                if (detection.center != null) {
+                    telemetry.addLine("April Tag x: " + detection.center.x);
+                    telemetry.addLine("position:" + (HEAD_MIDDLE + (detection.center.x - 320f) / 320f * HEAD_APRIL_TURN));
+                    double newPosition = HEAD_MIDDLE + (detection.center.x - 320f) / 320f * HEAD_APRIL_TURN;
+                    headServo.setPosition(newPosition);
+                }
+            }
+        } else { // no April Tags so turn robot to try and find one
+            if (headServo.getPosition() < HEAD_MIDDLE) {
+                turnLeft();
+            } else  {
+                turnRight();
             }
         }
+    }
+
+    private void turnLeft() {
+        leftMotor.setPower(-0.4f);
+        rightMotor.setPower(0.4f);
+        teamUtil.pause(250);
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
+    }
+    private void turnRight() {
+        leftMotor.setPower(0.4f);
+        rightMotor.setPower(-0.4f);
+        teamUtil.pause(250);
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);    }
+    private void closeHatch() {
+        hatchServo.setPosition(HATCH_CLOSED);
+    }
+    private void openHatch() {
+        hatchServo.setPosition(HATCH_OPEN);
     }
 
     private boolean    setManualExposure(int exposureMS, int gain) {
