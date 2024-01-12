@@ -198,6 +198,18 @@ public class Teleop extends LinearOpMode {
                 robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad);
             }
 
+            if(armsGamepad.wasXPressed()){ // Send output system to scoring position
+                //robot.output.goToScoreNoWait(3);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2);
+            }
+
+            if(armsGamepad.wasBPressed()){ // Send output system to scoring position
+                //robot.output.goToScoreNoWait(3);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2);
+            }
+
             if(gamepad2.left_bumper||gamepad2.right_bumper){
                 robot.output.straferManualV2(gamepad2.left_bumper,gamepad2.right_bumper);
                 //robot.output.straferManual(true);
