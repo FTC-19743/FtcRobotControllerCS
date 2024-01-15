@@ -98,6 +98,7 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
         }
+
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
         return true;
@@ -310,6 +311,7 @@ public class Robot {
         //if(true)return; //temporary for test
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER); // TODO Adjust this for better consistency?
         drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 3000);
+        drive.stopCV();
         drive.moveCm(drive.MAX_VELOCITY,17, 0, 180, 0);
 
         if (operateArms) {

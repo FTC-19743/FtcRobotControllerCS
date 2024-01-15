@@ -26,5 +26,6 @@ public class ResetOpMode extends LinearOpMode {
         armsGamepad.initilize(false);
         robot = new Robot();
         robot.output.reset();
+        robot.calibrate();
     }
 }

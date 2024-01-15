@@ -61,18 +61,44 @@ public class slappyOp extends LinearOpMode {
 
         telemetry.addLine("Ready! Press Play to Slap");
         telemetry.update();
+        int gain=100;
+        int exposure=1;
+        while(!opModeIsActive()){
+            gamepad.loop();
+            if(gamepad.wasUpPressed()){
+                gain++;
+            }
+            if(gamepad.wasDownPressed()){
+                gain--;
+            }if(gamepad.wasRightPressed()){
+                exposure++;
+            }if(gamepad.wasLeftPressed()){
+                exposure--;
+            }
+            telemetry.addLine("Exposure" + exposure);
+            telemetry.addLine("Gain" + gain);
+
+            telemetry.update();
+
+
+        }
+        setManualExposure(exposure,gain);
         waitForStart();
 
         while (opModeIsActive()) {
             telemetry.addLine("Tracking April Tags: "+ trackingAprilTags);
             gamepad.loop();
             drive (gamepad.gamepad.left_stick_x, gamepad.gamepad.left_stick_y);
+            //calibrateSlappyCam(gamepad1.dpad_up, gameuppad1.dpad_down,gamepad1.dpad_right,gamepad1.dpad_left);//
             if (Math.abs(gamepad.gamepad.right_stick_y)> .1f) {
                 armMotor.setPower(gamepad.gamepad.right_stick_y);
             } else {
                 armMotor.setPower(0);
             }
             if (gamepad.wasYPressed() && !trackingAprilTags) {
+                trackingAprilTags = true;
+                setManualExposure(1,30);
+            } else if (gamepad.wasBPressed() && !trackingAprilTags) {//utside settings
                 trackingAprilTags = true;
                 setManualExposure(5,250);
             } else  if (gamepad.wasAPressed() && trackingAprilTags) {
@@ -109,7 +135,7 @@ public class slappyOp extends LinearOpMode {
         builder.addProcessor(aprilTag);
         visionPortal = builder.build();
         teamUtil.pause(1500);
-        setManualExposure(8,200); // Make April tag processor more responsive
+        //setManualExposure(8,200); // Make April tag processor more responsive
     }
     public void drive (float x, float y) {
         float DEADBAND = 0.1f;
@@ -138,6 +164,31 @@ public class slappyOp extends LinearOpMode {
                 lastServoSkew = System.currentTimeMillis();
             }
         }
+    }
+    public void calibrateSlappyCam(boolean gainUp, boolean gainDown, boolean exposureUp, boolean exposureDown){
+        int exposure = 1;
+        int gain = 200;
+        boolean inMode = gamepad1.options;
+        teamUtil.log("Calibrate Cam Started");
+
+            if(gainUp){
+                gain=gain+1;}
+            else if(gainDown){
+                gain=gain-1;
+            }else if(exposureUp){
+               exposure=exposure+1;
+            }else if(exposureDown){
+                exposure=exposure-1;
+            }else{}
+
+            inMode=gamepad1.options;
+            telemetry.addLine("Exposure = " + exposure);
+            telemetry.addLine("Gain = " + gain);
+
+        setManualExposure(exposure,gain);
+
+
+
     }
 
     public void trackAprilTags() {
