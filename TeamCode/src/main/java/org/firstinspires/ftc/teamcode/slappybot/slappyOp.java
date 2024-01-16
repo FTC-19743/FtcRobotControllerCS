@@ -98,7 +98,7 @@ public class slappyOp extends LinearOpMode {
             if (gamepad.wasYPressed() && !trackingAprilTags) {
                 trackingAprilTags = true;
                 setManualExposure(1,30);
-            } else if (gamepad.wasBPressed() && !trackingAprilTags) {//utside settings
+            } else if (gamepad.wasBPressed() && !trackingAprilTags) {//outside settings
                 trackingAprilTags = true;
                 setManualExposure(5,250);
             } else  if (gamepad.wasAPressed() && trackingAprilTags) {

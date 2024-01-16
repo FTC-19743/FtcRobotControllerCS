@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
@@ -110,7 +111,7 @@ public class Drive {
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
     public double CMS_PER_INCH = 2.54;
-    public double TICS_PER_CM_STRAFE = 130;
+    public double TICS_PER_CM_STRAFE_ENCODER = 130;
 
     public Output output;
 
@@ -529,12 +530,14 @@ public class Drive {
         br.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void findMaxVelocity() {
+    public void findMaxVelocity(int cmDistance) {
+        long startTime = System.currentTimeMillis();
         teamUtil.log("Finding Forward Max Velocities...");
         resetAllDriveEncoders();
-        double travelTics = COUNTS_PER_CENTIMETER * 120;
+        double travelTics = COUNTS_PER_CENTIMETER * cmDistance;
         setMotorVelocities(3000, 3000, 3000, 3000);
         double flmax = 0, frmax = 0, blmax = 0, brmax = 0, v;
+        double ticStartPosition = fr.getCurrentPosition();
         while (fr.getCurrentPosition() < travelTics) {
             flmax = (v = fl.getVelocity()) > flmax ? v : flmax;
             frmax = (v = fr.getVelocity()) > frmax ? v : frmax;
@@ -543,7 +546,58 @@ public class Drive {
             teamUtil.log("Looping FL:" + flmax + " FR:" + frmax + " BL:" + blmax + " BR:" + brmax);
         }
         stopMotors();
+        long elapsedTime = System.currentTimeMillis()-startTime;
+        double ticsTraveled = fr.getCurrentPosition()-ticStartPosition;
+        double cmsTraveled = ticsTraveled/COUNTS_PER_CENTIMETER;
+        double timeS = elapsedTime/1000.0;
+        teamUtil.log("Elapsed Time: " + elapsedTime);
+        teamUtil.log("Tics Traveled: " + ticsTraveled);
+        teamUtil.log("Cms Traveled: " + cmsTraveled);
+        teamUtil.log("Cms Per Second: " + cmsTraveled/timeS);
+
+
+
         teamUtil.log("Forward Max Velocities FL:" + flmax + " FR:" + frmax + " BL:" + blmax + " BR:" + brmax);
+    }
+
+    public void findMaxStrafeVelocity(double distance){
+        setHeading(180);
+        long startTime = System.currentTimeMillis();
+        teamUtil.log("Finding Forward Max Velocities...");
+        resetAllDriveEncoders();
+        double travelTics = distance*COUNTS_PER_CENTIMETER;
+        teamUtil.log("Travel Tics: " + travelTics);
+        double ticStartPosition = fr.getCurrentPosition();
+        driveMotorsHeadingsFR(270,180,3000);
+
+
+
+        double flmax = 0, frmax = 0, blmax = 0, brmax = 0, v;
+
+        while(fr.getCurrentPosition()<travelTics){
+
+            flmax = (v = fl.getVelocity()) > flmax ? v : flmax;
+            frmax = (v = fr.getVelocity()) > frmax ? v : frmax;
+            blmax = (v = bl.getVelocity()) > blmax ? v : blmax;
+            brmax = (v = br.getVelocity()) > brmax ? v : brmax;
+            teamUtil.log("Looping FL:" + flmax + " FR:" + frmax + " BL:" + blmax + " BR:" + brmax);
+
+
+        }
+        stopMotors();
+        long elapsedTime = System.currentTimeMillis()-startTime;
+        double ticsTraveled = fr.getCurrentPosition()-ticStartPosition;
+        double cmsTraveled = ticsTraveled/COUNTS_PER_CENTIMETER;
+        double timeS = elapsedTime/1000.0;
+        teamUtil.log("Elapsed Time: " + elapsedTime);
+        teamUtil.log("Tics Traveled: " + ticsTraveled);
+
+        teamUtil.log("Cms Per Second: " + cmsTraveled/timeS);
+        teamUtil.log("Cms Traveled: " + cmsTraveled);
+
+        teamUtil.log("Tics Per Second: " + ticsTraveled/(elapsedTime/1000));
+
+        teamUtil.log("Strafing Max Velocities FL:" + flmax + " FR:" + frmax + " BL:" + blmax + " BR:" + brmax);
     }
 
     public void driveMotorsHeadings(double driveHeading, double robotHeading, double velocity) {
@@ -1438,7 +1492,7 @@ public class Drive {
 
         teamUtil.log("Strafing to Line");
         strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        double strafeEncoderTarget = (horizontalDistanceToStackCms-1)*TICS_PER_CM_STRAFE;
+        double strafeEncoderTarget = (horizontalDistanceToStackCms-1)*TICS_PER_CM_STRAFE_ENCODER;
         if(horizontalDistanceToStackCms<1){
             teamUtil.log("No strafe needed; within 1 cm of stack line");
 
@@ -1449,7 +1503,7 @@ public class Drive {
             if(horizontalDistanceToStackCms>5){
                 teamUtil.log("Has to correct strafe distance because too far away");
 
-                strafeEncoderTarget=strafeEncoderTarget-2*TICS_PER_CM_STRAFE;
+                strafeEncoderTarget=strafeEncoderTarget-2*TICS_PER_CM_STRAFE_ENCODER;
             }
             // TODO: Need another failsafe here to make sure we don't strafe off of the tile
             //moveCm(350, horizontalDistanceToStackCms, 90, 180, 500); // maxVelocity was 400
@@ -1700,7 +1754,7 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
-        while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE && teamUtil.keepGoing(timeOutTime)) {
+        while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE_ENCODER && teamUtil.keepGoing(timeOutTime)) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
         }
         lastVelocity=velocity;

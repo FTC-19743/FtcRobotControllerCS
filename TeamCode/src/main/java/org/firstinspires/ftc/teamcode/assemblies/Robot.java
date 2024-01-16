@@ -194,9 +194,9 @@ public class Robot {
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         int desiredStrafeEncoder;
         if(teamUtil.alliance == teamUtil.alliance.RED){
-            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE+61*drive.TICS_PER_CM_STRAFE);
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER+61*drive.TICS_PER_CM_STRAFE_ENCODER);
         }else{
-            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE-61*drive.TICS_PER_CM_STRAFE);
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-61*drive.TICS_PER_CM_STRAFE_ENCODER);
         }
         teamUtil.log("Desired Strafe Encoder: " + desiredStrafeEncoder);
 

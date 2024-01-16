@@ -166,6 +166,13 @@ public class testAutoPaths extends LinearOpMode {
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
+            if(driverGamepad.wasOptionsPressed()){
+                robot.drive.findMaxVelocity(100);
+            }
+            if(driverGamepad.wasAPressed()){
+                robot.drive.findMaxStrafeVelocity(100);
+
+            }
             //test for cycle pathing
 //            if(driverGamepad.wasDownPressed()){
 //                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
