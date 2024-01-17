@@ -96,7 +96,10 @@ public class Drive {
     public WebcamName sideCam;
 
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
-    public double COUNTS_PER_CENTIMETER = 17.923;
+    public double COUNTS_PER_CENTIMETER = 12.855; // Used with 435 RPM
+    public double COUNTS_PER_CENTIMETER_312 = 17.923; // Used with 312 RPM
+
+
     public double MIN_START_VELOCITY = 300; //tentative value
     public double MIN_END_VELOCITY = 250; //tentative value
     public double MAX_ACCELERATION = 12; //tentative value
@@ -563,7 +566,7 @@ public class Drive {
     public void findMaxStrafeVelocity(double distance){
         setHeading(180);
         long startTime = System.currentTimeMillis();
-        teamUtil.log("Finding Forward Max Velocities...");
+        teamUtil.log("Finding Strafing Max Velocities...");
         resetAllDriveEncoders();
         double travelTics = distance*COUNTS_PER_CENTIMETER;
         teamUtil.log("Travel Tics: " + travelTics);

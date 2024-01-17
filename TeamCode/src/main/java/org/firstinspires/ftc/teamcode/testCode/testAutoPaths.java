@@ -167,10 +167,10 @@ public class testAutoPaths extends LinearOpMode {
 
             }
             if(driverGamepad.wasOptionsPressed()){
-                robot.drive.findMaxVelocity(100);
+                robot.drive.findMaxVelocity(200);
             }
             if(driverGamepad.wasAPressed()){
-                robot.drive.findMaxStrafeVelocity(100);
+                robot.drive.findMaxStrafeVelocity(150);
 
             }
             //test for cycle pathing
