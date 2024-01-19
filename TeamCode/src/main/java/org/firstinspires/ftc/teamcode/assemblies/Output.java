@@ -47,7 +47,7 @@ public class Output {
     //public static double flipperScore = 0.845+0.007*5;
     public static double flipperScore = 0.8756;
 
-    public static double StraferLoad = 0.47;
+    public static double StraferLoad = 0.485; // was 0.47
     public static double StraferRight = 0.28; // "Right" when facing the backdrop.  Actually Robot's left
     public static double StraferLeft = 0.655;
 

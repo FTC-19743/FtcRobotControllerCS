@@ -225,7 +225,7 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasXPressed()){
                 double kickerSpeed = 0;
                 double sweeperSpeed = 0;
-                while (!gamepad.wasXPressed()){
+                while (!gamepad.wasXPressed() && opModeIsActive()){
                     gamepad.loop();
                     if(gamepad.wasUpPressed()){
                         kickerSpeed=kickerSpeed+0.1;
@@ -239,6 +239,15 @@ public class TestDrive extends LinearOpMode {
                     }
                     intake.kicker.setPower(kickerSpeed);
                     intake.sweeper.setPower(-sweeperSpeed);
+                    if (gamepad.wasLeftBumperPressed()) {
+                        intake.ready();
+                    }
+                    if (gamepad.wasRightBumperPressed()) {
+                        intake.collectTeleop();
+                    }
+                    if (gamepad.wasRightTriggerPressed()) {
+                        intake.collectFull();
+                    }
                     telemetry.addLine("Sweeper Power: " + sweeperSpeed);
                     telemetry.addLine("Kicker Power: " + kickerSpeed);
                     telemetry.update();

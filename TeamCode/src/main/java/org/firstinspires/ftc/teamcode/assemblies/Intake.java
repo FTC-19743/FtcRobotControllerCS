@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.assemblies;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -20,7 +22,7 @@ public class Intake {
     public Servo rKnocker;
     public Servo pixelLid;
     public CRServo kicker;
-    public CRServo sweeper;
+    public DcMotorEx sweeper;
 
 
 
@@ -36,30 +38,26 @@ public class Intake {
 
     public AtomicBoolean grabbingOnePixel = new AtomicBoolean(false);
     public double kickerDirection = 1;
-    public double sweeperDirection = -1;
+    public double sweeperDirection = 1;
 
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
-    public double leftKnockerFullCollect = 0.05;
 
+    public double leftKnockerReady = 0.74; // was .44
+    public double leftKnockerGetTop = 0.3;
+    public double leftKnockerGetBottom = 0.27;
+    public double leftKnockerCollect = leftKnockerGetTop; // was 0.16
+    public double leftKnockerFullCollect = leftKnockerGetBottom; // was .05
+    public double leftKnockerCollectAuto = leftKnockerGetTop; // was 0.19
+    public double leftKnockerStore = leftKnockerGetTop; // was .68
 
-    public double leftKnockerStore = 0.68;
-    public double leftKnockerSweep = 0.44;
-    public double leftKnockerReady = 0.44;
-    public double leftKnockerDrop = 0.32;
-
-    public double leftKnockerCollect = 0.16;
-    public double leftKnockerCollectAuto = 0.19;
-
-    public double rightKnockerFullCollect = 0.93;
-    public double rightKnockerStore = 0.29;
-    public double rightKnockerSweep = 0.54;
-    public double rightKnockerReady = 0.55;
-    public double rightKnockerDrop = .68;
-
-    public double rightKnockerCollect = 0.84;
-    public double rightKnockerCollectAuto = 0.81;
-
+    public double rightKnockerReady = 0.25; // was .55
+    public double rightKnockerGetTop = 0.70;
+    public double rightKnockerGetBottom = 0.73;
+    public double rightKnockerCollect = rightKnockerGetTop; // was 0.84
+    public double rightKnockerFullCollect = rightKnockerGetBottom; // was 0.93
+    public double rightKnockerCollectAuto = rightKnockerGetTop; // was 0.81
+    public double rightKnockerStore = rightKnockerGetTop; // was 0.29
 
     public boolean intakeRunning = false;
 
@@ -72,7 +70,8 @@ public class Intake {
 
     public void initalize(){
         teamUtil.log("Initializing Intake");
-        sweeper = hardwareMap.get(CRServo.class,"sweeper");
+        sweeper = hardwareMap.get(DcMotorEx.class,"sweeper");
+        sweeper.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         kicker = hardwareMap.get(CRServo.class,"kicker");
 
         rKnocker = hardwareMap.get(Servo.class,"rKnocker");
@@ -122,12 +121,12 @@ public class Intake {
     }
 
     public void startIntake(){
-        sweeper.setPower(1*sweeperDirection);
+        sweeper.setPower(0.1*sweeperDirection);
         kicker.setPower(1*kickerDirection);
     }
 
     public void reverseIntake(){
-        sweeper.setPower(-1*sweeperDirection);
+        sweeper.setPower(-0.1*sweeperDirection);
         kicker.setPower(-1*kickerDirection);
     }
 
@@ -140,7 +139,7 @@ public class Intake {
     public void toggleIntake(){
         if(!intakeRunning){
             intakeRunning=true;
-            sweeper.setPower(1*sweeperDirection);
+            sweeper.setPower(0.1*sweeperDirection);
             kicker.setPower(1*kickerDirection);
             closeLid();
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED);

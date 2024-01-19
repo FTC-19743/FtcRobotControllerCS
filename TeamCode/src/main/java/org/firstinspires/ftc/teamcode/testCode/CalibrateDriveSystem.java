@@ -23,6 +23,8 @@ public class CalibrateDriveSystem extends LinearOpMode {
     TeamGamepad teamGamePad;
     //sampleStats distanceStats;
     double testVelocity = 1000;
+    double testDistance = 100;
+
     double HEADING = 0;
     long TIME = 3;
 
@@ -125,9 +127,21 @@ public class CalibrateDriveSystem extends LinearOpMode {
         } else if (teamGamePad.wasAPressed()) {
             drive.MAX_ACCELERATION = drive.MAX_ACCELERATION - 10;
         } else if (teamGamePad.wasXPressed()) {
-            drive.MAX_DECELERATION = drive.MAX_DECELERATION - 10;
+            drive.MAX_DECELERATION = drive.MAX_DECELERATION - 0.5f;
         } else if (teamGamePad.wasBPressed()) {
-            drive.MAX_DECELERATION = drive.MAX_DECELERATION + 10;
+            drive.MAX_DECELERATION = drive.MAX_DECELERATION + 0.5f;
+        }
+    }
+
+    public void adjustBasicMovementParams2() {
+        if (teamGamePad.wasUpPressed()) {
+            testVelocity = testVelocity + 50;
+        } else if (teamGamePad.wasDownPressed()) {
+            testVelocity = testVelocity - 50;
+        } else if (teamGamePad.wasLeftPressed()) {
+            testDistance = testDistance - 10;
+        } else if (teamGamePad.wasRightPressed()) {
+            testDistance = testDistance + 10;
         }
     }
 
@@ -148,33 +162,39 @@ public class CalibrateDriveSystem extends LinearOpMode {
     }
 
     public void testMoveInches() {
-        if (gamepad2.dpad_up) {
+        if (teamGamePad.gamepad.dpad_up) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 0, 0,0);
-        } else if (gamepad2.dpad_down) {
+            drive.moveCm(testVelocity, testDistance, 0, 0,0);
+        } else if (teamGamePad.gamepad.dpad_down) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 180, 0,0);
-        } else if (gamepad2.dpad_left) {
+            drive.moveCm(testVelocity, testDistance, 180, 0,0);
+        } else if (teamGamePad.gamepad.dpad_left) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 90, 0,0);
-        } else if (gamepad2.dpad_right) {
+            drive.moveCm(testVelocity, testDistance, 90, 0,0);
+        } else if (teamGamePad.gamepad.dpad_right) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 270, 0,0);
-        } else if (gamepad2.y) {
+            drive.moveCm(testVelocity, testDistance, 270, 0,0);
+        } else if (teamGamePad.gamepad.y) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 45, 0,0);
-        } else if (gamepad2.a) {
+            drive.moveCm(testVelocity, testDistance, 45, 0,0);
+        } else if (teamGamePad.gamepad.a) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 225, 0,0);
-        } else if (gamepad2.x) {
+            drive.moveCm(testVelocity, testDistance, 225, 0,0);
+        } else if (teamGamePad.gamepad.x) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 135, 0,0);
-        } else if (gamepad2.b) {
+            drive.moveCm(testVelocity, testDistance, 135, 0,0);
+        } else if (teamGamePad.gamepad.b) {
             drive.setHeading(0);
-            drive.moveCm(drive.MAX_VELOCITY, 200, 315, 0,0);
+            drive.moveCm(testVelocity, testDistance, 315, 0,0);
         }
     }
 
+    public void crazyTest () {
+        drive.setHeading(0);
+        drive.moveCm(2000   , 200  , 0, 0,2000);
+        drive.setMotorsBrake();
+        drive.stopMotors();
+    }
     /*
     public void adjustDistanceSensorMovementConstants () {
         if (teamGamePad.wasUpPressed()) {
@@ -244,47 +264,50 @@ public class CalibrateDriveSystem extends LinearOpMode {
         long time = 0;
         while (opModeIsActive()) {
             teamGamePad.loop();
-            if (teamGamePad.wasAPressed()){
-                drive.resetHeading();
-                start = System.currentTimeMillis();
-
-                time = System.currentTimeMillis() - start;
-            }
-            if (teamGamePad.wasBPressed()){
-                drive.resetHeading();
-                start = System.currentTimeMillis();
-
-                time = System.currentTimeMillis() - start;
-            }
-            if (teamGamePad.wasXPressed()){
-                drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                drive.strafeEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-            if (teamGamePad.wasYPressed()) {
-
-            }
-            if (teamGamePad.wasUpPressed()){
-
-            }
-            if (teamGamePad.wasDownPressed()){
-
-            }
-
-            if (teamGamePad.gamepad.left_bumper) { // HOLD LEFT BUMPER TO FIND MAX SPEEDS
+            if (teamGamePad.gamepad.left_bumper) { //
                 if (teamGamePad.wasAPressed()) {
                     drive.findMaxVelocity(200);
                 } else if (teamGamePad.wasBPressed()) {
                     drive.findMaxStrafeVelocity(200);
                 }
-            } else if (teamGamePad.gamepad.right_bumper) { // HOLD RIGHT BUMPER TO ADJUST BASIC MOVEMENT PARAMS
+            } else if (teamGamePad.gamepad.right_bumper) { //
                 adjustBasicMovementParams();
-            } else if (teamGamePad.gamepad.left_trigger > .5) { // HOLD LEFT TRIGGER TO TEST MOVE INCHES
+            } else if (teamGamePad.gamepad.left_trigger > .5) {
                 testMoveInches();
-            }
-            if (teamGamePad.gamepad.left_stick_button && teamGamePad.gamepad.right_stick_button) { // GP2 to Reset Heading
-                drive.resetHeading();
-            }
+            } if (teamGamePad.gamepad.right_trigger > .5) { // HOLD LEFT TRIGGER TO TEST MOVE INCHES
+                adjustBasicMovementParams2();
+            }else {
+                if (teamGamePad.wasAPressed()) {
+                    drive.resetHeading();
+                    start = System.currentTimeMillis();
+                    crazyTest();
+                    time = System.currentTimeMillis() - start;
+                }
+                if (teamGamePad.wasBPressed()) {
+                    drive.resetHeading();
+                    start = System.currentTimeMillis();
 
+                    time = System.currentTimeMillis() - start;
+                }
+                if (teamGamePad.wasXPressed()) {
+                    drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    drive.strafeEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                }
+                if (teamGamePad.wasYPressed()) {
+
+                }
+                if (teamGamePad.wasUpPressed()) {
+
+                }
+                if (teamGamePad.wasDownPressed()) {
+
+                }
+
+
+                if (teamGamePad.gamepad.left_stick_button && teamGamePad.gamepad.right_stick_button) { // GP2 to Reset Heading
+                    drive.resetHeading();
+                }
+            }
             /*
             if (teamGamePad.gamepad.left_bumper) { // HOLD GP1 LEFT BUMPER TO ADJUST SPIN PARAMS
                 adjustSpinThresholds();
@@ -302,7 +325,7 @@ public class CalibrateDriveSystem extends LinearOpMode {
 
 
             //telemetry.addLine("DistNoMv:"+ drive.MOVE_TO_DISTANCE_NO_MOVEMENT_THRESHOLD +" Drift:"+drive.MOVE_TO_DISTANCE_DRIFT_DISTANCE +" Slow:"+drive.MOVE_TO_DISTANCE_SLOW_DISTANCE+" Dec:"+drive.MOVE_TO_DISTANCE_DECEL_DISTANCE);
-            //telemetry.addLine("Velocity:"+ testVelocity);
+            telemetry.addLine("Velocity:"+ testVelocity + "Distance:"+ testDistance);
 
             telemetry.addLine("Start:"+ drive.MIN_START_VELOCITY +" End:"+drive.MIN_END_VELOCITY +" Acc:"+drive.MAX_ACCELERATION+" Dec:"+drive.MAX_DECELERATION);
             telemetry.addLine("SpinSLOW:"+ drive.CRAWL_SPEED+" SpinMAX:"+drive.MAX_VELOCITY+" SlowThreshold:"+drive.CRAWL_DISTANCE_SPINS+" Dec:"+drive.SPIN_END_OF_MAX_VELOCITY);

@@ -33,7 +33,7 @@ public class Lift {
 
     public void initialize(){
         teamUtil.log("Initializing Lift");
-        liftSpindle = hardwareMap.get(DcMotorEx.class, "liftSpindle");
+        liftSpindle = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
         liftArm = hardwareMap.get(Servo.class,"liftArm");
         liftArm.setPosition(liftArmStowed);
         armUp = false;
@@ -62,21 +62,33 @@ public class Lift {
         armUp=false;
     }
     public void raiseLift(){
+        // TODO: Needs to be reimplemented to use setPower and no encoder
+        /*
         liftSpindle.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         startedLifting = true;
         liftSpindle.setVelocity(liftSpindleVelocity);
+         */
     }
     public void lowerLift(){
-        liftSpindle.setVelocity(-liftSpindleVelocity);
+        // TODO: Needs to be reimplemented to use setPower and no encoder
+        /*
+                liftSpindle.setVelocity(-liftSpindleVelocity);
+         */
     }
     public void stopLift()
     {
-        liftSpindle.setVelocity(0);
+        // TODO: Needs to be reimplemented to use setPower and no encoder
+        /*
+                liftSpindle.setVelocity(0);
+         */
     }
     public void holdLift(){
-        liftSpindle.setTargetPosition(liftSpindle.getCurrentPosition());
+        // TODO: Needs to be reimplemented to use setPower and no encoder
+        /*
+                liftSpindle.setTargetPosition(liftSpindle.getCurrentPosition());
         liftSpindle.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         liftSpindle.setVelocity(3000);
+         */
     }
     public void outputTelemetry() {
         telemetry.addData("Lift  ", "Motor: %d, Arm: %f", liftSpindle.getCurrentPosition(), liftArm.getPosition());

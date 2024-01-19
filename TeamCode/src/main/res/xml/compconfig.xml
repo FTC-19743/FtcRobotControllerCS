@@ -9,14 +9,14 @@
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
-            <goBILDA5202SeriesMotor name="strafeEncoder" port="0" />
+            <goBILDA5202SeriesMotor name="liftAndStrafeEncoder" port="0" />
             <goBILDA5202SeriesMotor name="elevRight" port="1" />
             <goBILDA5202SeriesMotor name="elevLeft" port="2" />
-            <goBILDA5202SeriesMotor name="liftSpindle" port="3" />
+            <goBILDA5202SeriesMotor name="sweeper" port="3" />
 
             <RevBlinkinLedDriver name="blinkin" port="0"/>
             <Servo name="launcher" port="1" />
-            <ContinuousRotationServo name="sweeper" port="2" />
+ <!---           <ContinuousRotationServo name="sweeper" port="2" />   OPEN FOR USE!-->
             <ContinuousRotationServo name="kicker" port="3" />
             <Servo name="rKnocker" port="4" />
             <Servo name="lKnocker" port="5" />

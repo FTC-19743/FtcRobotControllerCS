@@ -100,11 +100,12 @@ public class Drive {
     public double COUNTS_PER_CENTIMETER_312 = 17.923; // Used with 312 RPM
 
 
-    public double MIN_START_VELOCITY = 300; //tentative value
-    public double MIN_END_VELOCITY = 250; //tentative value
-    public double MAX_ACCELERATION = 12; //tentative value
-    public double MAX_DECELERATION = 2; //tentative value (should be negative)
-    public double MAX_VELOCITY = 2680;
+    public double MIN_START_VELOCITY = 300; //calibrated with 435s
+    public double MIN_END_VELOCITY = 400; //calibrated with 435s
+    public double MAX_ACCELERATION = 22; //calibrated with 435s
+    public double MAX_DECELERATION = 1.0; //calibrated with 435s
+    public double MAX_VELOCITY = 2450; // Was 2680
+    public double MAX_VELOCITY_STRAFE = 2000; // Added with new motors
     public double ROTATION_ADJUST_FACTOR = 0.04;
     public double SIDE_VECTOR_COEFFICIENT = .92;
     public double FORWARD_VECTOR_COEFFICIENT = 1.08;
@@ -134,7 +135,7 @@ public class Drive {
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
-        strafeEncoder = hardwareMap.get(DcMotorEx.class, "strafeEncoder");
+        strafeEncoder = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
         ultLeft = hardwareMap.analogInput.get("ult");
         prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
         prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
