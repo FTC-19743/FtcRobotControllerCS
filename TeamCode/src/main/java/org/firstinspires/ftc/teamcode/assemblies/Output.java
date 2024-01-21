@@ -58,7 +58,7 @@ public class Output {
     public static long lastStraferServoSkew = 0;
 
     public static long servoSkewTimeMs = 100; //tentative value
-    public static double GrabberOpen = 0.55;
+    public static double GrabberOpen = 0.53;
     public static double GrabberClosed = 0.73;
     public static double GrabberOnePixel = .81;
     public static int StallBuffer = 225;

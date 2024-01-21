@@ -237,16 +237,19 @@ public class TestDrive extends LinearOpMode {
                     else if(gamepad.wasRightPressed()){
                         sweeperSpeed = sweeperSpeed + 0.1;
                     }
-                    intake.kicker.setPower(kickerSpeed);
-                    intake.sweeper.setPower(-sweeperSpeed);
+                    //intake.kicker.setPower(kickerSpeed);
+                    //intake.sweeper.setPower(-sweeperSpeed);
                     if (gamepad.wasLeftBumperPressed()) {
                         intake.ready();
                     }
                     if (gamepad.wasRightBumperPressed()) {
-                        intake.collectTeleop();
+                        intake.collectHold();
                     }
                     if (gamepad.wasRightTriggerPressed()) {
-                        intake.collectFull();
+                        intake.holdToCollect();
+                    }
+                    if (gamepad.wasLeftTriggerPressed()) {
+                        intake.stopIntake();
                     }
                     telemetry.addLine("Sweeper Power: " + sweeperSpeed);
                     telemetry.addLine("Kicker Power: " + kickerSpeed);

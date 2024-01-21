@@ -43,17 +43,21 @@ public class Intake {
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
 
-    public double leftKnockerReady = 0.74; // was .44
-    public double leftKnockerGetTop = 0.3;
-    public double leftKnockerGetBottom = 0.27;
+    public double leftKnockerReady = 0.9; // was .74
+
+    public double leftKnockerHold = .56;
+    public double leftKnockerGetTop = 0.5; //was .3
+    public double leftKnockerGetBottom = 0.45; //was .25
     public double leftKnockerCollect = leftKnockerGetTop; // was 0.16
     public double leftKnockerFullCollect = leftKnockerGetBottom; // was .05
     public double leftKnockerCollectAuto = leftKnockerGetTop; // was 0.19
     public double leftKnockerStore = leftKnockerGetTop; // was .68
 
-    public double rightKnockerReady = 0.25; // was .55
-    public double rightKnockerGetTop = 0.70;
-    public double rightKnockerGetBottom = 0.73;
+    public double rightKnockerReady = 0.11; // was .25 was .55
+
+    public double rightKnockerHold = .43;
+    public double rightKnockerGetTop = 0.50; // was .7
+    public double rightKnockerGetBottom = 0.55; // was.73
     public double rightKnockerCollect = rightKnockerGetTop; // was 0.84
     public double rightKnockerFullCollect = rightKnockerGetBottom; // was 0.93
     public double rightKnockerCollectAuto = rightKnockerGetTop; // was 0.81
@@ -115,13 +119,27 @@ public class Intake {
 
     }
 
+    public void collectHold(){
+        lKnocker.setPosition(leftKnockerHold);
+        rKnocker.setPosition(rightKnockerHold);
+    }
+
+
+    public void holdToCollect(){
+        startIntake();
+        teamUtil.pause(500); //tentative time
+        collectTeleop();
+        teamUtil.pause(1000);
+        collectFull();
+    }
+
     public void collectFull(){
         lKnocker.setPosition(leftKnockerFullCollect);
         rKnocker.setPosition(rightKnockerFullCollect);
     }
 
     public void startIntake(){
-        sweeper.setPower(0.1*sweeperDirection);
+        sweeper.setPower(0.3*sweeperDirection);
         kicker.setPower(1*kickerDirection);
     }
 
