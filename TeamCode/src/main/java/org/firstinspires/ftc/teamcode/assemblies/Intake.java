@@ -43,7 +43,7 @@ public class Intake {
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
 
-    public double leftKnockerReady = 0.9; // was .74
+    public double leftKnockerReady = 0.833; // was .9 was .74
 
     public double leftKnockerHold = .56;
     public double leftKnockerGetTop = 0.5; //was .3
@@ -53,7 +53,7 @@ public class Intake {
     public double leftKnockerCollectAuto = leftKnockerGetTop; // was 0.19
     public double leftKnockerStore = leftKnockerGetTop; // was .68
 
-    public double rightKnockerReady = 0.11; // was .25 was .55
+    public double rightKnockerReady = 0.178; // was .11  was .25 was .55
 
     public double rightKnockerHold = .43;
     public double rightKnockerGetTop = 0.50; // was .7

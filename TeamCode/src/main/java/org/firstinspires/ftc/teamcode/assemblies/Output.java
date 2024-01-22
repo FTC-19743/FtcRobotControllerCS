@@ -42,10 +42,10 @@ public class Output {
 
 
     //public static double flipperLoad = 0.1516+0.007*5;
-    public static double flipperLoad = 0.1877;
+    public static double flipperLoad = 0.5; // was 0.1877
 
     //public static double flipperScore = 0.845+0.007*5;
-    public static double flipperScore = 0.8756;
+    public static double flipperScore = 0.85; // was .8756
 
     public static double StraferLoad = 0.5; // was 0.485
     public static double StraferRight = 0.297 ; // was .28  "Right" when facing the backdrop.  Actually Robot's left
