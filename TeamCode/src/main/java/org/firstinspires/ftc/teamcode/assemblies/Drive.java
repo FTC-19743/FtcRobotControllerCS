@@ -72,8 +72,8 @@ public class Drive {
     public VisionPortal rearVisionPortal, sideVisionPortal, frontVisionPortal;
 
     public AprilTagProcessor aprilTag;
-    private int aprilTagExposure = 3; // frame exposure in ms (use TestDrive opMode to calibrate)
-    private int aprilTagGain = 255; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
+    public static int aprilTagExposure = 3; // frame exposure in ms (use TestDrive opMode to calibrate)
+    public static int aprilTagGain = 255; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
     public OpenCVFindLine findLineProcesser;
     //public OpenCVYellowPixelDetector findPixelProcesser;
 
@@ -1485,7 +1485,7 @@ public class Drive {
         }
 
 
-        float horizontalCmsPerPixel = 8f/(581f-findLineProcesser.MIDPOINTTARGET);
+        float horizontalCmsPerPixel = 20f/(581f-findLineProcesser.MIDPOINTTARGET);
         float horizontalDistanceToStackPixels =Math.abs(findLineProcesser.lastValidMidPoint.get() - findLineProcesser.MIDPOINTTARGET);
         teamUtil.log("Horizontal Last Valid Midpoint: " + findLineProcesser.lastValidMidPoint.get());
 
@@ -1541,7 +1541,9 @@ public class Drive {
         // Use proximity to end of tape to adjust distance to wall
         int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
         int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
-        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
+        //double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
+        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
+
         teamUtil.log("Driving to wall: " + cmsToStack);
         //moveCm(MAX_VELOCITY, cmsToStack-3.5, driveHeading, robotHeading, 0); // maxVelocity was 400
         //moveCm(350, .5, 0, robotHeading, 0); // little back up
@@ -1565,7 +1567,7 @@ public class Drive {
 
     public void frontLineCameraDimensionTelemetry(){
         if (currentCam==cvCam.FRONT_LINE) {
-            float horizontalCmsPerPixel = 8f/(581f-findLineProcesser.MIDPOINTTARGET);
+            float horizontalCmsPerPixel = 20f/(581f-findLineProcesser.MIDPOINTTARGET);
             float horizontalDistanceToStackPixels =Math.abs(findLineProcesser.lastValidMidPoint.get() - findLineProcesser.MIDPOINTTARGET);
             float horizontalDistanceToStackCms =horizontalDistanceToStackPixels*horizontalCmsPerPixel;
 
@@ -1576,7 +1578,7 @@ public class Drive {
 
             int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
             int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
-            double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
+            double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
 
             telemetry.addLine("Vertical Data");
             telemetry.addLine("Cms to Stack: " + cmsToStack);

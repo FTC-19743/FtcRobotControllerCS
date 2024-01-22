@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
+import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.OpenCVFindLine;
 import org.firstinspires.ftc.teamcode.assemblies.OpenCVPropFinder;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
@@ -307,7 +308,7 @@ public class calibrateCV extends LinearOpMode
             }
         } else if (findLineProcessorRunning) {
             telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState()+ " FPS:" + frontVisionPortal.getFps());
-            telemetry.addLine("Threshold: " + findLineProcesser.whiteThreshold);
+            telemetry.addLine("Threshold Difference From Average: " + findLineProcesser.differenceFromAverageThreshold);
             findLineProcesser.outputTelemetry();
         }
         else if (findTeamPropProcessorRunning) {
@@ -384,7 +385,7 @@ public class calibrateCV extends LinearOpMode
                     // TODO: adjust saturation thresholds and maybe rectangles
                 }
                 if (currentCamNum==2) {
-                    findLineProcesser.whiteThreshold++;
+                    findLineProcesser.differenceFromAverageThreshold++;
                 }
             }
             if (gamepad.wasDownPressed()) {
@@ -392,7 +393,7 @@ public class calibrateCV extends LinearOpMode
                     // TODO: adjust saturation thresholds
                 }
                 if (currentCamNum==2) {
-                    findLineProcesser.whiteThreshold--;
+                    findLineProcesser.differenceFromAverageThreshold--;
                 }
             }
             if (gamepad.wasYPressed()){
@@ -419,7 +420,7 @@ public class calibrateCV extends LinearOpMode
     public void getAllCameraSettings() {
         teamUtil.log("Getting Rear Camera Settings");
         rearVisionPortal.resumeStreaming();
-        getCameraSettings(1,rearVisionPortal, 4,250);
+        getCameraSettings(1,rearVisionPortal, Drive.aprilTagExposure ,Drive.aprilTagGain);
         rearVisionPortal.stopStreaming();
         teamUtil.log("Getting Front Camera Settings");
         frontVisionPortal.resumeStreaming();
@@ -467,8 +468,8 @@ public class calibrateCV extends LinearOpMode
                 maxGain[cam] = gainControl.getMaxGain();
             }
         }
-        myExposure[cam] = Math.min(5, minExposure[cam]);
-        myGain[cam] = maxGain[cam];
+        myExposure[cam] = startExposure; //Math.min(5, minExposure[cam]);
+        myGain[cam] = startGain; //maxGain[cam];
 
         updateCVManualExposure(portal, myExposure[cam], myGain[cam]);
     }

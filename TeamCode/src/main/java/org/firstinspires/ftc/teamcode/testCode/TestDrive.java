@@ -155,6 +155,7 @@ public class TestDrive extends LinearOpMode {
                 launcher.toggleRelease();
 
             }
+            /*
             if (gamepad.wasDownPressed()) {
                 drive.moveCm(drive.MAX_VELOCITY,58, 90, 180,1000);
                 drive.moveCm(drive.MAX_VELOCITY,40,  teamUtil.alliance==RED ? 30 : 330, 180,0);
@@ -162,6 +163,8 @@ public class TestDrive extends LinearOpMode {
 
                 //drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 180, 0, 180, 180, 0);
             }
+
+             */
             if (gamepad.wasOptionsPressed()) {
                 drive.moveCm(drive.MAX_VELOCITY, 30, 180, 180,400); // was 81
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.SPARKLY);

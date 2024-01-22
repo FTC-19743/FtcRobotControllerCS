@@ -31,6 +31,7 @@ public class OpenCVFindLine extends OpenCVProcesser {
     HardwareMap hardwareMap;
     Telemetry telemetry;
     public boolean viewingPipeline = false;
+
     enum Stage {
         RAW_IMAGE,
         BLURRED,
@@ -93,18 +94,22 @@ public class OpenCVFindLine extends OpenCVProcesser {
     static public int MAXWIDTH = (int) (CAMWIDTH * .4);
 
     // These three need to be tuned together
-    public int whiteThreshold = 220;
+    public int whiteThreshold = 250;
+
+    public int differenceFromAverageThreshold=35; //can be between 30 and 90
     public int lineExposure = 10 ; // frame exposure in ms (use TestDrive opMode to calibrate)
     public int lineGain = 205; // Unknown--  DOESN'T WORK DUE TO FTC BUG
     public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack
+    public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT*.53)); // hide pixel stack
+
     Scalar blackColor = new Scalar(0, 0, 0);
 
     Mat HSVMat = new Mat();
     Mat greyMat = new Mat();
-    Scalar lowHSV = new Scalar(0, 0, 200); // lower bound HSV for white
-    Scalar highHSV = new Scalar(255, 50, 255); // higher bound HSV for white
+     // lower bound HSV for yellow
+    Scalar highHSV = new Scalar(255, 255, 255); // higher bound HSV for yellow
     Mat blurredMat = new Mat();
-    Size blurFactor = new Size(5, 5);
+    Size blurFactor = new Size(10, 10);
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();
     Mat hierarchy = new Mat();
@@ -118,15 +123,28 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public Object processFrame(Mat frame, long captureTimeNanos) {
         int largestArea = 0;
         if (details) teamUtil.log("Process Frame Start");
-
-        // Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
-        // Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
-        // Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
         Imgproc.rectangle(frame, cropRect, blackColor,-1);
 
-        Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_RGB2GRAY); // convert to Greyscale
-        Imgproc.blur(greyMat, blurredMat, blurFactor); // get rid of noise
-        Imgproc.threshold(greyMat,thresholdMat,whiteThreshold,255,Imgproc.THRESH_BINARY);
+        Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
+        // Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
+
+        //Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
+
+        //Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_RGB2GRAY); // convert to Greyscale
+        //Imgproc.blur(greyMat, blurredMat, blurFactor); // get rid of noise
+        Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
+
+        double lowHSVValue = this.getAvgValue(frame,viewRect);
+
+        Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold);
+
+
+        Core.inRange(blurredMat, lowHSV, highHSV, thresholdMat);
+
+        //Imgproc.threshold(greyMat,thresholdMat,whiteThreshold,255,Imgproc.THRESH_BINARY);
+        //Imgproc.adaptiveThreshold(greyMat,thresholdMat,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,381,12);
+
+
 
         Imgproc.Canny(thresholdMat, edges, 100, 300);
         contours.clear(); // empty the list from last time
@@ -176,8 +194,8 @@ public class OpenCVFindLine extends OpenCVProcesser {
             //Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
             switch (stageToRenderToViewport) {
                 case BLURRED: { Utils.matToBitmap(blurredMat, bmp); break;}
-                case HSV: { Utils.matToBitmap(greyMat, bmp); break; }
-                //case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
+                //case HSV: { Utils.matToBitmap(greyMat, bmp); break; }
+                case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
                 case THRESHOLD: { Utils.matToBitmap(thresholdMat, bmp); break;}
                 case EDGES: { Utils.matToBitmap(edges, bmp); break;}
                 default: {}

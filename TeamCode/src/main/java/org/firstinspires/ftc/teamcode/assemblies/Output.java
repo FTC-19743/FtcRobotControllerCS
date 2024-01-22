@@ -47,9 +47,9 @@ public class Output {
     //public static double flipperScore = 0.845+0.007*5;
     public static double flipperScore = 0.8756;
 
-    public static double StraferLoad = 0.485; // was 0.47
-    public static double StraferRight = 0.28; // "Right" when facing the backdrop.  Actually Robot's left
-    public static double StraferLeft = 0.655;
+    public static double StraferLoad = 0.5; // was 0.485
+    public static double StraferRight = 0.297 ; // was .28  "Right" when facing the backdrop.  Actually Robot's left
+    public static double StraferLeft = 0.675; // was .655
 
     public static int lastStraferPosition; //1=left,2=load,3=right
 
