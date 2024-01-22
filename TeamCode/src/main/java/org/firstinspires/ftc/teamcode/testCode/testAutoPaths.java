@@ -28,6 +28,8 @@ public class testAutoPaths extends LinearOpMode {
     public long startTime;
     public long elapsedTime;
 
+    private double a,b,c,d; // variables for tuning auto
+
     private boolean enableLiveView = false;
 
     public void runOpMode() {
@@ -114,6 +116,37 @@ public class testAutoPaths extends LinearOpMode {
                     robot.drive.sideVisionPortal.resumeLiveView();
                 }
             }
+            if(driverGamepad.wasRightTriggerPressed()){ // set drive variables
+
+                while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
+                    driverGamepad.loop();
+                    if(driverGamepad.wasUpPressed()){
+                        a=a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    }else if(driverGamepad.wasDownPressed()){
+                        a=a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    }else if(driverGamepad.wasLeftPressed()){
+                        b=b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    } else if(driverGamepad.wasRightPressed()){
+                        b=b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    }
+                    if (driverGamepad.wasYPressed()) {
+                        c=c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    } else if (driverGamepad.wasAPressed()) {
+                        c=c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    } else if (driverGamepad.wasXPressed()) {
+                        d=d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    }else if (driverGamepad.wasBPressed()) {
+                        d=d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                    }
+                    telemetry.addLine("Setting Drive Variables");
+
+                    telemetry.addLine("A: " + a);
+                    telemetry.addLine("B: " + b);
+                    telemetry.addLine("C: " + c);
+                    telemetry.addLine("D: " + d);
+                    telemetry.update();
+                }
+            }
 
             if(driverGamepad.wasLeftPressed()) {
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.LARSONSCANNERGRAY);
@@ -166,29 +199,17 @@ public class testAutoPaths extends LinearOpMode {
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
-            if(driverGamepad.wasOptionsPressed()){
-                robot.drive.findMaxVelocity(200);
-            }
+
             if(driverGamepad.wasAPressed()){
-                robot.drive.findMaxStrafeVelocity(150);
-
+                ; // Test Something use (a,b,c,d) if you want to
             }
-            //test for cycle pathing
-//            if(driverGamepad.wasDownPressed()){
-//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OCEANPALETTE);
-//                robot.drive.setHeading(180);
-//                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 125, 0,0, 180, robot.drive.MAX_VELOCITY);
-//                robot.drive.moveStraightCmWithStrafeEncoderWithGoToScore(robot.drive.MAX_VELOCITY, 215, 0,130,0, 180, 600);
-//                //robot.drive.moveStraightCmWithStrafeEncoder(robot.drive.MAX_VELOCITY, 91, 0,0, 180, 1000);
-//                robot.drive.moveCm(robot.drive.MAX_VELOCITY, 80, 315, 180, 0);
-//                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-//                robot.output.dropAndGoToLoad();
-//
-//            }
+            telemetry.addLine("Running Tests " );
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);
+            telemetry.addLine("A: " + a);
+            telemetry.addLine("B: " + b);
+            telemetry.addLine("C: " + c);
+            telemetry.addLine("D: " + d);
             telemetry.update();
-
         }
     }
 }
