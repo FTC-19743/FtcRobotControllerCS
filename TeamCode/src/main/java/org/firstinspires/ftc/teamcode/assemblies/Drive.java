@@ -25,6 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.firstinspires.ftc.teamcode.testCode.calibrateCV;
@@ -1457,7 +1458,113 @@ public class Drive {
         }
         return true;
     }
+    public boolean driveToStackNoStopWithStrafeV2(double driveHeading, double robotHeading, double velocity, long timeout) {
+        //start with a minimum of 40 cms from the wall
+        int driftCms;
+        boolean details = false;
+        findLineProcesser.details = details;
+        teamUtil.log("Drive To Stack No Stop With Strafe");
+        int driftPixels = (int) (findLineProcesser.CAMWIDTH * .075);
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        findLineProcesser.reset();
 
+        // Drive until we see the line
+
+        double startEncoderValue = fl.getCurrentPosition();
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.HEARTBEAT_WHITE);
+
+        while (!findLineProcesser.sawLine() && teamUtil.keepGoing(timeOutTime)) {
+            if(fl.getCurrentPosition()-startEncoderValue>=25*COUNTS_PER_CENTIMETER){
+                stopMotors();
+                teamUtil.log("Drive To Stack Failed to See Line");
+                return false;
+            }
+            if (details) {
+                teamUtil.log("Looking for Line. ");
+            }
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            teamUtil.pause(50); // give CPU time to image processing
+        }
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+
+
+
+        float horizontalCmsPerPixel = 10f/(581f-findLineProcesser.MIDPOINTTARGET);
+        float horizontalDistanceToStackPixels =Math.abs(findLineProcesser.lastValidMidPoint.get() - findLineProcesser.MIDPOINTTARGET);
+        teamUtil.log("Horizontal Last Valid Midpoint: " + findLineProcesser.lastValidMidPoint.get());
+
+        float horizontalDistanceToStackCms =horizontalDistanceToStackPixels*horizontalCmsPerPixel;
+        teamUtil.log("Horizontal Distance To Stack Pixels: " + horizontalDistanceToStackPixels);
+
+        teamUtil.log("Horizontal Distance To Stack Cms: " + horizontalDistanceToStackCms);
+
+        teamUtil.log("Strafing to Line");
+        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        double strafeEncoderTarget = (horizontalDistanceToStackCms-1)*TICS_PER_CM_STRAFE_ENCODER;
+        if(horizontalDistanceToStackCms<1){
+            teamUtil.log("No strafe needed; within 1 cm of stack line");
+
+        }
+
+        else if (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET) {
+            teamUtil.log("To The Left Of the Line");
+            if(horizontalDistanceToStackCms>5){
+                teamUtil.log("Has to correct strafe distance because too far away");
+
+                strafeEncoderTarget=strafeEncoderTarget-2*TICS_PER_CM_STRAFE_ENCODER;
+            }
+            // TODO: Need another failsafe here to make sure we don't strafe off of the tile
+            //moveCm(350, horizontalDistanceToStackCms, 90, 180, 500); // maxVelocity was 400
+            strafeToEncoder(90,180,400,strafeEncoderTarget,2000);
+
+            /*
+            while (findLineProcesser.lastValidMidPoint.get() > findLineProcesser.MIDPOINTTARGET + driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(90, 180,350);
+                //teamUtil.pause(50); // give CPU time to image processing
+            }
+
+             */
+        } else {
+            teamUtil.log("To The Right Of the Line");
+
+            // TODO: And here!
+            //moveCm(350, horizontalDistanceToStackCms, 270, 180, 500); // maxVelocity was 400
+            strafeToEncoder(270,180,400,-strafeEncoderTarget,2000);
+            /*
+            while (findLineProcesser.lastValidMidPoint.get() < findLineProcesser.MIDPOINTTARGET - driftPixels && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(270, 180, 350);
+                //teamUtil.pause(50); // give CPU time to image processing
+            }
+
+             */
+        }
+        findLineProcesser.details = false; // Don't continue to clutter up log
+
+
+
+        // Use proximity to end of tape to adjust distance to wall
+        double cmsToStack = Math.log10((findLineProcesser.lastValidBottom.get()-160)/4)/Math.log10(0.9)+70;
+        teamUtil.log("Driving to wall: " + cmsToStack);
+
+        moveCm(MAX_VELOCITY, cmsToStack-5, 180, 180,400); // was 81
+        /*
+        setMotorsFloat(); // coast to wall
+
+        stopMotors();
+        teamUtil.pause(250);
+        setMotorsBrake();
+        //moveCm(350, .5, 0, robotHeading, 0); // little back up
+
+         */
+
+
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("Drive To Stack --TIMED OUT!");
+        } else {
+            teamUtil.log("Drive To Stack - Finished");
+        }
+        return true;
+    }
     public boolean driveToStackNoStopWithStrafe(double driveHeading, double robotHeading, double velocity, long timeout) {
         //start with a minimum of 40 cms from the wall
         int driftCms;
@@ -1542,8 +1649,8 @@ public class Drive {
         int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
         int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
         //double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (26.5 - 18.5) + 18.5; // Assume Camera view is linear.  Might not be
-        double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
-
+        //double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
+        double cmsToStack = Math.log10((findLineProcesser.lastValidBottom.get()-160)/4)/Math.log10(0.9)+70;
         teamUtil.log("Driving to wall: " + cmsToStack);
         //moveCm(MAX_VELOCITY, cmsToStack-3.5, driveHeading, robotHeading, 0); // maxVelocity was 400
         //moveCm(350, .5, 0, robotHeading, 0); // little back up
@@ -1564,10 +1671,13 @@ public class Drive {
         }
         return true;
     }
+    //42 231 lowest
+    //29 480
+    //35.5 320
 
     public void frontLineCameraDimensionTelemetry(){
         if (currentCam==cvCam.FRONT_LINE) {
-            float horizontalCmsPerPixel = 20f/(581f-findLineProcesser.MIDPOINTTARGET);
+            float horizontalCmsPerPixel = 10f/(581f-findLineProcesser.MIDPOINTTARGET);
             float horizontalDistanceToStackPixels =Math.abs(findLineProcesser.lastValidMidPoint.get() - findLineProcesser.MIDPOINTTARGET);
             float horizontalDistanceToStackCms =horizontalDistanceToStackPixels*horizontalCmsPerPixel;
 
@@ -1578,7 +1688,8 @@ public class Drive {
 
             int visiblePixels = findLineProcesser.CAMHEIGHT - findLineProcesser.cropRect.height;
             int pixelsToClose = findLineProcesser.CAMHEIGHT - findLineProcesser.lastValidBottom.get();
-            double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
+            double cmsToStack = Math.log10((findLineProcesser.lastValidBottom.get()-160)/4)/Math.log10(0.9)+70;
+            //double cmsToStack = ((float) pixelsToClose / (float) visiblePixels) * (40.5 - 32.5) + 32.5; // Assume Camera view is linear.  Might not be
 
             telemetry.addLine("Vertical Data");
             telemetry.addLine("Cms to Stack: " + cmsToStack);

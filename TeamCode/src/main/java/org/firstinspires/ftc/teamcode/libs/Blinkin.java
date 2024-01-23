@@ -27,6 +27,8 @@ public class Blinkin {
         INIT_BLUE,
         COLORWAVESFORESTPALETTE,
         SIGNAL_3,
+        HEARTBEAT_WHITE,
+        NORMAL_WHITE,
 
 
         VIOLET,
@@ -134,11 +136,15 @@ public class Blinkin {
                 blinkinLedDriver.setPattern(current);
                 break;
 
-            case MIDDLE:
-                current = RevBlinkinLedDriver.BlinkinPattern.BREATH_BLUE;
+            case HEARTBEAT_WHITE:
+                current = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
                 blinkinLedDriver.setPattern(current);
                 break;
 
+            case NORMAL_WHITE:
+                current = RevBlinkinLedDriver.BlinkinPattern.WHITE;
+                blinkinLedDriver.setPattern(current);
+                break;
             case TOP:
                 current = RevBlinkinLedDriver.BlinkinPattern.STROBE_GOLD;
                 blinkinLedDriver.setPattern(current);

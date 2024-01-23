@@ -28,7 +28,7 @@ public class testAutoPaths extends LinearOpMode {
     public long startTime;
     public long elapsedTime;
 
-    private double a,b,c,d; // variables for tuning auto
+
 
     private boolean enableLiveView = false;
 
@@ -38,6 +38,8 @@ public class testAutoPaths extends LinearOpMode {
         driverGamepad.initilize(true);
         armsGamepad = new TeamGamepad();
         armsGamepad.initilize(false);
+        driverGamepad.reset();
+        armsGamepad.reset();
         telemetry.addLine("Initializing.  Please wait.");
         telemetry.update();
         robot = new Robot();
@@ -67,7 +69,8 @@ public class testAutoPaths extends LinearOpMode {
         robot.drive.setHeading(180);
         waitForStart();
 
-
+        driverGamepad.reset();
+        armsGamepad.reset();
         while (opModeIsActive()){
             driverGamepad.loop();
             armsGamepad.loop();
@@ -117,35 +120,38 @@ public class testAutoPaths extends LinearOpMode {
                 }
             }
             if(driverGamepad.wasRightTriggerPressed()){ // set drive variables
-
+                armsGamepad.reset();
+                driverGamepad.reset();
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        a=a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        a=a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        b=b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if(driverGamepad.wasRightPressed()){
-                        b=b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        c=c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasAPressed()) {
-                        c=c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasXPressed()) {
-                        d=d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if (driverGamepad.wasBPressed()) {
-                        d=d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     telemetry.addLine("Setting Drive Variables");
 
-                    telemetry.addLine("A: " + a);
-                    telemetry.addLine("B: " + b);
-                    telemetry.addLine("C: " + c);
-                    telemetry.addLine("D: " + d);
+                    telemetry.addLine("A: " + robot.a);
+                    telemetry.addLine("B: " + robot.b);
+                    telemetry.addLine("C: " + robot.c);
+                    telemetry.addLine("D: " + robot.d);
                     telemetry.update();
                 }
+                armsGamepad.reset();
+                driverGamepad.reset();
             }
 
             if(driverGamepad.wasLeftPressed()) {
@@ -202,13 +208,19 @@ public class testAutoPaths extends LinearOpMode {
 
             if(driverGamepad.wasAPressed()){
                 ; // Test Something use (a,b,c,d) if you want to
+                  teamUtil.robot = robot;
+                  robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
+//                robot.intake.ready();
+//                robot.intake.startIntake();
+//                teamUtil.pause(2000);
+//                robot.intake.autoGrabTwoNoWait();
             }
             telemetry.addLine("Running Tests " );
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);
-            telemetry.addLine("A: " + a);
-            telemetry.addLine("B: " + b);
-            telemetry.addLine("C: " + c);
-            telemetry.addLine("D: " + d);
+            telemetry.addLine("A: " + robot.a);
+            telemetry.addLine("B: " + robot.b);
+            telemetry.addLine("C: " + robot.c);
+            telemetry.addLine("D: " + robot.d);
             telemetry.update();
         }
     }

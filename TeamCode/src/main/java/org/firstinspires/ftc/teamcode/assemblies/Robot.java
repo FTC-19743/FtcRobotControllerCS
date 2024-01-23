@@ -24,6 +24,10 @@ public class Robot {
 
     public int straferDistanceFarStack = 17790;
 
+    public double a,b,c,d;
+
+
+
     public Robot() {
         telemetry = teamUtil.theOpMode.telemetry;
         hardwareMap = teamUtil.theOpMode.hardwareMap;
@@ -180,6 +184,40 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public boolean cycleV4(double xOffset, boolean operateArms, int path){
+        long startTime = System.currentTimeMillis();
+        teamUtil.log("Start Cycle");
+        drive.switchCV(Drive.cvCam.FRONT_LINE);
+
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        int desiredStrafeEncoder;
+        if(teamUtil.alliance == teamUtil.alliance.RED){
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER+61*drive.TICS_PER_CM_STRAFE_ENCODER);
+        }else{
+            desiredStrafeEncoder=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-61*drive.TICS_PER_CM_STRAFE_ENCODER);
+        }
+
+        double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
+        drive.moveCm(drive.MAX_VELOCITY, 75 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 1000); // Heading was fixed at 135 // a was 500 b was 100
+        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 194 - distanceOffset, desiredStrafeEncoder,180, 180, 700); // was 183 // c was 188
+        if (operateArms) {
+            intake.startIntake();
+            intake.ready();
+        }
+        drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000);
+        intake.autoGrabTwoNoWait();
+        teamUtil.pause(250);
+
+        drive.moveCm(drive.MAX_VELOCITY, 100, 0, 180, 0);
+
+        if(operateArms){
+            intake.stopIntake();
+        }
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
+        return false;
+    }
     public boolean cycleV3(double xOffset, boolean operateArms, int path) {
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");

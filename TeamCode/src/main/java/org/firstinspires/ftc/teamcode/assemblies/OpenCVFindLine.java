@@ -90,8 +90,8 @@ public class OpenCVFindLine extends OpenCVProcesser {
     static public int CAMWIDTH = 640; // Options: 320x240, 640x480, 1280x720
     static public int CAMHEIGHT = 480;
     static public int MIDPOINTTARGET = (int) (CAMWIDTH * .47);
-    static public int MINWIDTH = (int) (CAMWIDTH * .125);
-    static public int MAXWIDTH = (int) (CAMWIDTH * .4);
+    static public int MINWIDTH = (int) (CAMWIDTH * .075);
+    static public int MAXWIDTH = (int) (CAMWIDTH * .25);
 
     // These three need to be tuned together
     public int whiteThreshold = 250;

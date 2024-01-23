@@ -70,6 +70,40 @@ public class TeamGamepad {
         }
         telemetry = teamUtil.telemetry;
     }
+
+    public void reset(){
+        aWasPressedLastTime = false;
+        aWasPressed = false;
+        bWasPressedLastTime = false;
+        bWasPressed = false;
+        xWasPressedLastTime = false;
+
+        xWasPressed = false;
+        yWasPressedLastTime = false;
+        yWasPressed = false;
+        downWasPressedLastTime = false;
+        downWasPressed = false;
+        upWasPressedLastTime = false;
+        upWasPressed = false;
+        leftWasPressedLastTime = false;
+        leftWasPressed =false;
+        rightWasPressedLastTime = false;
+        rightWasPressed = false;
+        rightBumperWasPressedLastTime = false;
+        rightBumperWasPressed = false;
+        leftBumperWasPressedLastTime = false;
+        leftBumperWasPressed = false;
+        leftTriggerWasPressedLastTime = 0;
+        leftTriggerWasPressed = 0;
+        rightTriggerWasPressedLastTime = 0;
+        rightTriggerWasPressed = 0;
+        rightJoystickWasLeftLastTime = 0;
+        rightJoystickWasLeft = 0;
+        rightJoystickWasRightLastTime = 0;
+        rightJoystickWasRight = 0;
+        optionsWasPressedLastTime = false;
+        optionsWasPressed = false;
+    }
     public void loop(){
         aWasPressedLastTime = aWasPressed;
         aWasPressed = gamepad.a;

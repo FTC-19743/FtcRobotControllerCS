@@ -3,6 +3,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.assemblies.Robot;
 
 public class teamUtil {
 
@@ -10,6 +11,7 @@ public class teamUtil {
     public static boolean inInitialization = true;
     public static Telemetry telemetry;
     public static boolean justRanAuto = false;
+    public static Robot robot;
 
     public enum Alliance {RED, BLUE}
     public static Alliance alliance = Alliance.RED;
@@ -30,6 +32,8 @@ public class teamUtil {
         theBlinkin = new Blinkin(opMode.hardwareMap, opMode.telemetry);
         theBlinkin.init();
     }
+
+
 
     // Wait for the specified milliseconds
     public static void pause(long sleepTime) {
