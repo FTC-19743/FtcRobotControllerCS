@@ -34,8 +34,8 @@ public class OpenCVFindLine extends OpenCVProcesser {
 
     enum Stage {
         RAW_IMAGE,
-        BLURRED,
         HSV,
+        BLURRED,
         THRESHOLD,
         EDGES
     }
@@ -54,7 +54,10 @@ public class OpenCVFindLine extends OpenCVProcesser {
     }
     public void outputTelemetry () {
         telemetry.addLine("Lowest: " + lastValidBottom + "MidPoint: " + lastValidMidPoint);
-        telemetry.addLine(" Area:" + largestArea + "Width: " + width + "thresh:" + whiteThreshold);
+        telemetry.addLine(" Area:" + largestArea + "Width: " + width + "thresh Diff:" + differenceFromAverageThreshold);
+        if (viewingPipeline) {
+            telemetry.addLine("Viewing PipeLine:" + stageToRenderToViewport);
+        }
     }
 
     public void nextView() {
@@ -123,32 +126,25 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public Object processFrame(Mat frame, long captureTimeNanos) {
         int largestArea = 0;
         if (details) teamUtil.log("Process Frame Start");
-        Imgproc.rectangle(frame, cropRect, blackColor,-1);
-
+        Imgproc.rectangle(frame, cropRect, blackColor,-1); // black out the top portion of the frame to avoid seeing stuff off field
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
-        // Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
+        Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
 
-        //Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
+        //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
+        double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
+        if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
+        Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold
+
+        Core.inRange(blurredMat, lowHSV, highHSV, thresholdMat); // find areas that we see as "white"
 
         //Imgproc.cvtColor(frame, greyMat, Imgproc.COLOR_RGB2GRAY); // convert to Greyscale
         //Imgproc.blur(greyMat, blurredMat, blurFactor); // get rid of noise
-        Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
-
-        double lowHSVValue = this.getAvgValue(frame,viewRect);
-
-        Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold);
-
-
-        Core.inRange(blurredMat, lowHSV, highHSV, thresholdMat);
-
         //Imgproc.threshold(greyMat,thresholdMat,whiteThreshold,255,Imgproc.THRESH_BINARY);
         //Imgproc.adaptiveThreshold(greyMat,thresholdMat,255,Imgproc.ADAPTIVE_THRESH_MEAN_C,Imgproc.THRESH_BINARY,381,12);
 
-
-
-        Imgproc.Canny(thresholdMat, edges, 100, 300);
+        Imgproc.Canny(thresholdMat, edges, 100, 300); // find edges of white areas
         contours.clear(); // empty the list from last time
-        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE); // find countours around white areas
         if (!contours.isEmpty()) {
             // find the bounding rectangles of those contours, compute midpoint, and prepare labeled mat
             MatOfPoint2f[] contoursPoly = new MatOfPoint2f[contours.size()];
@@ -190,17 +186,18 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
         // draw rectangles around the objects we found
         if (viewingPipeline) {
-            Bitmap bmp = Bitmap.createBitmap(greyMat.cols(), greyMat.rows(), Bitmap.Config.ARGB_8888);
-            //Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
+            //Bitmap bmp = Bitmap.createBitmap(greyMat.cols(), greyMat.rows(), Bitmap.Config.ARGB_8888);
+            Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
             switch (stageToRenderToViewport) {
                 case BLURRED: { Utils.matToBitmap(blurredMat, bmp); break;}
                 //case HSV: { Utils.matToBitmap(greyMat, bmp); break; }
                 case HSV: { Utils.matToBitmap(HSVMat, bmp); break; }
                 case THRESHOLD: { Utils.matToBitmap(thresholdMat, bmp); break;}
                 case EDGES: { Utils.matToBitmap(edges, bmp); break;}
-                default: {}
+                case RAW_IMAGE: {break;} // no bitmap needed
             }
-            canvas.drawBitmap(bmp, 0,0,null);
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bmp, (int)(CAMWIDTH*scaleBmpPxToCanvasPx), (int)(CAMHEIGHT*scaleBmpPxToCanvasPx), false);
+            canvas.drawBitmap(resizedBitmap, 0,0,null);
         }
 
         if (userContext != null) {
@@ -212,6 +209,7 @@ public class OpenCVFindLine extends OpenCVProcesser {
             for (int i = 0; i < boundRects.length; i++) {
                 canvas.drawRect(makeGraphicsRect(boundRects[i], scaleBmpPxToCanvasPx), rectPaint);
             }
+
         }
     }
 }
