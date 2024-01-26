@@ -1544,6 +1544,7 @@ public class Drive {
 
         // Use proximity to end of tape to adjust distance to wall
         double cmsToStack = Math.log10((findLineProcesser.lastValidBottom.get()-160)/4)/Math.log10(0.9)+70;
+        stopCV(); // Don't need line processor any more so turn it off to allow time for next CV to start
         teamUtil.log("Driving to wall: " + cmsToStack);
 
         moveCm(MAX_VELOCITY, cmsToStack-5, 180, 180,400); // was 81
@@ -1821,7 +1822,7 @@ public class Drive {
     // TODO: SPEED UP IDEA: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
         teamUtil.log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
-        boolean details = false;
+        boolean details = true;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
         float driftCms = 2;
@@ -1849,7 +1850,7 @@ public class Drive {
             }
             double velocity = Math.min(initialVelocity, MIN_END_VELOCITY + MAX_DECELERATION * COUNTS_PER_CENTIMETER * cmsToTravel);
             if (details)
-                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity);
+                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity+ " y from tag: " +tagOffset.y);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
             aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
             while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {

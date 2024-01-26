@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.Robot;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
@@ -31,6 +32,31 @@ public class testAutoPaths extends LinearOpMode {
 
 
     private boolean enableLiveView = false;
+
+    int currentCam;
+
+    public void toggleCamera() {
+        currentCam++;
+        if (currentCam > 3) {
+            currentCam = 1;
+        }
+        switch(currentCam) {
+            case 1:
+                teamUtil.log("Toggling LineFinder On");
+                robot.drive.switchCV(Drive.cvCam.FRONT_LINE);
+                break;
+            case 2:
+                teamUtil.log("Toggling AprilTag Finder On");
+                robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+                ;
+                break;
+            case 3:
+                teamUtil.log("Toggling TeamProp Finder On");
+                robot.drive.switchCV(Drive.cvCam.SIDE_PROP);
+                break;
+            default:
+        }
+    }
 
     public void runOpMode() {
         teamUtil.init(this);
@@ -204,6 +230,9 @@ public class testAutoPaths extends LinearOpMode {
                 robot.autoV3(3, useArms, true);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
+            }
+            if(driverGamepad.wasOptionsPressed()){
+                toggleCamera();
             }
 
             if(driverGamepad.wasAPressed()){

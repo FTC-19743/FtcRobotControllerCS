@@ -186,6 +186,7 @@ public class Robot {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public boolean cycleV4(double xOffset, boolean operateArms, int path){
+        /*
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.switchCV(Drive.cvCam.FRONT_LINE);
@@ -206,10 +207,30 @@ public class Robot {
             intake.ready();
         }
         drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000);
-        intake.autoGrabTwoNoWait();
-        teamUtil.pause(250);
 
-        drive.moveCm(drive.MAX_VELOCITY, 100, 0, 180, 0);
+        if (operateArms) {
+            intake.autoGrabTwoNoWait();
+            teamUtil.pause(250);
+        } else {
+            teamUtil.pause(250);//Use the same amount of time
+        }
+         // TODO: Need to verify this is long enough after driveToStack shut down the line detector!
+
+        // Drive to where rear camera can easily see the inside AprilTag deploying output when safe
+
+         */
+        drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+        drive.moveCm(drive.MAX_VELOCITY, 215, 0, 180, 1500);
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.strafeToEncoder(driverSide(), 180, 1000, (teamUtil.alliance==BLUE ? 1 : -1)*(2400), 2000);
+
+        //drive.moveCm(drive.MAX_VELOCITY, a, teamUtil.alliance==RED ? 300 : 60, 180,750); // Heading was fixed at 300
+
+        if(!drive.driveToAprilTagOffset(400 , teamUtil.alliance==RED ? 300 : 60, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER,25 , 4000)){
+            return false;
+        }
+
+        drive.moveCm(drive.MAX_VELOCITY,9, 0, 180, 0);
 
         if(operateArms){
             intake.stopIntake();
