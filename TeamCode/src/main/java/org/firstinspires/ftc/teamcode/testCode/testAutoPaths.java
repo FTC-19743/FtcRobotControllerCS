@@ -153,13 +153,13 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
                     }
                     if (driverGamepad.wasYPressed()) {
                         robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
@@ -240,6 +240,22 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 ; // Test Something use (a,b,c,d) if you want to
                   teamUtil.robot = robot;
+
+                long startTime = System.currentTimeMillis();
+                while(!driverGamepad.wasAPressed()){
+                    driverGamepad.loop();
+                    telemetry.addLine("Toggle CV");
+                    telemetry.update();
+                    if(driverGamepad.wasRightBumperPressed()){
+                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+                    }
+                }
+                robot.drive.setHeading(180);
+                robot.drive.driveToAprilTagOffset(1300+robot.c,270,180,0,20,4000); // 1300 or maybe 1250 is the key
+                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+
+
+                  /* Test pushPurplePixelWing
                   while(!driverGamepad.wasAPressed()){
                       driverGamepad.loop();
                       telemetry.addLine("Ready to Toggle");
@@ -251,12 +267,21 @@ public class testAutoPaths extends LinearOpMode {
                   long startTime = System.currentTimeMillis();
                   robot.drive.setHeading(180);
                   robot.pushPurplePixelWingV4(1,false);
-                  //robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
-//                robot.intake.ready();
-//                robot.intake.startIntake();
-//                teamUtil.pause(2000);
-//                robot.intake.autoGrabTwoNoWait();
-                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+                  teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+
+                   */
+                /* Test Cycle V4
+                  robot.drive.setHeading(180);
+                  long startTime = System.currentTimeMillis();
+                  robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
+                  teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+                 */
+                /* Test auto Grab Two
+                  robot.intake.ready();
+                  robot.intake.startIntake();
+                  teamUtil.pause(2000);
+                  robot.intake.autoGrabTwoNoWait();
+                 */
             }
             telemetry.addLine("Running Tests " );
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);

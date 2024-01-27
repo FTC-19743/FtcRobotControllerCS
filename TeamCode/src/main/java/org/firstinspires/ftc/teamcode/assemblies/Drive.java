@@ -1848,7 +1848,7 @@ public class Drive {
             } else {
                 heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
-            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY + MAX_DECELERATION * COUNTS_PER_CENTIMETER * cmsToTravel);
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.a + MAX_DECELERATION+teamUtil.robot.b * COUNTS_PER_CENTIMETER * cmsToTravel);
             if (details)
                 teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity+ " y from tag: " +tagOffset.y);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
