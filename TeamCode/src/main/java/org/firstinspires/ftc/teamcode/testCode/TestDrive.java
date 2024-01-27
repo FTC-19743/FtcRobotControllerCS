@@ -230,29 +230,29 @@ public class TestDrive extends LinearOpMode {
                 double sweeperSpeed = 0;
                 while (!gamepad.wasXPressed() && opModeIsActive()){
                     gamepad.loop();
-                    if(gamepad.wasUpPressed()){
-                        kickerSpeed=kickerSpeed+0.1;
-                    }else if(gamepad.wasDownPressed()){
-                        kickerSpeed = kickerSpeed - 0.1;
-                    }else if(gamepad.wasLeftPressed()){
-                        sweeperSpeed = sweeperSpeed - 0.1;
-                    }
-                    else if(gamepad.wasRightPressed()){
-                        sweeperSpeed = sweeperSpeed + 0.1;
-                    }
+//                    if(gamepad.wasUpPressed()){
+//                        kickerSpeed=kickerSpeed+0.1;
+//                    }else if(gamepad.wasDownPressed()){
+//                        kickerSpeed = kickerSpeed - 0.1;
+//                    }else if(gamepad.wasLeftPressed()){
+//                        sweeperSpeed = sweeperSpeed - 0.1;
+//                    }
+//                    else if(gamepad.wasRightPressed()){
+//                        sweeperSpeed = sweeperSpeed + 0.1;
+//                    }
                     //intake.kicker.setPower(kickerSpeed);
                     //intake.sweeper.setPower(-sweeperSpeed);
                     if (gamepad.wasLeftBumperPressed()) {
                         intake.ready();
                     }
                     if (gamepad.wasRightBumperPressed()) {
-                        intake.collectHold();
+                        intake.autoGrabOneNoWait();
                     }
                     if (gamepad.wasRightTriggerPressed()) {
                         intake.holdToCollect();
                     }
                     if (gamepad.wasLeftTriggerPressed()) {
-                        intake.stopIntake();
+                        intake.toggleIntake();
                     }
                     telemetry.addLine("Sweeper Power: " + sweeperSpeed);
                     telemetry.addLine("Kicker Power: " + kickerSpeed);

@@ -20,6 +20,8 @@ public class Robot {
     public Intake intake;
     public Output output;
     public Lift lift;
+    public PixelRelease releaser;
+
     public Launcher launcher;
 
     public int straferDistanceFarStack = 17790;
@@ -35,6 +37,8 @@ public class Robot {
         intake = new Intake();
         output = new Output(intake);
         launcher = new Launcher();
+        releaser = new PixelRelease();
+
         lift = new Lift();
     }
 
@@ -43,8 +47,8 @@ public class Robot {
         intake.initalize();
         output.initialize();
         lift.initialize();
+        releaser.initialize();
         launcher.initialize();
-
     }
 
     public void outputTelemetry() {
@@ -180,6 +184,29 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,64, 180, 180,0);
         }
 
+        return true;
+    }
+
+    public boolean pushPurplePixelWingV4(int path, boolean operateArms){
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
+            intake.ready();
+            drive.strafeToEncoder(126,180,2500,7000,10000); //timeout should probably be shorter //heading was 124
+            releaser.release();
+            intake.startIntake();
+            drive.strafeToEncoder(110,180,500,12280,10000); //timeout should probably be shorter
+            drive.moveCm(drive.MAX_VELOCITY,12,180,180,0);
+            intake.autoGrabOneNoWait();
+            teamUtil.pause(250);
+            drive.moveCm(drive.MAX_VELOCITY,12,0,180,a);
+            drive.strafeToEncoder(45,180,c,17560+b,10000);
+            drive.moveCm(drive.MAX_VELOCITY,100,0,180,0);
+
+            teamUtil.pause(5000);
+            intake.stopIntake();
+
+
+        }
         return true;
     }
 

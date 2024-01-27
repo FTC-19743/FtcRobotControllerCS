@@ -279,12 +279,52 @@ public class Intake {
 
     }
 
+    public void autoGrabOne(){
+        boolean details = true;
+        collectTopPixel();
+        long startTime = System.currentTimeMillis();
+
+        if(details){
+            teamUtil.log("Start Time" + startTime);
+
+        }
+
+        while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 2500)){
+            teamUtil.pause(50);
+        }
+        if(details){
+            teamUtil.log("Bottom Pixel Present" + bottomPixelPresent());
+            teamUtil.log("Time after pixel Collection" + System.currentTimeMillis());
+
+        }
+        if(twoPixelsPresent()){
+            ready();
+            sweeper.setPower(0);
+            kicker.setPower(.1);
+        }
+        else{
+            //todo figure out failsafe
+        }
+
+    }
+
     public void autoGrabTwoNoWait(){
         teamUtil.log("Auto Grab Two No Wait");
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 autoGrabTwo();
+            }
+        });
+        thread.start();
+    }
+
+    public void autoGrabOneNoWait(){
+        teamUtil.log("Auto Grab One No Wait");
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                autoGrabOne();
             }
         });
         thread.start();

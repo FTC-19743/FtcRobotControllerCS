@@ -77,7 +77,6 @@ public class TeamGamepad {
         bWasPressedLastTime = false;
         bWasPressed = false;
         xWasPressedLastTime = false;
-
         xWasPressed = false;
         yWasPressedLastTime = false;
         yWasPressed = false;

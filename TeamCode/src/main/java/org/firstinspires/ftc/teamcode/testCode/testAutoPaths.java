@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
+import org.firstinspires.ftc.teamcode.assemblies.PixelRelease;
 import org.firstinspires.ftc.teamcode.assemblies.Robot;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
@@ -88,6 +89,7 @@ public class testAutoPaths extends LinearOpMode {
         robot.intake.initalize();
         robot.output.initialize();
         robot.output.calibrate();
+        robot.releaser.initialize();
         robot.drive.initalize(robot.output);
 
         telemetry.addLine("Ready to start");
@@ -238,7 +240,17 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 ; // Test Something use (a,b,c,d) if you want to
                   teamUtil.robot = robot;
-                  robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
+                  while(!driverGamepad.wasAPressed()){
+                      driverGamepad.loop();
+                      telemetry.addLine("Ready to Toggle");
+                      telemetry.update();
+                      if(driverGamepad.wasRightBumperPressed()){
+                          robot.releaser.toggle();
+                      }
+                  }
+                  robot.drive.setHeading(180);
+                  robot.pushPurplePixelWingV4(1,false);
+                  //robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
 //                robot.intake.ready();
 //                robot.intake.startIntake();
 //                teamUtil.pause(2000);

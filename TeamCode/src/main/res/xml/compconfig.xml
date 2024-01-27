@@ -16,7 +16,7 @@
 
             <RevBlinkinLedDriver name="blinkin" port="0"/>
             <Servo name="launcher" port="1" />
- <!---           <ContinuousRotationServo name="sweeper" port="2" />   OPEN FOR USE!-->
+            <Servo name="pixelrelease" port="2" />
             <ContinuousRotationServo name="kicker" port="3" />
             <Servo name="rKnocker" port="4" />
             <Servo name="lKnocker" port="5" />
