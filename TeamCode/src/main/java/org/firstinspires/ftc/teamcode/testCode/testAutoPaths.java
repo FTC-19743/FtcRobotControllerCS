@@ -248,6 +248,7 @@ public class testAutoPaths extends LinearOpMode {
                           robot.releaser.toggle();
                       }
                   }
+                  long startTime = System.currentTimeMillis();
                   robot.drive.setHeading(180);
                   robot.pushPurplePixelWingV4(1,false);
                   //robot.cycleV4(-robot.drive.TAG_CENTER_TO_CENTER,true,2);
@@ -255,6 +256,7 @@ public class testAutoPaths extends LinearOpMode {
 //                robot.intake.startIntake();
 //                teamUtil.pause(2000);
 //                robot.intake.autoGrabTwoNoWait();
+                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
             }
             telemetry.addLine("Running Tests " );
             telemetry.addLine("Last Auto Elapsed Time: " + elapsedTime);
