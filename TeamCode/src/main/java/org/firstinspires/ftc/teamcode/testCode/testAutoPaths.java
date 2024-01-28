@@ -153,13 +153,13 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.1f);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     if (driverGamepad.wasYPressed()) {
                         robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
@@ -241,21 +241,21 @@ public class testAutoPaths extends LinearOpMode {
                 ; // Test Something use (a,b,c,d) if you want to
                   teamUtil.robot = robot;
 
-                long startTime = System.currentTimeMillis();
-                while(!driverGamepad.wasAPressed()){
-                    driverGamepad.loop();
-                    telemetry.addLine("Toggle CV");
-                    telemetry.update();
-                    if(driverGamepad.wasRightBumperPressed()){
-                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-                    }
-                }
-                robot.drive.setHeading(180);
-                robot.drive.driveToAprilTagOffset(1300+robot.c,270,180,0,20,4000); // 1300 or maybe 1250 is the key
-                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+                  //long startTime = System.currentTimeMillis();
+//                while(!driverGamepad.wasAPressed()){
+//                    driverGamepad.loop();
+//                    telemetry.addLine("Toggle CV");
+//                    telemetry.update();
+//                    if(driverGamepad.wasRightBumperPressed()){
+//                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+//                    }
+//                }
+//                robot.drive.setHeading(180);
+//                robot.drive.driveToAprilTagOffset(1300+robot.c,270,180,0,20,4000); // 1300 or maybe 1250 is the key
+//                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
 
 
-                  /* Test pushPurplePixelWing
+                  // Test pushPurplePixelWing
                   while(!driverGamepad.wasAPressed()){
                       driverGamepad.loop();
                       telemetry.addLine("Ready to Toggle");
@@ -264,12 +264,13 @@ public class testAutoPaths extends LinearOpMode {
                           robot.releaser.toggle();
                       }
                   }
+
                   long startTime = System.currentTimeMillis();
                   robot.drive.setHeading(180);
-                  robot.pushPurplePixelWingV4(1,false);
+                  robot.pushPurplePixelWingV4(3,false);
                   teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
 
-                   */
+
                 /* Test Cycle V4
                   robot.drive.setHeading(180);
                   long startTime = System.currentTimeMillis();

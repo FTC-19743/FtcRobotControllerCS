@@ -189,28 +189,43 @@ public class Robot {
 
     public boolean pushPurplePixelWingV4(int path, boolean operateArms){
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.ready();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
-            intake.ready();
-            drive.strafeToEncoder(125,180,2300,7000,2000); //timeout should probably be shorter //heading was 126,124
+            drive.strafeToEncoder(teamUtil.alliance == RED? 125: 235,180,2300,(teamUtil.alliance == RED? 1:-1)*7000,2000); //timeout should probably be shorter //heading was 126,124
             releaser.release();
             if (operateArms) {
                 intake.startIntake();
             }
-            drive.strafeToEncoder(110,180,500,12500+a,2000); //was 12280
-            drive.moveCm(drive.MAX_VELOCITY,12+b,180,180,0);
-            if (true) return true;
-
-            intake.autoGrabOneNoWait();
-            teamUtil.pause(250);
-            drive.moveCm(drive.MAX_VELOCITY,12,0,180,a);
-            drive.strafeToEncoder(45,180,c,17560+b,10000);
-            drive.moveCm(drive.MAX_VELOCITY,100,0,180,0);
-
-            teamUtil.pause(5000);
-            intake.stopIntake();
-
+            drive.strafeToEncoder(teamUtil.alliance == RED? 110:250,180,500, (teamUtil.alliance == RED? 1: -1)*12500,2000); //was 12280
+            drive.moveCm(drive.MAX_VELOCITY,12,180,180,0);
 
         }
+        else if(path == 2){
+            drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 1:-1)*(7000), 10000);
+            drive.strafeToEncoder(teamUtil.alliance == RED? 90:270, 180, 800, (teamUtil.alliance == RED? 1:-1)*(11300), 10000);
+
+            drive.moveCm(drive.MAX_VELOCITY,16,180,180,1000);
+            releaser.release();
+            drive.moveCm(drive.MAX_VELOCITY,45,180,180,0);
+        }
+
+        else{
+            drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,1700,(teamUtil.alliance == RED? 1:-1)*(4100), 10000);
+            drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,600,(teamUtil.alliance == RED? 1:-1)*(8200), 10000);
+            drive.moveCm(drive.MAX_VELOCITY,15,0,180,0);
+            releaser.release();
+            drive.strafeToEncoder(teamUtil.alliance == RED? 135+b:270,180,700+a,(teamUtil.alliance == RED? 1:-1)*(12500+c), 10000);
+            drive.moveCm(drive.MAX_VELOCITY,44+d,180,180,0);
+        }
+
+//        intake.autoGrabOneNoWait();
+//        teamUtil.pause(250);
+//        drive.moveCm(drive.MAX_VELOCITY,12,0,180,a);
+//        drive.strafeToEncoder(45,180,c,17560+b,10000);
+//        drive.moveCm(drive.MAX_VELOCITY,100,0,180,0);
+//
+//        teamUtil.pause(5000);
+//        intake.stopIntake();
         return true;
     }
 

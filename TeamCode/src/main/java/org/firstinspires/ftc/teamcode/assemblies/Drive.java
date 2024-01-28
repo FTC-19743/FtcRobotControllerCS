@@ -1872,8 +1872,16 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
-        while (Math.abs(targetEncoderValue - strafeEncoder.getCurrentPosition()) > driftCms * TICS_PER_CM_STRAFE_ENCODER && teamUtil.keepGoing(timeOutTime)) {
-            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+        double realTarget = targetEncoderValue + (driveHeading < 180? -1:1)*driftCms*TICS_PER_CM_STRAFE_ENCODER;
+        if (driveHeading<180) {
+            while (strafeEncoder.getCurrentPosition() < realTarget && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            }
+        }
+        else{
+            while (strafeEncoder.getCurrentPosition() > realTarget && teamUtil.keepGoing(timeOutTime)) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            }
         }
         lastVelocity=velocity;
         if (System.currentTimeMillis() > timeOutTime) {
