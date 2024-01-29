@@ -95,6 +95,9 @@ public class testAutoPaths extends LinearOpMode {
         telemetry.addLine("Ready to start");
         telemetry.update();
         robot.drive.setHeading(180);
+
+        driverGamepad.reset();
+        armsGamepad.reset();
         waitForStart();
 
         driverGamepad.reset();
@@ -262,12 +265,20 @@ public class testAutoPaths extends LinearOpMode {
                       telemetry.update();
                       if(driverGamepad.wasRightBumperPressed()){
                           robot.releaser.toggle();
+                      }if(driverGamepad.wasLeftBumperPressed()){
+                          robot.intake.ready();
+                      }if(driverGamepad.wasRightTriggerPressed()){
+                          robot.intake.collectTopPixel();
+                      }
+                      if(driverGamepad.wasOptionsPressed()){
+                          toggleCamera();
                       }
                   }
 
                   long startTime = System.currentTimeMillis();
                   robot.drive.setHeading(180);
-                  robot.pushPurplePixelWingV4(3,false);
+                  robot.autoV4((int)robot.a,useArms,true);
+                  //robot.pushPurplePlaceYellowPixelWingV4(1+(int)robot.d,useArms);
                   teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
 
 

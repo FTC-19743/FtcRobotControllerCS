@@ -245,7 +245,7 @@ public class Intake {
 
     }
 
-    public void autoGrabTwo(){
+    public void automaticGrabTwo(){
         boolean details = true;
         collectTopPixel();
         long startTime = System.currentTimeMillis();
@@ -279,7 +279,7 @@ public class Intake {
 
     }
 
-    public void autoGrabOne(){
+    public boolean autoGrabOne(){
         boolean details = true;
         collectTopPixel();
         long startTime = System.currentTimeMillis();
@@ -298,22 +298,24 @@ public class Intake {
 
         }
         if(twoPixelsPresent()){
-            ready();
             sweeper.setPower(0);
             kicker.setPower(.1);
+            return true;
         }
         else{
             //todo figure out failsafe
+            return false;
         }
+
 
     }
 
-    public void autoGrabTwoNoWait(){
+    public void automaticGrabTwoNoWait(){
         teamUtil.log("Auto Grab Two No Wait");
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                autoGrabTwo();
+                automaticGrabTwo();
             }
         });
         thread.start();

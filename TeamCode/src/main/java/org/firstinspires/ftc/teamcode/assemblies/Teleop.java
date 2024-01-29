@@ -147,7 +147,7 @@ public class Teleop extends LinearOpMode {
 
 
             if(armsGamepad.wasLeftTriggerPressed()){
-                robot.intake.toggleIntake();
+                robot.intake.automaticGrabTwoNoWait();
             }
 
             if(armsGamepad.wasRightPressed()){

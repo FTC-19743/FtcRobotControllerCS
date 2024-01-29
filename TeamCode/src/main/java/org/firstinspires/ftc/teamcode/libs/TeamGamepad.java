@@ -72,6 +72,22 @@ public class TeamGamepad {
     }
 
     public void reset(){
+        aBumpToDo = false;
+        bBumpToDo = false;
+        xBumpToDo = false;
+        yBumpToDo = false;
+        upBumpToDo = false;
+        downBumpToDo = false;
+        leftBumpToDo = false;
+        rightBumpToDo = false;
+        rightBumperBumpToDo = false;
+        leftBumperBumpToDo = false;
+        leftTriggerBumpToDo = false;
+        rightTriggerBumpToDo = false;
+        rightJoystickWasLeftToDo = false;
+        rightJoystickWasRightToDo = false;
+        optionsBumpToDo = false;
+        startBumpToDo = false;
         aWasPressedLastTime = false;
         aWasPressed = false;
         bWasPressedLastTime = false;

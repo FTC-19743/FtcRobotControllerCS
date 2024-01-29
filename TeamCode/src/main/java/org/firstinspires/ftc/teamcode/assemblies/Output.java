@@ -57,7 +57,7 @@ public class Output {
 
     public static long lastStraferServoSkew = 0;
 
-    public static long servoSkewTimeMs = 100; //tentative value
+    public static long servoSkewTimeMs = 75; //tentative value
     public static double GrabberOpen = 0.53;
     public static double GrabberClosed = 0.73;
     public static double GrabberOnePixel = .81;
@@ -424,7 +424,7 @@ public class Output {
         rotaterPosition = rotaterPosition.VERTICAL;
         flipper.setPosition(flipperLoad);
         grabber.setPosition(GrabberOpen);
-        teamUtil.pause(1000); // Wait long enough for all servos to be in a safe position to go to load
+        teamUtil.pause(500); // Wait long enough for all servos to be in a safe position to go to load
         // TODO LATER: The timing on this can be optimized depending on the starting position of the lift
     }
 
@@ -452,7 +452,7 @@ public class Output {
             teamUtil.log("Strafing to Middle");
 
             grabberStrafer.setPosition(StraferLoad);
-            teamUtil.pause(1000);
+            teamUtil.pause(1000); //TODO change recalibrate time
         }
         long timeOutTime1 = System.currentTimeMillis() + 1500;
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
@@ -477,9 +477,11 @@ public class Output {
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
         intake.closeLid();
+        intake.ready();
         teamUtil.log("Go To Load-Finished");
         moving.set(false);
         loading.set(true);
+
 
     }
 

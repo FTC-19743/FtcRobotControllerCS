@@ -1868,6 +1868,54 @@ public class Drive {
         }
     }
 
+    public boolean driveToAprilTagOffsetV2(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
+        teamUtil.log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
+        boolean details = true;
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        long aprilTagTimeoutTime = 0;
+        float driftCms = 2;
+        org.opencv.core.Point tagOffset = new org.opencv.core.Point();
+        teamUtil.log("Continue on Initial Heading");
+        aprilTag.getFreshDetections();
+        while (!getRobotBackdropOffset(tagOffset,true) && teamUtil.keepGoing(timeOutTime)) {
+            driveMotorsHeadingsFR(initialDriveHeading, robotHeading, initialVelocity); // continue on initial heading until we see a tag
+        }
+        teamUtil.log("Driving based on tags");
+        while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
+            double cmsToStrafe = tagOffset.x - xOffset;
+            double cmsToBackup = tagOffset.y - yOffset;
+            double cmsToTravel = Math.sqrt(cmsToStrafe * cmsToStrafe + cmsToBackup * cmsToBackup);
+            if (Math.abs(cmsToTravel) < driftCms) {
+                break;
+            }
+            double heading;
+            if (cmsToBackup == 0) {
+                heading = cmsToStrafe < 0 ? 270 : 90;
+            } else if (cmsToBackup > 0) { // Using vertical (y-axis) to compute reference angles since 0 is at top
+                heading = adjustAngle(Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup)));
+            } else {
+                heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
+            }
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.a + MAX_DECELERATION+teamUtil.robot.b * COUNTS_PER_CENTIMETER * cmsToTravel);
+            if (details)
+                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity+ " y from tag: " +tagOffset.y);
+            driveMotorsHeadingsFR(heading, robotHeading, velocity);
+            aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
+            while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
+                if (details) teamUtil.log("WARNING: Lost sight of tags!");
+            }
+
+        }
+        stopMotors();
+        if (System.currentTimeMillis() > timeOutTime || System.currentTimeMillis() > aprilTagTimeoutTime) {
+            teamUtil.log("driveToAprilTagOffset - TIMED OUT!");
+            return false;
+        } else {
+            teamUtil.log("Drive to April Tag Offset - FINISHED");
+            return true;
+        }
+    }
+
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
