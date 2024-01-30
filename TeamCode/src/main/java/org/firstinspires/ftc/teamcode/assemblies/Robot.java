@@ -193,27 +193,34 @@ public class Robot {
         intake.ready();
         intake.closeLid();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
-            drive.strafeToEncoder(teamUtil.alliance == RED? 125: 235,180,2300,(teamUtil.alliance == RED? 1:-1)*7000,2000); //timeout should probably be shorter //heading was 126,124
+            drive.strafeToEncoder(teamUtil.alliance == RED? 124: 236,180,2000,(teamUtil.alliance == RED? 1:-1)*7000,2000); //timeout should probably be shorter //heading was 126,124
             releaser.release();
             if (operateArms) {
                 intake.startIntake();
             }
-            drive.strafeToEncoder(teamUtil.alliance == RED? 110+d:250,180,500, (teamUtil.alliance == RED? 1: -1)*12500,2000); //was 12280
+            drive.strafeToEncoder(teamUtil.alliance == RED? 110:250,180,500, (teamUtil.alliance == RED? 1: -1)*12500,2000); //was 12280
             drive.moveCm(drive.MAX_VELOCITY,12,180,180,0);
 
         }
         else if(path == 2){
-            drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 1:-1)*(7000), 10000);
+            /*
+            drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 1:-1)*(6200), 10000);
             drive.strafeToEncoder(teamUtil.alliance == RED? 90:270, 180, 800, (teamUtil.alliance == RED? 1:-1)*(11300), 10000);
 
+             */
+            drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 11225:-11375), 650,10000); //a is -75, b is 0, c is -12, d  is 12
 
-            drive.moveCm(drive.MAX_VELOCITY,16,180,180,1000);
+
+
+            drive.moveCm(drive.MAX_VELOCITY,4,180,180,1000);
             releaser.release();
+
 
             if (operateArms) {
                 intake.startIntake();
             }
-            drive.moveCm(drive.MAX_VELOCITY,45,180,180,0);
+            drive.moveCm(drive.MAX_VELOCITY,57,180,180,0);
+
         }
 
         else{
@@ -227,6 +234,7 @@ public class Robot {
             drive.strafeToEncoder(teamUtil.alliance == RED? 135: 225,180,700,(teamUtil.alliance == RED? 1:-1)*(12500), 10000);
             drive.moveCm(drive.MAX_VELOCITY,44,180,180,0);
         }
+
 
         if(operateArms){
             intake.autoGrabOne();
@@ -245,7 +253,12 @@ public class Robot {
         if(teamUtil.alliance == RED){
             drive.moveStraightCmWithStrafeEncoder(2300,path==1?210:200,17500,0,180,path==1?800 : 1250);//strafe value was 17560 when reset at beginning tic value must be adgjusted
             if (operateArms) {
-                output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2);
+                if(path==2||path==3){
+                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2,output.StraferLoad+4*output.StraferPositionPerCm);
+                }else{
+                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal1,output.StraferLoad-4*output.StraferPositionPerCm);
+
+                }
             }
             drive.driveToAprilTagOffset(path==1?800 : 1250,270,180,xOffset,20,4000); // 1300 or maybe 1250 is the key //add blue side
             //TODO Path 3 on Blue hits alliance partner puprle pixle
@@ -253,7 +266,12 @@ public class Robot {
         }else{
             drive.moveStraightCmWithStrafeEncoder(2300,path==3?210:200,-17500,0,180,path==3?800 : 1250);
             if (operateArms) {
-                output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2);
+                if(path==2||path==3){
+                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2,output.StraferLoad+4*output.StraferPositionPerCm);
+                }else{
+                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal1,output.StraferLoad-4*output.StraferPositionPerCm);
+
+                }
             }
             drive.driveToAprilTagOffset(path==3?800 : 1250,90,180,xOffset,20,4000); // 1300 or maybe 1250 is the key //add blue side
 
@@ -263,7 +281,7 @@ public class Robot {
         drive.stopCV();
 
 
-        drive.moveCm(drive.MAX_VELOCITY,6,0,180,0);
+        drive.moveCm(drive.MAX_VELOCITY,6+a,0,180,0);
 
         long purpleYellowWingTime = System.currentTimeMillis() - startTime;
         teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
@@ -392,7 +410,7 @@ public class Robot {
             //if((teamUtil.SIDE==teamUtil.Side.WING&&path==1&&teamUtil.alliance==teamUtil.alliance.RED)||teamUtil.SIDE==teamUtil.Side.WING&&path==3&&teamUtil.alliance==teamUtil.alliance.BLUE){
                 //output.goToScoreNoWait(3.5,output.GrabberRotatorHorizontal2);
             //}else{
-                output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2);
+                output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2,output.StraferLoad);
             //}
              // TODO Adjust height for different paths?
         }
@@ -426,12 +444,21 @@ public class Robot {
 
 
         drive.setHeading(180); // Zero is towards the scoring side of field
-        pushPurplePlaceYellowPixelWingV4(path,operateArms);
+        if(teamUtil.SIDE== teamUtil.Side.WING){
+            pushPurplePlaceYellowPixelWingV4(path,operateArms);
+        }else{ //score case
+
+        }
+
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
+        if(true){
+            return;
+        }
         cycleV4(xOffset,operateArms,path);
         cycleV4(-drive.TAG_CENTER_TO_CENTER,operateArms,path);
 
     }
+
 
     public void autoV3(int path, boolean operateArms, boolean cycle) {
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
@@ -444,7 +471,7 @@ public class Robot {
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
             // Get AprilTag Finder up and running
             if (operateArms) {
-                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2); // TODO: Adjust this level for higher consistency?
+                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2,output.StraferLoad); // TODO: Adjust this level for higher consistency?
             }
             if (!pushPurplePixelScoreV3(path)) { //pushes pixel and gets to good location for April tag localization
                 return;   //Auto Bailout
@@ -474,7 +501,7 @@ public class Robot {
             // Head to other side of field
             drive.moveCm(drive.MAX_VELOCITY,220, 0, 180,800);
             if (operateArms) {
-                output.goToScoreNoWait(3,output.GrabberRotatorLoad);
+                output.goToScoreNoWait(3,output.GrabberRotatorLoad,output.StraferLoad);
             }
             // Get to where we can see the AprilTags well
             drive.moveCm(drive.MAX_VELOCITY,65, teamUtil.alliance==RED? 285 : 75, 180, 0); // TODO: SPEED UP: Maybe don't end at at stop

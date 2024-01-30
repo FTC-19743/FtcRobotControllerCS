@@ -51,6 +51,8 @@ public class Output {
     public static double StraferRight = 0.297 ; // was .28  "Right" when facing the backdrop.  Actually Robot's left
     public static double StraferLeft = 0.675; // was .655
 
+    public static double StraferPositionPerCm = .02364;
+
     public static int lastStraferPosition; //1=left,2=load,3=right
 
     public static double StraferIncrement = 0.015;
@@ -505,7 +507,7 @@ public class Output {
         }
     }
     // Grab the pixels and get into scoring position
-    public void goToScore(float level, double rotatorPosition) {
+    public void goToScore(float level, double rotatorPosition,double straferPosition) {
         //Reset encoders so they are in unison
         elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -556,6 +558,7 @@ public class Output {
 
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
         }
+        grabberStrafer.setPosition(straferPosition);
         flipper.setPosition(flipperScore);
         grabberRotater.setPosition(rotatorPosition);
 
@@ -570,7 +573,7 @@ public class Output {
     }
 
 
-    public void goToScoreNoWait(float level, double rotatorPosition) {
+    public void goToScoreNoWait(float level, double rotatorPosition,double straferPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
             teamUtil.log("states in go to score");
 
@@ -585,7 +588,7 @@ public class Output {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    goToScore(level,rotatorPosition);
+                    goToScore(level,rotatorPosition,straferPosition);
                 }
             });
             thread.start();

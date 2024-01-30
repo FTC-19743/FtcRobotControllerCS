@@ -1015,7 +1015,7 @@ public class Drive {
             }
             distance = getEncoderDistance(data);
             if(distance>cmsForLift*COUNTS_PER_CENTIMETER){
-                output.goToScoreNoWait(4,output.GrabberRotatorHorizontal2);
+                output.goToScoreNoWait(4,output.GrabberRotatorHorizontal2,output.StraferLoad);
             }
             driveMotorsHeadingsFR(driveHeading + MathUtils.clamp((strafeEncoder.getCurrentPosition() - strafeTarget)*strafeFactor, -maxHeadingDeclination, maxHeadingDeclination) * headingFactor, robotHeading, maxVelocity);
         }
@@ -1940,6 +1940,40 @@ public class Drive {
             return true;
         }
     }
+
+
+    public boolean strafeToEncoderWithDecel(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, double endVelocity, long timeout) {
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
+        float driftCms = 1;
+        double realTarget = targetEncoderValue + (driveHeading < 180? -1:1)*driftCms*TICS_PER_CM_STRAFE_ENCODER;
+        double strafeCmsToGo;
+        double liveVelocity;
+
+        if (driveHeading<180) {
+            while (strafeEncoder.getCurrentPosition() < realTarget && teamUtil.keepGoing(timeOutTime)) {
+                strafeCmsToGo = Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())/TICS_PER_CM_STRAFE_ENCODER;
+                liveVelocity = Math.min(velocity, endVelocity+MAX_DECELERATION* COUNTS_PER_CENTIMETER * strafeCmsToGo);
+                driveMotorsHeadingsFR(driveHeading, robotHeading, liveVelocity);
+            }
+        }
+        else{
+            while (strafeEncoder.getCurrentPosition() > realTarget && teamUtil.keepGoing(timeOutTime)) {
+                strafeCmsToGo = Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())/TICS_PER_CM_STRAFE_ENCODER;
+                liveVelocity = Math.min(velocity, endVelocity+MAX_DECELERATION* COUNTS_PER_CENTIMETER * strafeCmsToGo);
+                driveMotorsHeadingsFR(driveHeading, robotHeading, liveVelocity);
+            }
+        }
+        lastVelocity=velocity;
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("strafeToEncoder - TIMED OUT!");
+            return false;
+        } else {
+            teamUtil.log("strafeToEncoder - FINISHED : Current: " + strafeEncoder.getCurrentPosition());
+            return true;
+        }
+    }
+
 
 
     /************************************************************************************************************

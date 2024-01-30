@@ -195,19 +195,22 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad,robot.output.StraferLoad);
             }
 
             if(armsGamepad.wasXPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2);
+                //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                robot.output.goToScoreNoWait(3,robot.output.GrabberRotatorHorizontal1,robot.output.StraferLoad-4*robot.output.StraferPositionPerCm);
             }
 
             if(armsGamepad.wasBPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2);
+                robot.output.goToScoreNoWait(3,robot.output.GrabberRotatorHorizontal2,robot.output.StraferLoad+4*robot.output.StraferPositionPerCm);
+
+                //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
             }
 
             if(gamepad2.left_bumper||gamepad2.right_bumper){
