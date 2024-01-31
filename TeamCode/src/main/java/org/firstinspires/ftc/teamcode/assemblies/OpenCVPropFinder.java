@@ -45,6 +45,8 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     double rightRedThreshold = 50; //
     double middleBlueThreshold = 100; //112
     double leftBlueThreshold = 100; //
+    double rightBlueThreshold = 90; //
+
     public OpenCVPropFinder () {
         hardwareMap = teamUtil.theOpMode.hardwareMap;
         telemetry = teamUtil.telemetry;
@@ -62,13 +64,13 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             rectMiddle = new Rect(370, 80, 100, 100); // was rectMiddle = new Rect(200, 80, 100, 100);
             rectRight = new Rect(0, 0, 1, 1); // was new Rect(520, 90, 100, 100)
         } else if(teamUtil.alliance== teamUtil.Alliance.BLUE&&teamUtil.SIDE==teamUtil.Side.SCORE) {
-            rectLeft = new Rect(0, 130, 110, 120);
-            rectMiddle = new Rect(350, 100, 100, 100);
+            rectLeft = new Rect(0, 120, 110, 120); // was Rect(0, 130, 110, 120)
+            rectMiddle = new Rect(350, 75, 100, 100); // was Rect(350, 100, 100, 100)
             rectRight = new Rect(0, 0, 1, 1);
         }  else  {//blue wing
-            rectLeft = new Rect(0, 130, 110, 120);
-            rectMiddle = new Rect(360, 120, 100, 100);
-            rectRight = new Rect(0, 0, 1, 1);
+            rectLeft = new Rect(0, 0, 1, 1); // Rect(0, 130, 110, 120)
+            rectMiddle = new Rect(175 , 75, 100, 100); // was Rect(360, 120, 100, 100)
+            rectRight = new Rect(519, 100, 120, 120);
         }
         teamUtil.log("Initialized OpenCVPropFinder processor");
     }
@@ -100,20 +102,21 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             } else if(satRectMiddle>middleRedThreshold){ propPosition = 2;
             } else { propPosition = 1;}
         }
-        else {
+        else if (teamUtil.alliance == teamUtil.Alliance.BLUE && teamUtil.SIDE==teamUtil.Side.WING) {
+            satRectLeft = 0;
+            satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
+            satRectRight = getAvgSaturation(HSVMat, rectRight);;
+            if(satRectRight> rightBlueThreshold){ propPosition = 3;
+            } else if(satRectMiddle>middleBlueThreshold){ propPosition = 2;
+            } else { propPosition = 1;}
+        } else { // BLUE, SCORE
             satRectLeft = getAvgSaturation(HSVMat, rectLeft);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
             satRectRight = 0;
 
-            if(satRectLeft> leftBlueThreshold){
-                propPosition = 1;
-            }
-            else if(satRectMiddle>middleBlueThreshold){
-                propPosition = 2;
-            }
-            else{
-                propPosition = 3;
-            }
+            if(satRectLeft> leftBlueThreshold) {propPosition = 1;}
+            else if(satRectMiddle>middleBlueThreshold){propPosition = 2;}
+            else{ propPosition = 3; }
         }
         election.vote(propPosition);
 
@@ -143,9 +146,10 @@ public class OpenCVPropFinder extends OpenCVProcesser {
             canvas.drawRect(makeGraphicsRect(rectLeft, scaleBmpPxToCanvasPx), rectPaint);
         } if (teamUtil.alliance == teamUtil.Alliance.RED && teamUtil.SIDE== teamUtil.Side.SCORE) {
             canvas.drawRect(makeGraphicsRect(rectRight, scaleBmpPxToCanvasPx), rectPaint);
-        } else {
+        } else if (teamUtil.alliance == teamUtil.Alliance.BLUE && teamUtil.SIDE== teamUtil.Side.WING) {
+            canvas.drawRect(makeGraphicsRect(rectRight, scaleBmpPxToCanvasPx), rectPaint);
+        } else { // BLUE SCORE
             canvas.drawRect(makeGraphicsRect(rectLeft, scaleBmpPxToCanvasPx), rectPaint);
-            canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
         }
     }
 }
