@@ -40,6 +40,7 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     // These constants should all be tuned at the same time
     public int propExposure = 50 ; //  frame exposure in ms (use TestDrive opMode to calibrate)
     public int propGain = 1; // Unknown--  DOESN'T WORK DUE TO FTC BUG
+    double leftRedThreshold = 70; //
     double middleRedThreshold = 80; //
     double rightRedThreshold = 50; //
     double middleBlueThreshold = 100; //112
@@ -54,17 +55,17 @@ public class OpenCVPropFinder extends OpenCVProcesser {
 
         if (teamUtil.alliance== teamUtil.Alliance.RED&&teamUtil.SIDE==teamUtil.Side.SCORE) {
             rectLeft = new Rect(0, 0, 1, 1);
-            rectMiddle = new Rect(200, 100, 100, 100);
-            rectRight = new Rect(500, 125, 110, 100);
+            rectMiddle = new Rect(210, 75 , 100, 100); // was Rect(200, 100, 100, 100)
+            rectRight = new Rect(519, 100, 120, 120); // was Rect(500, 125, 110, 100);
+        } else if(teamUtil.alliance== teamUtil.Alliance.RED&&teamUtil.SIDE==teamUtil.Side.WING) {
+            rectLeft = new Rect(10, 90, 120, 120);
+            rectMiddle = new Rect(370, 80, 100, 100); // was rectMiddle = new Rect(200, 80, 100, 100);
+            rectRight = new Rect(0, 0, 1, 1); // was new Rect(520, 90, 100, 100)
         } else if(teamUtil.alliance== teamUtil.Alliance.BLUE&&teamUtil.SIDE==teamUtil.Side.SCORE) {
             rectLeft = new Rect(0, 130, 110, 120);
             rectMiddle = new Rect(350, 100, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
-        } else if(teamUtil.alliance== teamUtil.Alliance.RED&&teamUtil.SIDE==teamUtil.Side.WING) {
-            rectLeft = new Rect(0, 0, 1, 1);
-            rectMiddle = new Rect(200, 80, 100, 100);
-            rectRight = new Rect(520, 90, 100, 100);
-        } else  {//blue wing
+        }  else  {//blue wing
             rectLeft = new Rect(0, 130, 110, 120);
             rectMiddle = new Rect(360, 120, 100, 100);
             rectRight = new Rect(0, 0, 1, 1);
@@ -84,24 +85,22 @@ public class OpenCVPropFinder extends OpenCVProcesser {
     public Object processFrame(Mat frame, long captureTimeNanos) {
         propPosition = 2;
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
-        if (teamUtil.alliance == teamUtil.Alliance.RED) {
-            satRectRight = getAvgSaturation(HSVMat, rectRight);
+        if (teamUtil.alliance == teamUtil.Alliance.RED && teamUtil.SIDE==teamUtil.Side.WING) {
+            satRectLeft = getAvgSaturation(HSVMat, rectLeft);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
+            satRectRight = 0;
+            if(satRectLeft> leftRedThreshold){ propPosition = 1;
+            } else if(satRectMiddle>middleRedThreshold){ propPosition = 2;
+            } else { propPosition = 3;}
+        } else if (teamUtil.alliance == teamUtil.Alliance.RED && teamUtil.SIDE==teamUtil.Side.SCORE) {
             satRectLeft = 0;
-
-            if(satRectRight> rightRedThreshold){
-                propPosition = 3;
-            }
-            else if(satRectMiddle>middleRedThreshold){
-                propPosition = 2;
-            }
-            else{
-                propPosition = 1;
-            }
-
-
-
-        } else {
+            satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
+            satRectRight = getAvgSaturation(HSVMat, rectRight);;
+            if(satRectRight> rightRedThreshold){ propPosition = 3;
+            } else if(satRectMiddle>middleRedThreshold){ propPosition = 2;
+            } else { propPosition = 1;}
+        }
+        else {
             satRectLeft = getAvgSaturation(HSVMat, rectLeft);
             satRectMiddle = getAvgSaturation(HSVMat, rectMiddle);
             satRectRight = 0;
@@ -139,8 +138,10 @@ public class OpenCVPropFinder extends OpenCVProcesser {
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setStrokeWidth(scaleCanvasDensity * 4);
 
-        if (teamUtil.alliance == teamUtil.Alliance.RED) {
-            canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
+        canvas.drawRect(makeGraphicsRect(rectMiddle, scaleBmpPxToCanvasPx), rectPaint);
+        if (teamUtil.alliance == teamUtil.Alliance.RED && teamUtil.SIDE== teamUtil.Side.WING) {
+            canvas.drawRect(makeGraphicsRect(rectLeft, scaleBmpPxToCanvasPx), rectPaint);
+        } if (teamUtil.alliance == teamUtil.Alliance.RED && teamUtil.SIDE== teamUtil.Side.SCORE) {
             canvas.drawRect(makeGraphicsRect(rectRight, scaleBmpPxToCanvasPx), rectPaint);
         } else {
             canvas.drawRect(makeGraphicsRect(rectLeft, scaleBmpPxToCanvasPx), rectPaint);
