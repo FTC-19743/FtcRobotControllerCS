@@ -48,6 +48,9 @@ public class Blinkin {
         BLUE_PATH_1,
         BLUE_PATH_2,
         BLUE_PATH_3,
+        JUDGING_BLINKIN,
+        JUDGING_LEFT,
+        JUDGING_RIGHT,
 
     }
 
@@ -192,7 +195,18 @@ public class Blinkin {
                 current = RevBlinkinLedDriver.BlinkinPattern.BREATH_BLUE;
                 blinkinLedDriver.setPattern(current);
                 break;
-
+            case JUDGING_BLINKIN:
+                current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
+                blinkinLedDriver.setPattern(current);
+                break;
+            case JUDGING_LEFT:
+                current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE;
+                blinkinLedDriver.setPattern(current);
+                break;
+            case JUDGING_RIGHT:
+                current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE;
+                blinkinLedDriver.setPattern(current);
+                break;
         }
     }
 }
