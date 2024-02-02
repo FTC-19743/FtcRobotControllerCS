@@ -1848,7 +1848,7 @@ public class Drive {
             } else {
                 heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
-            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.a + MAX_DECELERATION+teamUtil.robot.b * COUNTS_PER_CENTIMETER * cmsToTravel);
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY + MAX_DECELERATION * COUNTS_PER_CENTIMETER * cmsToTravel);
             if (details)
                 teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity+ " y from tag: " +tagOffset.y);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
@@ -1874,6 +1874,8 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
         float driftCms = 2;
+        double kAprilTagX = 1;
+        double aprilTagMaxVelocity = MAX_VELOCITY;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
         teamUtil.log("Continue on Initial Heading");
         aprilTag.getFreshDetections();
@@ -1896,9 +1898,19 @@ public class Drive {
             } else {
                 heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
-            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.a + MAX_DECELERATION+teamUtil.robot.b * COUNTS_PER_CENTIMETER * cmsToTravel);
+            if (heading < 90) {
+                heading = Math.min(90, heading*(kAprilTagX + teamUtil.robot.a));
+            } else if (heading > 270) {
+                heading = 360 - (Math.min(90, (360-heading) * (kAprilTagX + teamUtil.robot.a)));
+            } else if (heading >90 && heading < 180) {
+                heading = 180 - (Math.min(90, (180-heading) * (kAprilTagX + teamUtil.robot.a)));
+            } else if (heading > 180 && heading < 270) {
+                heading = 270 - (Math.min(90, (270-heading) * (kAprilTagX + teamUtil.robot.a)));
+            }
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.b + MAX_DECELERATION+teamUtil.robot.c * COUNTS_PER_CENTIMETER * cmsToTravel);
+            velocity = Math.max(aprilTagMaxVelocity+teamUtil.robot.d, velocity);
             if (details)
-                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity+ " y from tag: " +tagOffset.y);
+                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
             aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
             while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
