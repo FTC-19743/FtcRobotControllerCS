@@ -193,7 +193,14 @@ public class Robot {
         intake.ready();
         intake.closeLid();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
-            drive.strafeToEncoder(teamUtil.alliance == RED? 124: 236,180,2000,(teamUtil.alliance == RED? 1:-1)*7000,2000); //timeout should probably be shorter //heading was 126,124
+            if(teamUtil.alliance == RED){
+                drive.strafeToEncoder(124,180,2000,7000,2000); //timeout should probably be shorter //heading was 126,124
+
+            }else{
+                drive.strafeToEncoder(235,180,2000,-6600,2000); //timeout should probably be shorter //heading was 126,124
+
+            }
+
             releaser.release();
             if (operateArms) {
                 intake.startIntake();
@@ -248,9 +255,9 @@ public class Robot {
         drive.moveCm(drive.MAX_VELOCITY,2,0,180,750);
         intake.ready();
         drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
-        drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,1000,(teamUtil.alliance == RED? 1:-1)*16700,10000); //strafe value was 17560 when reset at beginning tic value must be adgjusted
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
         if(teamUtil.alliance == RED){
+            drive.strafeToEncoder(90,180,1000,16700,10000); //strafe value was 17560 when res
             drive.moveStraightCmWithStrafeEncoder(2300,path==1?210:200,17500,0,180,path==1?800 : 1250);//strafe value was 17560 when reset at beginning tic value must be adgjusted
             if (operateArms) {
                 if(path==2||path==3){
@@ -264,13 +271,13 @@ public class Robot {
             //TODO Path 3 on Blue hits alliance partner puprle pixle
             //TODO Path 3 on blue misses first purple pixel
         }else{
-            drive.moveStraightCmWithStrafeEncoder(2300,path==3?210:200,-17500,0,180,path==3?800 : 1250);
+            drive.strafeToEncoder(270,180,1000,-15750,10000); //strafe value was 17560 when res
+            drive.moveStraightCmWithStrafeEncoder(2300,path==3?220:200,-17500,0,180,path==3?800 : 1250);
             if (operateArms) {
                 if(path==2||path==3){
                     output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2,output.StraferLoad+4*output.StraferPositionPerCm);
                 }else{
                     output.goToScoreNoWait(3,output.GrabberRotatorHorizontal1,output.StraferLoad-4*output.StraferPositionPerCm);
-
                 }
             }
             drive.driveToAprilTagOffset(path==3?800 : 1250,90,180,xOffset,20,4000); // 1300 or maybe 1250 is the key //add blue side
@@ -299,7 +306,7 @@ public class Robot {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public boolean cycleV4(double xOffset, boolean operateArms, int path){
+    public boolean cycleV4(double xOffset, boolean operateArms, int path,long autoStartTime){
 
 
         long startTime = System.currentTimeMillis();
@@ -331,6 +338,7 @@ public class Robot {
         drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000);
 
         if (operateArms) {
+
             intake.automaticGrabTwoNoWait();
             teamUtil.pause(250);
         } else {
@@ -343,6 +351,11 @@ public class Robot {
 
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.moveCm(drive.MAX_VELOCITY, 215, 0, 180, 1500);
+        if (operateArms) {
+
+            output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2,output.StraferLoad);
+
+        }
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         drive.strafeToEncoder(driverSide(), 180, 1000, (teamUtil.alliance==BLUE ? 1 : -1)*(2400), 2000);
 
@@ -354,12 +367,19 @@ public class Robot {
 
         drive.moveCm(drive.MAX_VELOCITY,9, 0, 180, 0);
 
-        if(operateArms){
+
+        if (operateArms) {
             intake.stopIntake();
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(100);
         }
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        long endTime = System.currentTimeMillis();
+        long cycleTime = endTime-startTime;
+        teamUtil.log("Cycle Time: "+ cycleTime);
 
-        return false;
+        return true;
     }
     public boolean cycleV3(double xOffset, boolean operateArms, int path) {
         long startTime = System.currentTimeMillis();
@@ -440,6 +460,7 @@ public class Robot {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public void autoV4(int path, boolean operateArms, boolean cycle){
+        long startTime = System.currentTimeMillis();
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
 
 
@@ -451,11 +472,13 @@ public class Robot {
         }
 
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
-        if(true){
-            return;
+
+        cycleV4(xOffset,operateArms,path,startTime);
+        if(System.currentTimeMillis()-startTime<20000){
+            cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime);
+        }else{
+            teamUtil.log("Second Cycle AutoV4 Timed Out");
         }
-        cycleV4(xOffset,operateArms,path);
-        cycleV4(-drive.TAG_CENTER_TO_CENTER,operateArms,path);
 
     }
 

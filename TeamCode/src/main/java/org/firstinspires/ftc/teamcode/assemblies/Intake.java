@@ -46,7 +46,7 @@ public class Intake {
     public double leftKnockerReady = 0.833; // was .9 was .74
 
     public double leftKnockerHold = .56;
-    public double leftKnockerGetTop = 0.5; //was .3
+    public double leftKnockerGetTop = 0.51; //was .5
     public double leftKnockerGetBottom = 0.45; //was .25
     public double leftKnockerCollect = leftKnockerGetTop; // was 0.16
     public double leftKnockerFullCollect = leftKnockerGetBottom; // was .05
@@ -56,7 +56,7 @@ public class Intake {
     public double rightKnockerReady = 0.178; // was .11  was .25 was .55
 
     public double rightKnockerHold = .43;
-    public double rightKnockerGetTop = 0.50; // was .7
+    public double rightKnockerGetTop = 0.49; // was .7 was .5
     public double rightKnockerGetBottom = 0.55; // was.73
     public double rightKnockerCollect = rightKnockerGetTop; // was 0.84
     public double rightKnockerFullCollect = rightKnockerGetBottom; // was 0.93
@@ -64,6 +64,8 @@ public class Intake {
     public double rightKnockerStore = rightKnockerGetTop; // was 0.29
 
     public boolean intakeRunning = false;
+
+    public boolean collecterMoving = false;
 
 
     public Intake(){
@@ -105,8 +107,10 @@ public class Intake {
     }
 
     public void ready() {
-        lKnocker.setPosition(leftKnockerReady);
-        rKnocker.setPosition(rightKnockerReady);
+        if (!collecterMoving){
+            lKnocker.setPosition(leftKnockerReady);
+            rKnocker.setPosition(rightKnockerReady);
+        }
     }
     public void collectTopPixel() {
         lKnocker.setPosition(leftKnockerCollect);
@@ -120,25 +124,49 @@ public class Intake {
     }
 
     public void collectHold(){
+
         lKnocker.setPosition(leftKnockerHold);
         rKnocker.setPosition(rightKnockerHold);
     }
 
 
-    public void holdToCollect(){
+    public void holdToCollect(long timeout){
+        long startTime = System.currentTimeMillis();
+        collecterMoving = true;
         startIntake();
         teamUtil.pause(500); //tentative time
         collectTopPixel();
-        teamUtil.pause(1000);
+
+        while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + timeout)){
+            teamUtil.pause(50);
+        }
+        // TODO add failsafe
         collectFull();
+        collecterMoving = false;
     }
 
+    public void holdToCollectNoWait(long timeout){
+        if (collecterMoving){
+
+        }
+        else{
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    holdToCollect(timeout);
+                }
+            });
+            thread.start();
+        }
+
+    }
     public void collectFull(){
         lKnocker.setPosition(leftKnockerFullCollect);
         rKnocker.setPosition(rightKnockerFullCollect);
     }
 
     public void startIntake(){
+        intakeRunning = true;
         sweeper.setPower(0.3*sweeperDirection);
         kicker.setPower(1*kickerDirection);
     }
@@ -193,6 +221,8 @@ public class Intake {
 
 
     }
+
+
 
     public void grabOnePixelToReady(){
         grabbingOnePixel.set(true);
@@ -293,10 +323,10 @@ public class Intake {
             teamUtil.pause(50);
         }
         if(details){
-            teamUtil.log("Bottom Pixel Present" + bottomPixelPresent());
+            teamUtil.log("Two pixels Present" + twoPixelsPresent());
             teamUtil.log("Time after pixel Collection" + System.currentTimeMillis());
-
         }
+
         if(twoPixelsPresent()){
             sweeper.setPower(0);
             kicker.setPower(.1);
@@ -304,6 +334,7 @@ public class Intake {
         }
         else{
             //todo figure out failsafe
+            teamUtil.log("TIMEOUT");
             return false;
         }
 

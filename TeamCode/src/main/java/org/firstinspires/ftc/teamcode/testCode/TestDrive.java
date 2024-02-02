@@ -246,10 +246,10 @@ public class TestDrive extends LinearOpMode {
                         intake.ready();
                     }
                     if (gamepad.wasRightBumperPressed()) {
-                        intake.autoGrabOneNoWait();
+                        intake.grabOnePixel();
                     }
                     if (gamepad.wasRightTriggerPressed()) {
-                        intake.holdToCollect();
+                        intake.grabTwoPixels();
                     }
                     if (gamepad.wasLeftTriggerPressed()) {
                         intake.toggleIntake();

@@ -850,7 +850,7 @@ public class Drive {
         float maxHeadingDeclination = 20f; // don't veer off of straight more than this number of degrees
         float headingFactor = Math.abs(driveHeading-180)<.01 ? 1 : -1; // reverse correction for going backwards
 
-        details = true;
+        details = false;
         MotorData data = new MotorData();
         getDriveMotorData(data);
 
@@ -1822,7 +1822,7 @@ public class Drive {
     // TODO: SPEED UP IDEA: enhance this to take an end velocity so you don't need to stop and waste time
     public boolean driveToAprilTagOffset(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
         teamUtil.log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
-        boolean details = true;
+        boolean details = false;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
         float driftCms = 2;

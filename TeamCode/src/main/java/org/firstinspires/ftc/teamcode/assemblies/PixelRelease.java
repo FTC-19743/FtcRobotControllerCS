@@ -14,7 +14,7 @@ public class PixelRelease {
     public static double release = 0.9;
     public static double hold = 0.30;
     public Servo releaseServo;
-    boolean holding = false;
+    public boolean holding = false;
 
     public PixelRelease(){
         teamUtil.log("Constructing PixelRelease");

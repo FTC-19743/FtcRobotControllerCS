@@ -12,14 +12,16 @@ import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 @TeleOp(name = "TestPIDAprilTags")
-@Disabled
+//@Disabled
 public class TestPIDAprilTagLocalization extends LinearOpMode {
 
     Drive drive;
     TeamGamepad gamepad;
 
-    MiniPID xControl = new MiniPID(.1,0,0); // x power will .1/cm offset
-    MiniPID yControl = new MiniPID(0.5,0,0); // y power .05/cm offset
+    MiniPID xControl = new MiniPID(0.06,0,0); //
+    MiniPID yControl = new MiniPID(0.006,0,0); //
+    double xMax=0.5, xMin = 0.1;
+    double yMax=0.5, yMin = 0.1;
 
     public void initialize () {
         teamUtil.init(this);
@@ -69,10 +71,24 @@ public class TestPIDAprilTagLocalization extends LinearOpMode {
                 teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " headingError: " + headingError + " x: " + x + " y: " + y + " rot: " + rotationAdjust);
 
             // x, y, rotation input mixing
+            drive.fl.setPower(y + x );
+            drive.bl.setPower(y - x );
+            drive.fr.setPower(y - x );
+            drive.br.setPower(y + x );
+            /*
+            drive.fl.setPower(y + x + rotationAdjust);
+            drive.bl.setPower(y - x + rotationAdjust);
+            drive.fr.setPower(y - x - rotationAdjust);
+            drive.br.setPower(y + x - rotationAdjust);
+
+             */
+            /*
             drive.fl.setPower(x + y + rotationAdjust);
             drive.bl.setPower(x - y + rotationAdjust);
             drive.fr.setPower(x - y - rotationAdjust);
             drive.br.setPower(x + y - rotationAdjust);
+
+             */
 
             aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
             while (!drive.getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
@@ -103,22 +119,53 @@ public class TestPIDAprilTagLocalization extends LinearOpMode {
             if (gamepad.wasYPressed()) {
                 drive.setHeading(180);
                 timer.reset();
-                driveToAprilTagOffsetPID(1500,270,180,0,20,4000);
+                driveToAprilTagOffsetPID(1500,270,180,0,30,4000);
                 teamUtil.log("Elapsed Time:" + timer.seconds());
             }
             if (gamepad.gamepad.left_bumper) {
                 if(gamepad.wasUpPressed()){
-                    xControl.setP(xControl.getP()+.05);
+                    xControl.setP(xControl.getP()+.005);
                 }else if(gamepad.wasDownPressed()){
-                    xControl.setP(xControl.getP()-.05);
+                    xControl.setP(xControl.getP()-.005);
                 }else if(gamepad.wasLeftPressed()){
-                    yControl.setP(yControl.getP()+.05);
+                    yControl.setP(yControl.getP()+.001);
                 } else if(gamepad.wasRightPressed()){
-                    yControl.setP(yControl.getP()-.05);
+                    yControl.setP(yControl.getP()-.001);
                 }
             }
-            telemetry.addLine("x: P:" + xControl.getP() + "I:" + xControl.getI() + "D:" + xControl.getD());
-            telemetry.addLine("y: P:" + yControl.getP() + "I:" + yControl.getI() + "D:" + yControl.getD());
+            if (gamepad.gamepad.left_trigger>.05) {
+                if(gamepad.wasUpPressed()){
+                    xControl.setD(xControl.getD()+.1);
+                }else if(gamepad.wasDownPressed()){
+                    xControl.setD(xControl.getD()-.1);
+                }else if(gamepad.wasLeftPressed()){
+                    yControl.setD(yControl.getD()+.1);
+                } else if(gamepad.wasRightPressed()){
+                    yControl.setD(yControl.getD()-.1);
+                }
+            }
+            if (gamepad.gamepad.right_trigger>.05) {
+                if(gamepad.wasUpPressed()){
+                    xMax = xMax + .05;
+                    xControl.setOutputLimits(xMax);
+                }else if(gamepad.wasDownPressed()){
+                    xMax = xMax - .05;
+                    xControl.setOutputLimits(xMax);
+                }
+                else if(gamepad.wasLeftPressed()){
+                    yMax = yMax + .05;
+                    yControl.setOutputLimits( yMax);
+                } else if(gamepad.wasRightPressed()){
+                    yMax = yMax - .05;
+                    yControl.setOutputLimits( yMax);                }
+            }
+
+            telemetry.addLine("x: P:" + xControl.getP() + "  I:" + xControl.getI() + "  D:" + xControl.getD());
+            telemetry.addLine("xMin: " + xMin + "  xMax:" + xMax);
+            telemetry.addLine("y: P:" + yControl.getP() + "  I:" + yControl.getI() + "  D:" + yControl.getD());
+            telemetry.addLine("yMin: " + yMin + "  yMax:" + yMax);
+
+            drive.visionTelemetry();
             telemetry.update();
         }
     }

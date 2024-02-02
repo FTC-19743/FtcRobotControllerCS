@@ -243,6 +243,13 @@ public class testAutoPaths extends LinearOpMode {
 
             if(driverGamepad.wasAPressed()){
                 robot.releaser.toggle();
+
+                if(!robot.releaser.holding){
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
+                }
+                else{
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                }
             }
             //if(driverGamepad.wasAPressed()){
                 ; // Test Something use (a,b,c,d) if you want to

@@ -147,7 +147,13 @@ public class Teleop extends LinearOpMode {
 
 
             if(armsGamepad.wasLeftTriggerPressed()){
-                robot.intake.automaticGrabTwoNoWait();
+                if (Math.abs(robot.intake.lKnocker.getPosition() - robot.intake.leftKnockerReady) < .001){
+                    robot.intake.collectHold();
+                }
+                else{
+                    robot.intake.holdToCollectNoWait(2500);
+                }
+
             }
 
             if(armsGamepad.wasRightPressed()){
@@ -160,11 +166,11 @@ public class Teleop extends LinearOpMode {
 
             }
             if(armsGamepad.wasDownPressed()){
-                robot.intake.store();
+                robot.intake.ready();
             }
 
             if(armsGamepad.wasUpPressed()){
-                robot.intake.ready();
+
             }
 
 
@@ -202,13 +208,13 @@ public class Teleop extends LinearOpMode {
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                robot.output.goToScoreNoWait(3,robot.output.GrabberRotatorHorizontal1,robot.output.StraferLoad-4*robot.output.StraferPositionPerCm);
+                robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal1,robot.output.StraferLoad-4*robot.output.StraferPositionPerCm);
             }
 
             if(armsGamepad.wasBPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(3,robot.output.GrabberRotatorHorizontal2,robot.output.StraferLoad+4*robot.output.StraferPositionPerCm);
+                robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal2,robot.output.StraferLoad+4*robot.output.StraferPositionPerCm);
 
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
             }

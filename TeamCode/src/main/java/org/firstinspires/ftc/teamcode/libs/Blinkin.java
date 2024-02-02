@@ -32,6 +32,7 @@ public class Blinkin {
 
 
         VIOLET,
+        VIOLETHEARTBEAT,
         MIDDLE,
         TOP,
 
@@ -138,6 +139,7 @@ public class Blinkin {
                 current = RevBlinkinLedDriver.BlinkinPattern.VIOLET;
                 blinkinLedDriver.setPattern(current);
                 break;
+
 
             case HEARTBEAT_WHITE:
                 current = RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_WHITE;
