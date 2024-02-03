@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.BLUE;
 import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
+import org.firstinspires.ftc.teamcode.assemblies.Output;
 import org.firstinspires.ftc.teamcode.assemblies.PixelRelease;
 import org.firstinspires.ftc.teamcode.assemblies.Robot;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
@@ -156,18 +158,18 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
                         robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     } else if(driverGamepad.wasRightPressed()){
                         robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
                     } else if (driverGamepad.wasXPressed()) {
                         robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     }else if (driverGamepad.wasBPressed()) {
@@ -242,31 +244,61 @@ public class testAutoPaths extends LinearOpMode {
 
 
             if(driverGamepad.wasAPressed()){
-                robot.releaser.toggle();
+                // Test Something use (a,b,c,d) if you want to
+                teamUtil.robot = robot;
 
+                /*  Toggle pixel releaser
+                robot.releaser.toggle();
                 if(!robot.releaser.holding){
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
                 }
                 else{
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 }
-            }
-            //if(driverGamepad.wasAPressed()){
-                ; // Test Something use (a,b,c,d) if you want to
-                 // teamUtil.robot = robot;
+                 */
 
-                  //long startTime = System.currentTimeMillis();
-//                while(!driverGamepad.wasAPressed()){
-//                    driverGamepad.loop();
-//                    telemetry.addLine("Toggle CV");
-//                    telemetry.update();
-//                    if(driverGamepad.wasRightBumperPressed()){
-//                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-//                    }
-//                }
-//                robot.drive.setHeading(180);
-//                robot.drive.driveToAprilTagOffset(1300+robot.c,270,180,0,20,4000); // 1300 or maybe 1250 is the key
-//                teamUtil.log("Elapsed Time: " + (float)((System.currentTimeMillis()-startTime)/1000));
+                // Test April Tag Localization
+                while(!driverGamepad.wasAPressed()){
+                    driverGamepad.loop();
+                    telemetry.addLine("Toggle CV");
+                    telemetry.update();
+                    if(driverGamepad.wasRightBumperPressed()){
+                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+                    }
+                }
+                int path = (int)robot.a;
+                long startTime = System.currentTimeMillis();
+                robot.drive.setHeading(180);
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                /* from cycle stack */
+                //int distance = path==1? 260 : path==2 ? 243: 225;
+                //robot.driveToBackDrop(path, useArms,1750* (teamUtil.alliance==RED ? 1 : -1),distance,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
+
+                /* from wing stack */
+                robot.drive.moveCm(robot.drive.MAX_VELOCITY,2,0,180,750);
+                robot.intake.ready();
+                robot.drive.moveCm(robot.drive.MAX_VELOCITY,15,0,180,750);
+                int distance = path==1? 200 : path==2 ? 200: 200;
+                double rotation, strafe;
+                if(path==2||path==3){
+                    rotation = robot.output.GrabberRotatorHorizontal2;
+                    strafe = robot.output.StraferLoad+4*robot.output.StraferPositionPerCm;
+                }else{
+                    rotation = robot.output.GrabberRotatorHorizontal1;
+                    strafe = robot.output.StraferLoad-4*robot.output.StraferPositionPerCm;
+                }
+                if(teamUtil.alliance == RED) {
+                    robot.drive.strafeToEncoder(90, 180, 1000, /*TODO:FIX#*/16700, 2000); //strafe value was 17560 when res
+                } else {
+                    robot.drive.strafeToEncoder(270,180,1000,/*TODO:FIX#*/-15750,2000); //strafe value was 17560 when res
+                }
+                robot.driveToBackDrop(path, useArms,/*TODO:FIX#*/1750* (teamUtil.alliance==RED ? 1 : -1),distance+robot.b,3,rotation, strafe);
+
+
+                if (useArms) {robot.output.dropAndGoToLoad();}
+                elapsedTime = System.currentTimeMillis()-startTime;
+                teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));
 
 
                   // Test pushPurplePixelWing
@@ -310,6 +342,7 @@ public class testAutoPaths extends LinearOpMode {
                   teamUtil.pause(2000);
                   robot.intake.autoGrabTwoNoWait();
                  */
+            }
 
 
 

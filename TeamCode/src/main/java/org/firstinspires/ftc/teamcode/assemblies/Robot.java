@@ -187,6 +187,40 @@ public class Robot {
         return true;
     }
 
+    public boolean driveToBackDrop (int path, boolean operateArms, int encoderCenterTile, double initialDistance, float level, double rotatorPos, double straferPos) {
+        int finishEncoderStrafe;
+        if (teamUtil.alliance==RED) {
+            finishEncoderStrafe = path==1? encoderCenterTile-4500 : path==2 ? encoderCenterTile-6400: encoderCenterTile-7500;
+        } else {
+            finishEncoderStrafe =path==1? encoderCenterTile+7500 : path==2 ? encoderCenterTile+6400: encoderCenterTile+4500;
+        }
+        double transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
+        double seekVelocity = 400;
+
+        // Move across the field while holding the center of the tile
+        drive.moveStraightCmWithStrafeEncoder(2300,initialDistance,encoderCenterTile,0,180, transitionVelocity);
+
+        // launch the output in a seperate thread
+        if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
+
+        // Strafe over to a good starting point for April Tag Localization
+        drive.strafeToEncoderWithDecel(driverSide(), 180, transitionVelocity, finishEncoderStrafe, seekVelocity,drive.MAX_STRAFE_DECELERATION,2000);
+
+        // Localize using the April Tags
+        if (drive.driveToAprilTagOffsetV2(seekVelocity,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
+        {
+            // Compute the final movement to the backdrop location for pixel drop
+            teamUtil.log("Final Offset x/y: " + drive.lastAprilTagOffset.x + "/" + drive.lastAprilTagOffset.y);
+            drive.backToPoint(180,drive.lastAprilTagOffset.x, 6+ drive.lastAprilTagOffset.y, 0 );
+            return true;
+        } else {
+            // April tag localization failed
+            drive.stopMotors();
+            output.dropAndGoToLoad();
+            return false;
+        }
+    }
+
     public boolean pushPurplePlaceYellowPixelWingV4(int path, boolean operateArms){
         long startTime = System.currentTimeMillis();
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -215,7 +249,7 @@ public class Robot {
             drive.strafeToEncoder(teamUtil.alliance == RED? 90:270, 180, 800, (teamUtil.alliance == RED? 1:-1)*(11300), 10000);
 
              */
-            drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 11225:-11375), 650,10000); //a is -75, b is 0, c is -12, d  is 12
+            drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 11225:-11375), 650, drive.MAX_DECELERATION,10000); //a is -75, b is 0, c is -12, d  is 12
 
 
 
@@ -257,7 +291,7 @@ public class Robot {
         drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
         if(teamUtil.alliance == RED){
-            drive.strafeToEncoder(90,180,1000,16700,10000); //strafe value was 17560 when res
+            drive.strafeToEncoder(90,180,1000,16700,2000); //strafe value was 17560 when res
             drive.moveStraightCmWithStrafeEncoder(2300,path==1?210:200,17500,0,180,path==1?800 : 1250);//strafe value was 17560 when reset at beginning tic value must be adgjusted
             if (operateArms) {
                 if(path==2||path==3){
@@ -271,7 +305,7 @@ public class Robot {
             //TODO Path 3 on Blue hits alliance partner puprle pixle
             //TODO Path 3 on blue misses first purple pixel
         }else{
-            drive.strafeToEncoder(270,180,1000,-15750,10000); //strafe value was 17560 when res
+            drive.strafeToEncoder(270,180,1000,-15750,2000); //strafe value was 17560 when res
             drive.moveStraightCmWithStrafeEncoder(2300,path==3?220:200,-17500,0,180,path==3?800 : 1250);
             if (operateArms) {
                 if(path==2||path==3){
@@ -357,10 +391,11 @@ public class Robot {
 
         }
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        drive.strafeToEncoder(driverSide(), 180, 1000, (teamUtil.alliance==BLUE ? 1 : -1)*(2400), 2000);
+        drive.strafeToEncoder(driverSide(), 180, 1000, (teamUtil.alliance==BLUE ? 1 : -1)*(2400), 2000); // TODO: Why are we doing this?
 
         //drive.moveCm(drive.MAX_VELOCITY, a, teamUtil.alliance==RED ? 300 : 60, 180,750); // Heading was fixed at 300
 
+        // TODO: Why are we moving diagonally?
         if(!drive.driveToAprilTagOffset(400 , teamUtil.alliance==RED ? 300 : 60, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER,25 , 4000)){
             return false;
         }
@@ -382,6 +417,7 @@ public class Robot {
         return true;
     }
     public boolean cycleV3(double xOffset, boolean operateArms, int path) {
+
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.switchCV(Drive.cvCam.FRONT_LINE);

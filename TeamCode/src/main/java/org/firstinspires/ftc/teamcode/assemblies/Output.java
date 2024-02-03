@@ -557,6 +557,7 @@ public class Output {
 
 
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
+            teamUtil.pause(50);   // yield some time here so drive control gets enough CPU (especially auto!!)
         }
         grabberStrafer.setPosition(straferPosition);
         flipper.setPosition(flipperScore);
@@ -566,6 +567,7 @@ public class Output {
         elevRight.setTargetPosition(elevDestination);
 
         while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
+            teamUtil.pause(50);   // yield some time here so drive control gets enough CPU (especially auto!!)
         }
 
         teamUtil.log("Go To Score-Finished");

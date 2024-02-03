@@ -105,6 +105,8 @@ public class Drive {
     public double MIN_END_VELOCITY = 400; //calibrated with 435s
     public double MAX_ACCELERATION = 22; //calibrated with 435s
     public double MAX_DECELERATION = 1.0; //calibrated with 435s
+
+    public double MAX_STRAFE_DECELERATION = 1.5; //calibrated with 435s
     public double MAX_VELOCITY = 2450; // Was 2680
     public double MAX_VELOCITY_STRAFE = 2000; // Added with new motors
     public double ROTATION_ADJUST_FACTOR = 0.04;
@@ -840,6 +842,21 @@ public class Drive {
 
     }
 
+    public void backToPoint(double robotHeading, double x, double y, double endVelocity) { // assumes robot heading is 180
+        // x positive means to the robots right
+        // y positive means robot move backwards (not tested for anything else!)
+        double heading, distance;
+        teamUtil.log("Move to Point: x/y " + x + "/"+ y);
+        distance = Math.sqrt(x*x+y*y);
+        if (y == 0) {
+            heading = x < 0 ? 270 : 90;
+        } else if (y > 0) { // Using vertical (y-axis) to compute reference angles since 0 is at top
+            heading = adjustAngle(Math.toDegrees(Math.atan(x / y)));
+        } else {
+            heading = 180 + Math.toDegrees(Math.atan(x / y));
+        }
+        moveCm(MAX_VELOCITY,distance,heading,180,endVelocity);
+    }
     public void moveStraightCmWithStrafeEncoder(double maxVelocity, double centimeters, int strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
         teamUtil.log("Strafe Target" + strafeTarget);
         teamUtil.log("Strafe Start Value" + strafeEncoder.getCurrentPosition());
@@ -1868,14 +1885,16 @@ public class Drive {
         }
     }
 
+    public org.opencv.core.Point lastAprilTagOffset = new Point();
     public boolean driveToAprilTagOffsetV2(double initialVelocity, double initialDriveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
         teamUtil.log("Drive to April Tag Offset X: " + xOffset + " Y: "+ yOffset);
         boolean details = true;
         long timeOutTime = System.currentTimeMillis() + timeout;
         long aprilTagTimeoutTime = 0;
-        float driftCms = 2;
-        double kAprilTagX = 1;
-        double aprilTagMaxVelocity = MAX_VELOCITY;
+        float xDriftCms = 2.54f;
+        float yDriftCms = 2.54f;
+        double kAprilTagX = 2;
+        double aprilTagMaxVelocity = initialVelocity;
         org.opencv.core.Point tagOffset = new org.opencv.core.Point();
         teamUtil.log("Continue on Initial Heading");
         aprilTag.getFreshDetections();
@@ -1887,7 +1906,9 @@ public class Drive {
             double cmsToStrafe = tagOffset.x - xOffset;
             double cmsToBackup = tagOffset.y - yOffset;
             double cmsToTravel = Math.sqrt(cmsToStrafe * cmsToStrafe + cmsToBackup * cmsToBackup);
-            if (Math.abs(cmsToTravel) < driftCms) {
+            if (Math.abs(cmsToStrafe) < xDriftCms && Math.abs(cmsToBackup)< yDriftCms) {
+                lastAprilTagOffset.x = cmsToStrafe;
+                lastAprilTagOffset.y = cmsToBackup;
                 break;
             }
             double heading;
@@ -1899,16 +1920,16 @@ public class Drive {
                 heading = 180 + Math.toDegrees(Math.atan(cmsToStrafe / cmsToBackup));
             }
             if (heading < 90) {
-                heading = Math.min(90, heading*(kAprilTagX + teamUtil.robot.a));
+                heading = Math.min(90, heading*(kAprilTagX));
             } else if (heading > 270) {
-                heading = 360 - (Math.min(90, (360-heading) * (kAprilTagX + teamUtil.robot.a)));
+                heading = 360 - (Math.min(90, (360-heading) * (kAprilTagX)));
             } else if (heading >90 && heading < 180) {
-                heading = 180 - (Math.min(90, (180-heading) * (kAprilTagX + teamUtil.robot.a)));
+                heading = 180 - (Math.min(90, (180-heading) * (kAprilTagX)));
             } else if (heading > 180 && heading < 270) {
-                heading = 270 - (Math.min(90, (270-heading) * (kAprilTagX + teamUtil.robot.a)));
+                heading = 270 - (Math.min(90, (270-heading) * (kAprilTagX)));
             }
-            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY+teamUtil.robot.b + MAX_DECELERATION+teamUtil.robot.c * COUNTS_PER_CENTIMETER * cmsToTravel);
-            velocity = Math.max(aprilTagMaxVelocity+teamUtil.robot.d, velocity);
+            double velocity = Math.min(initialVelocity, MIN_END_VELOCITY + MAX_DECELERATION * COUNTS_PER_CENTIMETER * cmsToTravel);
+            velocity = Math.min(aprilTagMaxVelocity+teamUtil.robot.d, velocity);
             if (details)
                 teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup + " travel: " + cmsToTravel + " heading: " + heading + " v: " + velocity);
             driveMotorsHeadingsFR(heading, robotHeading, velocity);
@@ -1924,6 +1945,7 @@ public class Drive {
             return false;
         } else {
             teamUtil.log("Drive to April Tag Offset - FINISHED");
+            // TODO: Return some data about last offsets so the last movement can correct?
             return true;
         }
     }
@@ -1954,7 +1976,7 @@ public class Drive {
     }
 
 
-    public boolean strafeToEncoderWithDecel(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, double endVelocity, long timeout) {
+    public boolean strafeToEncoderWithDecel(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, double endVelocity, double decelK, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
@@ -1965,14 +1987,14 @@ public class Drive {
         if (driveHeading<180) {
             while (strafeEncoder.getCurrentPosition() < realTarget && teamUtil.keepGoing(timeOutTime)) {
                 strafeCmsToGo = Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())/TICS_PER_CM_STRAFE_ENCODER;
-                liveVelocity = Math.min(velocity, endVelocity+MAX_DECELERATION* COUNTS_PER_CENTIMETER * strafeCmsToGo);
+                liveVelocity = Math.min(velocity, endVelocity+decelK* COUNTS_PER_CENTIMETER * strafeCmsToGo);
                 driveMotorsHeadingsFR(driveHeading, robotHeading, liveVelocity);
             }
         }
         else{
             while (strafeEncoder.getCurrentPosition() > realTarget && teamUtil.keepGoing(timeOutTime)) {
                 strafeCmsToGo = Math.abs(targetEncoderValue-strafeEncoder.getCurrentPosition())/TICS_PER_CM_STRAFE_ENCODER;
-                liveVelocity = Math.min(velocity, endVelocity+MAX_DECELERATION* COUNTS_PER_CENTIMETER * strafeCmsToGo);
+                liveVelocity = Math.min(velocity, endVelocity+decelK* COUNTS_PER_CENTIMETER * strafeCmsToGo);
                 driveMotorsHeadingsFR(driveHeading, robotHeading, liveVelocity);
             }
         }
