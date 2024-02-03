@@ -162,7 +162,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(gamepad2.dpad_left){
-                robot.intake.grabOnePixelLoop(gamepad2.dpad_left);
+                //robot.intake.grabOnePixelLoop(gamepad2.dpad_left);
 
             }
             if(armsGamepad.wasDownPressed()){
@@ -209,13 +209,14 @@ public class Teleop extends LinearOpMode {
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                 robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal1,robot.output.StraferLoad-4*robot.output.StraferPositionPerCm);
+                //TODO fix this to be what zoran actually wants
             }
 
             if(armsGamepad.wasBPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal2,robot.output.StraferLoad+4*robot.output.StraferPositionPerCm);
-
+                //TODO fix this to be what zoran actually wants
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
             }
 
@@ -248,6 +249,7 @@ public class Teleop extends LinearOpMode {
 
             if(armsGamepad.wasStartPressed()){
                 robot.intake.reverseIntake();
+                //TODO Do we want this?
             }
 
             /*

@@ -210,11 +210,13 @@ public class Robot {
         if (drive.driveToAprilTagOffsetV2(seekVelocity,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
         {
             // Compute the final movement to the backdrop location for pixel drop
+            drive.stopCV();
             teamUtil.log("Final Offset x/y: " + drive.lastAprilTagOffset.x + "/" + drive.lastAprilTagOffset.y);
             drive.backToPoint(180,drive.lastAprilTagOffset.x, 6+ drive.lastAprilTagOffset.y, 0 );
             return true;
         } else {
             // April tag localization failed
+            drive.stopCV();
             drive.stopMotors();
             output.dropAndGoToLoad();
             return false;
@@ -289,40 +291,24 @@ public class Robot {
         drive.moveCm(drive.MAX_VELOCITY,2,0,180,750);
         intake.ready();
         drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
-        double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
+        int distance = path==1? 235 : path==2 ? 220: 200;
+        double rotation, strafe;
+        if(path==2||path==3){
+            rotation = output.GrabberRotatorHorizontal2;
+            strafe = output.StraferLoad+4*output.StraferPositionPerCm;
+        }else{
+            rotation = output.GrabberRotatorHorizontal1;
+            strafe = output.StraferLoad-4*output.StraferPositionPerCm;
+        }
         if(teamUtil.alliance == RED){
-            drive.strafeToEncoder(90,180,1000,16700,2000); //strafe value was 17560 when res
-            drive.moveStraightCmWithStrafeEncoder(2300,path==1?210:200,17500,0,180,path==1?800 : 1250);//strafe value was 17560 when reset at beginning tic value must be adgjusted
-            if (operateArms) {
-                if(path==2||path==3){
-                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2,output.StraferLoad+4*output.StraferPositionPerCm);
-                }else{
-                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal1,output.StraferLoad-4*output.StraferPositionPerCm);
-
-                }
-            }
-            drive.driveToAprilTagOffset(path==1?800 : 1250,270,180,xOffset,20,4000); // 1300 or maybe 1250 is the key //add blue side
-            //TODO Path 3 on Blue hits alliance partner puprle pixle
-            //TODO Path 3 on blue misses first purple pixel
+            drive.strafeToEncoder(90,180,1000,16700,2000);
         }else{
             drive.strafeToEncoder(270,180,1000,-15750,2000); //strafe value was 17560 when res
-            drive.moveStraightCmWithStrafeEncoder(2300,path==3?220:200,-17500,0,180,path==3?800 : 1250);
-            if (operateArms) {
-                if(path==2||path==3){
-                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal2,output.StraferLoad+4*output.StraferPositionPerCm);
-                }else{
-                    output.goToScoreNoWait(3,output.GrabberRotatorHorizontal1,output.StraferLoad-4*output.StraferPositionPerCm);
-                }
-            }
-            drive.driveToAprilTagOffset(path==3?800 : 1250,90,180,xOffset,20,4000); // 1300 or maybe 1250 is the key //add blue side
-
         }
+        driveToBackDrop(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),distance,3,rotation, strafe);
 
         teamUtil.log("AprilTagFPS" + drive.rearVisionPortal.getFps());
-        drive.stopCV();
 
-
-        drive.moveCm(drive.MAX_VELOCITY,6+a,0,180,0);
 
         long purpleYellowWingTime = System.currentTimeMillis() - startTime;
         teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
@@ -341,8 +327,6 @@ public class Robot {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public boolean cycleV4(double xOffset, boolean operateArms, int path,long autoStartTime){
-
-
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle");
         drive.switchCV(Drive.cvCam.FRONT_LINE);
@@ -360,15 +344,17 @@ public class Robot {
             desiredStrafeEncoderTransition=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-7300);
             desiredStrafeEncoderCenter=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-8100);
         }
-        drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,750 ,desiredStrafeEncoderTransition,2000);
+        drive.moveCm(drive.MAX_VELOCITY, 2,180,180,0);
+        //drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,750 ,desiredStrafeEncoderTransition,2000);
+        drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300 ,desiredStrafeEncoderTransition,750,drive.MAX_STRAFE_DECELERATION,2000);
         //double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
         //drive.moveCm(drive.MAX_VELOCITY, 75 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 1000); // Heading was fixed at 135 // a was 500 b was 100
-        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 258, desiredStrafeEncoderCenter,180, 180, 700); // velocity at end was 700 // c was 188
+        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 243+a, desiredStrafeEncoderCenter,180, 180, 1000); // velocity at end was 700 // c was 188
 
         if (operateArms) {
             intake.startIntake();
-            intake.ready();
         }
+        intake.ready();
         drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000);
 
         if (operateArms) {
@@ -384,31 +370,18 @@ public class Robot {
 
 
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-        drive.moveCm(drive.MAX_VELOCITY, 215, 0, 180, 1500);
-        if (operateArms) {
-
-            output.goToScoreNoWait(3.5f,output.GrabberRotatorHorizontal2,output.StraferLoad);
-
-        }
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        drive.strafeToEncoder(driverSide(), 180, 1000, (teamUtil.alliance==BLUE ? 1 : -1)*(2400), 2000); // TODO: Why are we doing this?
-
-        //drive.moveCm(drive.MAX_VELOCITY, a, teamUtil.alliance==RED ? 300 : 60, 180,750); // Heading was fixed at 300
-
-        // TODO: Why are we moving diagonally?
-        if(!drive.driveToAprilTagOffset(400 , teamUtil.alliance==RED ? 300 : 60, 180, teamUtil.alliance==RED ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER,25 , 4000)){
-            return false;
-        }
-
-        drive.moveCm(drive.MAX_VELOCITY,9, 0, 180, 0);
+        int distance = 260;
+        driveToBackDrop(1, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad);
 
 
         if (operateArms) {
-            intake.stopIntake();
+            //intake.stopIntake();
             output.dropAndGoToLoadNoWait();
         } else {
             teamUtil.pause(100);
         }
+
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         long endTime = System.currentTimeMillis();
         long cycleTime = endTime-startTime;
@@ -509,11 +482,20 @@ public class Robot {
 
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
 
-        cycleV4(xOffset,operateArms,path,startTime);
-        if(System.currentTimeMillis()-startTime<20000){
-            cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime);
-        }else{
-            teamUtil.log("Second Cycle AutoV4 Timed Out");
+        if(cycleV4(xOffset,operateArms,path,startTime)){
+            if(System.currentTimeMillis()-startTime<20000){
+                if(cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
+
+                }
+                else{
+                    teamUtil.log("First CycleV4 failed");
+                }
+            }else{
+                teamUtil.log("Second Cycle AutoV4 Timed Out");
+            }
+        }
+        else{
+            teamUtil.log("Cycle V4 Failsafed Out");
         }
 
     }

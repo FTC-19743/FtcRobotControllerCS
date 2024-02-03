@@ -46,7 +46,7 @@ public class Intake {
     public double leftKnockerReady = 0.833; // was .9 was .74
 
     public double leftKnockerHold = .56;
-    public double leftKnockerGetTop = 0.51; //was .5
+    public double leftKnockerGetTop = 0.50; //was .5
     public double leftKnockerGetBottom = 0.45; //was .25
     public double leftKnockerCollect = leftKnockerGetTop; // was 0.16
     public double leftKnockerFullCollect = leftKnockerGetBottom; // was .05
