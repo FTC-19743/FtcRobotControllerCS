@@ -1945,11 +1945,52 @@ public class Drive {
             return false;
         } else {
             teamUtil.log("Drive to April Tag Offset - FINISHED");
-            // TODO: Return some data about last offsets so the last movement can correct?
             return true;
         }
     }
 
+    public boolean strafeToAprilTagOffsetV2(double velocity, double driveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
+        teamUtil.log("Strafe to April Tag Offset X: " + xOffset );
+        boolean details = true;
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        long aprilTagTimeoutTime = 0;
+        double xDriftCms = 6.0f;
+        org.opencv.core.Point tagOffset = new org.opencv.core.Point();
+        teamUtil.log("Waiting to see tags");
+        aprilTag.getFreshDetections();
+        while (!getRobotBackdropOffset(tagOffset,true) && teamUtil.keepGoing(timeOutTime)) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity); // continue on initial heading until we see a tag
+        }
+        teamUtil.log("Driving based on tags");
+        while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
+            double cmsToStrafe = tagOffset.x - xOffset;
+            double cmsToBackup = tagOffset.y - yOffset;
+
+            //if ((driveHeading > 180 && cmsToStrafe < xDriftCms) || (driveHeading < 180 && cmsToStrafe > xDriftCms)) {
+            if (Math.abs(cmsToStrafe) < xDriftCms) {
+                lastAprilTagOffset.x = cmsToStrafe;
+                lastAprilTagOffset.y = cmsToBackup;
+                break;
+            }
+
+            if (details)
+                teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup );
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
+            while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
+                if (details) teamUtil.log("WARNING: Lost sight of tags!");
+            }
+
+        }
+        stopMotors();
+        if (System.currentTimeMillis() > timeOutTime || System.currentTimeMillis() > aprilTagTimeoutTime) {
+            teamUtil.log("StrafeToAprilTagOffset - TIMED OUT!");
+            return false;
+        } else {
+            teamUtil.log("Strafe to April Tag Offset - FINISHED");
+            return true;
+        }
+    }
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);

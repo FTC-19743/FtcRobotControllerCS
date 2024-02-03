@@ -223,6 +223,45 @@ public class Robot {
         }
     }
 
+    public boolean driveToBackDropV2 (int path, boolean operateArms, int encoderCenterTile, double initialDistance, float level, double rotatorPos, double straferPos) {
+        // TODO: Optimize Inside path to save another .5-1 seconds on cycle
+        int finishEncoderStrafe;
+        if (teamUtil.alliance==RED) {
+            finishEncoderStrafe = path==1? encoderCenterTile-4500 : path==2 ? encoderCenterTile-6400: encoderCenterTile-7500;
+        } else {
+            finishEncoderStrafe =path==1? encoderCenterTile+7500 : path==2 ? encoderCenterTile+6400: encoderCenterTile+4500;
+        }
+        double transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
+        double seekVelocity = 400;
+
+        // Move across the field while holding the center of the tile
+        drive.moveStraightCmWithStrafeEncoder(2300,initialDistance,encoderCenterTile,0,180, transitionVelocity);
+
+        // launch the output in a separate thread
+        if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
+
+        // Strafe over to a good starting point for April Tag Localization
+        drive.strafeToEncoderWithDecel(driverSide(), 180, transitionVelocity, finishEncoderStrafe, seekVelocity,drive.MAX_STRAFE_DECELERATION,2000);
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+
+        // Localize using the April Tags
+        if (drive.strafeToAprilTagOffsetV2(seekVelocity,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
+        {
+            // Compute the final movement to the backdrop location for pixel drop
+            drive.stopCV();
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            teamUtil.log("Final Offset x/y: " + drive.lastAprilTagOffset.x + "/" + drive.lastAprilTagOffset.y);
+            drive.backToPoint(180,drive.lastAprilTagOffset.x, 6+ drive.lastAprilTagOffset.y, 0 );
+            return true;
+        } else {
+            // April tag localization failed
+            drive.stopCV();
+            drive.stopMotors();
+            output.dropAndGoToLoad();
+            return false;
+        }
+    }
+
     public boolean pushPurplePlaceYellowPixelWingV4(int path, boolean operateArms){
         long startTime = System.currentTimeMillis();
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

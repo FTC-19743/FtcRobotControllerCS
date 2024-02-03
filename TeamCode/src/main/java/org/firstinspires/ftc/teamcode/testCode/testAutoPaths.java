@@ -249,6 +249,7 @@ public class testAutoPaths extends LinearOpMode {
                 //robot.cycleV4(0,useArms,2,0);
 
                   //Toggle pixel releaser
+                /*
                 robot.releaser.toggle();
                 if(!robot.releaser.holding){
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
@@ -257,7 +258,7 @@ public class testAutoPaths extends LinearOpMode {
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 }
 
-
+                 */
 
 
                 // Test April Tag Localization
@@ -269,14 +270,20 @@ public class testAutoPaths extends LinearOpMode {
 //                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
 //                    }
 //                }
-//                int path = (int)robot.a;
-//                long startTime = System.currentTimeMillis();
-//                robot.drive.setHeading(180);
-//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                int path = (int)robot.a;
+                long startTime = System.currentTimeMillis();
+                robot.drive.setHeading(180);
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //
 //                /* from cycle stack */
-//                //int distance = path==1? 260 : path==2 ? 243: 225;
-//                //robot.driveToBackDrop(path, useArms,1750* (teamUtil.alliance==RED ? 1 : -1),distance,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
+                //int distance = path==1? 260 : path==2 ? 243: 225;
+                int distance = path==1? 275 : path==2 ? 260: 240; // add 15
+
+                robot.driveToBackDropV2(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),distance+robot.b,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
+                if (useArms) {robot.output.dropAndGoToLoad();}
+                elapsedTime = System.currentTimeMillis()-startTime;
+                teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));
+
 //
 //                /* from wing stack */
 //                robot.drive.moveCm(robot.drive.MAX_VELOCITY,2,0,180,750);
@@ -345,6 +352,7 @@ public class testAutoPaths extends LinearOpMode {
                   teamUtil.pause(2000);
                   robot.intake.autoGrabTwoNoWait();
                  */
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             }
 
 
