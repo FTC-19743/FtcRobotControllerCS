@@ -246,10 +246,10 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
-                //robot.cycleV4(0,useArms,2,0);
+//                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
 
                   //Toggle pixel releaser
-                /*
+
                 robot.releaser.toggle();
                 if(!robot.releaser.holding){
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
@@ -258,7 +258,7 @@ public class testAutoPaths extends LinearOpMode {
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 }
 
-                 */
+
 
 
                 // Test April Tag Localization
@@ -270,13 +270,14 @@ public class testAutoPaths extends LinearOpMode {
 //                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
 //                    }
 //                }
-                int path = (int)robot.a;
-                long startTime = System.currentTimeMillis();
-                robot.drive.setHeading(180);
-                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                int path = (int)robot.a;
+//                long startTime = System.currentTimeMillis();
+//                robot.drive.setHeading(180);
+//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //
 //                /* from cycle stack */
                 //int distance = path==1? 260 : path==2 ? 243: 225;
+                /*
                 int distance = path==1? 275 : path==2 ? 260: 240; // add 15
 
                 robot.driveToBackDropV2(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),distance+robot.b,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
@@ -284,12 +285,14 @@ public class testAutoPaths extends LinearOpMode {
                 elapsedTime = System.currentTimeMillis()-startTime;
                 teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));
 
+                 */
+
 //
 //                /* from wing stack */
 //                robot.drive.moveCm(robot.drive.MAX_VELOCITY,2,0,180,750);
 //                robot.intake.ready();
 //                robot.drive.moveCm(robot.drive.MAX_VELOCITY,15,0,180,750);
-//                int distance = path==1? 235 : path==2 ? 220: 200;
+//                int distance = path==1? 250 : path==2 ? 235: 215;
 //                double rotation, strafe;
 //                if(path==2||path==3){
 //                    rotation = robot.output.GrabberRotatorHorizontal2;
@@ -303,7 +306,7 @@ public class testAutoPaths extends LinearOpMode {
 //                } else {
 //                    robot.drive.strafeToEncoder(270,180,1000,-2250-robot.d,2000); //strafe value was 15750 when res//TODO adjust strafe for off wall
 //                }
-//                robot.driveToBackDrop(path, useArms,4000* (teamUtil.alliance==RED ? 1 : -1),distance+robot.b,3,rotation, strafe); //was 17500//TODO adjust strafe for off wall
+//                robot.driveToBackDropV2(path, useArms,4000* (teamUtil.alliance==RED ? 1 : -1),distance+robot.b,3,rotation, strafe); //was 17500//TODO adjust strafe for off wall
 //
 //
 //                if (useArms) {robot.output.dropAndGoToLoad();}

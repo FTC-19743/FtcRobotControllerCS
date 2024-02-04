@@ -18,6 +18,10 @@ public class Lift {
     public static double liftArmUp = 0.71;
     public static double liftArmStowed = 0.30;
     public static double liftSpindleVelocity = 3000; // Max Speed
+    public static double liftSpindleUpPower = 1; // Max Speed
+
+    public static double liftSpindleDownPower = -.1;
+
     public Servo liftArm;
     public DcMotorEx liftSpindle;
 
@@ -62,7 +66,9 @@ public class Lift {
         armUp=false;
     }
     public void raiseLift(){
-        // TODO: Needs to be reimplemented to use setPower and no encoder
+        liftSpindle.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        startedLifting = true;
+        liftSpindle.setPower(liftSpindleUpPower);
         /*
         liftSpindle.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         startedLifting = true;
@@ -70,7 +76,8 @@ public class Lift {
          */
     }
     public void lowerLift(){
-        // TODO: Needs to be reimplemented to use setPower and no encoder
+        liftSpindle.setPower(-liftSpindleDownPower);
+
         /*
                 liftSpindle.setVelocity(-liftSpindleVelocity);
          */

@@ -57,6 +57,9 @@ public class JudgingOpMode extends LinearOpMode {
                 robot.lift.armUp();
                 robot.launcher.toggleRelease();
             }
+            if(gamepad.wasOptionsPressed()){
+                robot.lift.stowArm();
+            }
         }
     }
 }

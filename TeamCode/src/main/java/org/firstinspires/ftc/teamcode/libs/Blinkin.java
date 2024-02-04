@@ -53,6 +53,10 @@ public class Blinkin {
         JUDGING_LEFT,
         JUDGING_RIGHT,
 
+        GOTOSCORE_RED,
+
+        GOTOSCORE_BLUE
+
     }
 
     public Blinkin(HardwareMap map, Telemetry aTelemetry ){
@@ -93,6 +97,16 @@ public class Blinkin {
         switch(signal) {
             case OFF :
                 current = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+                blinkinLedDriver.setPattern(current);
+                break;
+
+            case GOTOSCORE_BLUE:
+                current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE;
+                blinkinLedDriver.setPattern(current);
+                break;
+
+            case GOTOSCORE_RED:
+                current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE;
                 blinkinLedDriver.setPattern(current);
                 break;
 

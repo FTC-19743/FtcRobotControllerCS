@@ -227,9 +227,9 @@ public class Robot {
         // TODO: Optimize Inside path to save another .5-1 seconds on cycle
         int finishEncoderStrafe;
         if (teamUtil.alliance==RED) {
-            finishEncoderStrafe = path==1? encoderCenterTile-4500 : path==2 ? encoderCenterTile-6400: encoderCenterTile-7500;
+            finishEncoderStrafe = path==1? encoderCenterTile-4000 : path==2 ? encoderCenterTile-5800: encoderCenterTile-6900;
         } else {
-            finishEncoderStrafe =path==1? encoderCenterTile+7500 : path==2 ? encoderCenterTile+6400: encoderCenterTile+4500;
+            finishEncoderStrafe =path==1? encoderCenterTile+6900 : path==2 ? encoderCenterTile+5800: encoderCenterTile+4000;
         }
         double transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
         double seekVelocity = 400;
@@ -330,7 +330,7 @@ public class Robot {
         drive.moveCm(drive.MAX_VELOCITY,2,0,180,750);
         intake.ready();
         drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
-        int distance = path==1? 235 : path==2 ? 220: 200;
+        int distance = path==1? 250 : path==2 ? 235: 215;
         double rotation, strafe;
         if(path==2||path==3){
             rotation = output.GrabberRotatorHorizontal2;
@@ -344,7 +344,7 @@ public class Robot {
         }else{
             drive.strafeToEncoder(270,180,1000,-15750,2000); //strafe value was 17560 when res
         }
-        driveToBackDrop(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),distance,3,rotation, strafe);
+        driveToBackDropV2(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),distance,3,rotation, strafe);
 
         teamUtil.log("AprilTagFPS" + drive.rearVisionPortal.getFps());
 
@@ -377,10 +377,10 @@ public class Robot {
         int desiredStrafeEncoderCenter;
 
         if(teamUtil.alliance == teamUtil.alliance.RED){
-            desiredStrafeEncoderTransition=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER+7300);
+            desiredStrafeEncoderTransition=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER+6800);
             desiredStrafeEncoderCenter=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER+8100);
         }else{
-            desiredStrafeEncoderTransition=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-7300);
+            desiredStrafeEncoderTransition=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-6800);
             desiredStrafeEncoderCenter=(int) (xOffset*drive.TICS_PER_CM_STRAFE_ENCODER-8100);
         }
         drive.moveCm(drive.MAX_VELOCITY, 2,180,180,0);
@@ -388,7 +388,7 @@ public class Robot {
         drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300 ,desiredStrafeEncoderTransition,750,drive.MAX_STRAFE_DECELERATION,2000);
         //double distanceOffset = teamUtil.alliance==RED ? xOffset : -xOffset; // flip the sign on the Xoffset so the following math works on both sides
         //drive.moveCm(drive.MAX_VELOCITY, 75 + (distanceOffset > 0 ? 1 : -1) * (Math.sqrt(distanceOffset * distanceOffset * 2)), teamUtil.alliance==RED ? 135:225 , 180, 1000); // Heading was fixed at 135 // a was 500 b was 100
-        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 243+a, desiredStrafeEncoderCenter,180, 180, 1000); // velocity at end was 700 // c was 188
+        drive.moveStraightCmWithStrafeEncoder(drive.MAX_VELOCITY, 243, desiredStrafeEncoderCenter,180, 180, 1000); // velocity at end was 700 // c was 188
 
         if (operateArms) {
             intake.startIntake();
@@ -410,8 +410,8 @@ public class Robot {
 
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int distance = 260;
-        driveToBackDrop(1, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad);
+        int distance = 275;
+        driveToBackDropV2(1, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad);
 
 
         if (operateArms) {

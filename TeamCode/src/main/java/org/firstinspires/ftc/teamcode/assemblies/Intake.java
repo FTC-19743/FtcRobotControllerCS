@@ -108,6 +108,7 @@ public class Intake {
 
     public void ready() {
         if (!collecterMoving){
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
             lKnocker.setPosition(leftKnockerReady);
             rKnocker.setPosition(rightKnockerReady);
         }
@@ -124,7 +125,7 @@ public class Intake {
     }
 
     public void collectHold(){
-
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.JUDGING_BLINKIN);
         lKnocker.setPosition(leftKnockerHold);
         rKnocker.setPosition(rightKnockerHold);
     }
@@ -134,6 +135,7 @@ public class Intake {
         long startTime = System.currentTimeMillis();
         collecterMoving = true;
         startIntake();
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED);
         teamUtil.pause(500); //tentative time
         collectTopPixel();
 
@@ -143,6 +145,7 @@ public class Intake {
         // TODO add failsafe
         collectFull();
         collecterMoving = false;
+
     }
 
     public void holdToCollectNoWait(long timeout){
@@ -200,13 +203,31 @@ public class Intake {
         }
     }
 
+    public void grabOneTeleop(){
+        collecterMoving = true;
+        startIntake();
+        teamUtil.pause(500);
+        collectFull();
+        collecterMoving = false;
+    }
 
+    public void grabOneTeleopNoWait(){
+        if (!collecterMoving){
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    grabOneTeleop();
+                }
+            });
+            thread.start();
+        }
+
+    }
 
     public void grabOnePixel(){
         grabbingOnePixel.set(true);
         collectTopPixel();
         teamUtil.pause(500); // TENATIVE VALUE
-        store();
         grabbingOnePixel.set(false);
     }
 

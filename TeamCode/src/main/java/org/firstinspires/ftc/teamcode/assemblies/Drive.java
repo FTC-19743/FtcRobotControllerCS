@@ -1980,10 +1980,16 @@ public class Drive {
             while (!getRobotBackdropOffset(tagOffset,false) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
                 if (details) teamUtil.log("WARNING: Lost sight of tags!");
             }
+            if (System.currentTimeMillis()>=aprilTagTimeoutTime){
+                teamUtil.log("TIMED OUT after losing aprilTags" );
+                stopMotors();
+                return false;
+            }
+
 
         }
         stopMotors();
-        if (System.currentTimeMillis() > timeOutTime || System.currentTimeMillis() > aprilTagTimeoutTime) {
+        if (System.currentTimeMillis() > timeOutTime) {
             teamUtil.log("StrafeToAprilTagOffset - TIMED OUT!");
             return false;
         } else {

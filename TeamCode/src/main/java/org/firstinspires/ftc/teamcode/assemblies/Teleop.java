@@ -143,8 +143,9 @@ public class Teleop extends LinearOpMode {
             //}
 
             ////////// Intake
-            robot.intake.autoOff();
-
+            if(!gamepad2.start){
+                robot.intake.autoOff();
+            }
 
             if(armsGamepad.wasLeftTriggerPressed()){
                 if (Math.abs(robot.intake.lKnocker.getPosition() - robot.intake.leftKnockerReady) < .001){
@@ -156,9 +157,19 @@ public class Teleop extends LinearOpMode {
 
             }
 
+            if(gamepad2.back){
+                robot.intake.ready();
+                robot.intake.reverseIntake();
+
+            }
+            if(armsGamepad.wasBackPressed()){
+                robot.intake.stopIntake();
+            }
+
+
             if(armsGamepad.wasRightPressed()){
                 //Needs to be implemented; free for now
-                robot.intake.grabOnePixel();
+
             }
 
             if(gamepad2.dpad_left){
@@ -170,7 +181,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasUpPressed()){
-
+                robot.intake.grabOneTeleopNoWait();
             }
 
 
@@ -179,7 +190,7 @@ public class Teleop extends LinearOpMode {
             if(driverGamepad.gamepad.left_bumper && driverGamepad.gamepad.right_bumper){
                 robot.lift.raiseLift();
             } else if (robot.lift.startedLifting){
-                robot.lift.holdLift();
+                robot.lift.lowerLift();
             }
             if (driverGamepad.wasUpPressed()) {
                 robot.lift.toggleArm();
@@ -199,23 +210,27 @@ public class Teleop extends LinearOpMode {
                 robot.output.goToLoadNoWait();
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
-                //robot.output.goToScoreNoWait(3);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad,robot.output.StraferLoad);
+                if(!robot.output.loading.get()&&!robot.output.moving.get()) {
+                    robot.output.grabberRotater.setPosition(robot.output.GrabberRotatorLoad);
+                }else{
+                    //robot.output.goToScoreNoWait(3);
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel, robot.output.GrabberRotatorLoad, robot.output.StraferLoad);
+                }
             }
 
             if(armsGamepad.wasXPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal1,robot.output.StraferLoad-4*robot.output.StraferPositionPerCm);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                 //TODO fix this to be what zoran actually wants
             }
 
             if(armsGamepad.wasBPressed()){ // Send output system to scoring position
                 //robot.output.goToScoreNoWait(3);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(2.5f,robot.output.GrabberRotatorHorizontal2,robot.output.StraferLoad+4*robot.output.StraferPositionPerCm);
+                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                 //TODO fix this to be what zoran actually wants
                 //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
             }
@@ -237,6 +252,7 @@ public class Teleop extends LinearOpMode {
             }
             if (armsGamepad.gamepad.right_trigger> 0.5) {
                 robot.output.dropAndGoToLoadNoWait();
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             }
 
 
@@ -248,8 +264,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasStartPressed()){
-                robot.intake.reverseIntake();
-                //TODO Do we want this?
+
             }
 
             /*
@@ -265,6 +280,7 @@ public class Teleop extends LinearOpMode {
             //robot.telemetry.addLine("Loop Run Number: " + loopRunNumber);
             robot.telemetry.addLine("Last Level: " + robot.output.lastLevel);
             telemetry.update();
+
 
         }
     }
