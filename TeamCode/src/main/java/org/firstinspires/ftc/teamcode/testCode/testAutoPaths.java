@@ -162,14 +162,14 @@ public class testAutoPaths extends LinearOpMode {
                     }else if(driverGamepad.wasDownPressed()){
                         robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasXPressed()) {
                         robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     }else if (driverGamepad.wasBPressed()) {
@@ -192,7 +192,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(1, useArms, true);
+                robot.autoV4(1, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -200,7 +200,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(2, useArms, true);
+                robot.autoV4(2, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -208,7 +208,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(3, useArms, true);
+                robot.autoV4(3, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -216,7 +216,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(1, useArms, true);
+                robot.autoV4(1, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -225,7 +225,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV4(2, useArms, true);
+                robot.autoV4(2, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -234,7 +234,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV4(3, useArms, true);
+                robot.autoV4(3, useArms, 0);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -246,10 +246,44 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
+                robot.releaser.toggle();
+
 //                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
+                /*
+                while(!driverGamepad.wasAPressed()){
+                    driverGamepad.loop();
+                    telemetry.addLine("Toggle Release");
+                    telemetry.update();
+                    if(driverGamepad.wasRightBumperPressed()){
+                        robot.releaser.toggle();
+                    }
+                }
+                robot.drive.setHeading(180);
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                // Test new "Outside" path
+                if(teamUtil.alliance == RED){
+                    //robot.drive.moveCm(2000,56+robot.a,90,180,650);
+
+                    robot.drive.strafeToEncoderWithDecel(90,180,2000,7300+robot.a,650, robot.drive.MAX_STRAFE_DECELERATION,2000);
+                }else{
+                    //robot.drive.moveCm(2000,59+robot.b,270,180,650);
+
+                    robot.drive.strafeToEncoderWithDecel(270,180,2000,-7600+robot.a,650, robot.drive.MAX_STRAFE_DECELERATION,2000);
+                }
+                robot.drive.moveCm(robot.drive.MAX_VELOCITY,teamUtil.alliance == RED? 33:36,180,180,650);
+                robot.releaser.release();
+                if (useArms) {
+                    robot.intake.startIntake();
+                }
+                robot.drive.moveCm(650,4,180,180,650);
+                robot.drive.strafeToEncoderWithDecel(teamUtil.alliance == RED? 90:270,180,650, (teamUtil.alliance == RED? 1: -1)*12250,450, robot.drive.MAX_STRAFE_DECELERATION,1500 );
+                robot.drive.moveCm(robot.drive.MAX_VELOCITY,13,180,180,0);
+
+                 */
 
                   //Toggle pixel releaser
-
+/*
                 robot.releaser.toggle();
                 if(!robot.releaser.holding){
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
@@ -257,7 +291,7 @@ public class testAutoPaths extends LinearOpMode {
                 else{
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 }
-
+*/
 
 
 
@@ -355,6 +389,7 @@ public class testAutoPaths extends LinearOpMode {
                   teamUtil.pause(2000);
                   robot.intake.autoGrabTwoNoWait();
                  */
+
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             }
 

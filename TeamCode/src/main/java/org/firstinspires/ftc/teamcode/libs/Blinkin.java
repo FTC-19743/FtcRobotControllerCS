@@ -20,7 +20,9 @@ public class Blinkin {
     public enum Signals{
         OFF,
         RED,
+        FLASHING_RED,
         DARK_GREEN,
+        YELLOW,
         GOLD,
         OCEANPALETTE,
         INIT_RED,
@@ -102,6 +104,11 @@ public class Blinkin {
 
             case GOTOSCORE_BLUE:
                 current = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE;
+                blinkinLedDriver.setPattern(current);
+                break;
+
+            case FLASHING_RED:
+                current = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
                 blinkinLedDriver.setPattern(current);
                 break;
 

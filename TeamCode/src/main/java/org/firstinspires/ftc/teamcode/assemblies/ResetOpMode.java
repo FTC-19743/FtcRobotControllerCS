@@ -25,6 +25,9 @@ public class ResetOpMode extends LinearOpMode {
         armsGamepad = new TeamGamepad();
         armsGamepad.initilize(false);
         robot = new Robot();
+        robot.intake.initalize();
+        robot.intake.ready();
+        robot.intake.reverseIntake();
         robot.output.reset();
         robot.calibrate();
     }

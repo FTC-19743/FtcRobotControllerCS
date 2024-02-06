@@ -31,6 +31,7 @@ public class Auto extends LinearOpMode {
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         teamUtil.alliance = teamUtil.Alliance.RED;
+        //Calibrate
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             teamUtil.telemetry.addLine("Check Robot (Stow Output!) and THEN");
@@ -40,6 +41,7 @@ public class Auto extends LinearOpMode {
         initializeRobot();
         robot.calibrate();
 
+        //Delay
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             if(gamepad.wasLeftPressed()){ if (delay > 0) delay--; }
@@ -51,6 +53,7 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
+        //Cycle
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             if(gamepad.wasLeftPressed()||gamepad.wasRightPressed()){cycle=!cycle;}
@@ -62,8 +65,16 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
+        //Alliance
         while(!gamepad.wasAPressed()){
             gamepad.loop();
+            if(teamUtil.alliance == teamUtil.Alliance.RED){
+                teamUtil.theBlinkin.setSignal((Blinkin.Signals.RED));
+            }
+            else{
+                teamUtil.theBlinkin.setSignal((Blinkin.Signals.BLUE_PATH_1));
+
+            }
             if(gamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
             if(gamepad.wasRightPressed()){ teamUtil.alliance = teamUtil.Alliance.BLUE;}
 
@@ -76,6 +87,7 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
+        //SCORE or WING
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             if(gamepad.wasLeftPressed()){ teamUtil.SIDE = teamUtil.Side.SCORE;}
@@ -97,16 +109,48 @@ public class Auto extends LinearOpMode {
         robot.drive.initCV(false); // no live stream enabled means better FPS
         robot.drive.switchCV(Drive.cvCam.SIDE_PROP);
 
-        while(!gamepad.wasAPressed()){
+        //RELEASER
+        while(!gamepad.wasAPressed()&&!robot.releaser.holding){
             gamepad.loop();
 
-            if(gamepad.wasLeftPressed()){ robot.output.dropPixels();}
-            if(gamepad.wasRightPressed()){robot.output.grabOnePixel();}
+            if(gamepad.wasUpPressed()){robot.releaser.toggle();}
+            if(!robot.releaser.holding){
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.FLASHING_RED);
+            }else{
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
+            }
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
+            teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
+            teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Grab Purple Pixel (use Game Pad 1 DPad U to toggle releaser)");
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+        //YELLOW PIXEL
+        while(!gamepad.wasAPressed() && !robot.intake.bottomPixelPresent()){
+            gamepad.loop();
+
+            if(gamepad.wasLeftPressed()){ robot.output.dropPixels();}
+            if(gamepad.wasRightPressed()){robot.output.grabOnePixel();}
+
+            if(robot.intake.bottomPixelPresent() == false){
+                teamUtil.theBlinkin.setSignal((Blinkin.Signals.GOLD));
+            }
+            else{
+                teamUtil.theBlinkin.setSignal((Blinkin.Signals.OFF));
+            }
+
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
+            teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
+            teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
+            teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
             teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad L/R to grab/release) - DON'T GRAB ON WING!!!!!!!!");
@@ -148,8 +192,13 @@ public class Auto extends LinearOpMode {
         waitForStart();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         robot.drive.stopCV(); // shut down prop detector
-        teamUtil.pause(delay*1000); // Delay start if needed
-        robot.autoV3(robot.drive.findTeamPropProcesser.getPropPosition(),true, cycle);
+         // Delay start if needed
+        long startTime = System.currentTimeMillis();
+        robot.autoV4(robot.drive.findTeamPropProcesser.getPropPosition(), true,delay);
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime-startTime;
+        teamUtil.log("Elapsed Auto Time Without Wait At End: " + elapsedTime);
+
         while(opModeIsActive()){
         }
         if(!robot.output.loading.get()) {

@@ -459,7 +459,7 @@ public class Output {
 
         intake.openLid(); // opens intake lid
 
-        if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.1f){
+        if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.12f){
             teamUtil.log("Strafing to Middle");
 
             grabberStrafer.setPosition(StraferLoad);

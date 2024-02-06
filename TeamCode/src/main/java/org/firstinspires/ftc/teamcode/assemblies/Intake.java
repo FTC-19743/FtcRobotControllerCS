@@ -399,7 +399,7 @@ public class Intake {
                 else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
                     intakeRunning = false;
                     sweeper.setPower(0);
-                    kicker.setPower(.1);
+                    kicker.setPower(.2);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
                     openLid();
                 }

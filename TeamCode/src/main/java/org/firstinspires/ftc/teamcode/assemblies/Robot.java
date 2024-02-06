@@ -89,7 +89,7 @@ public class Robot {
             drive.moveCm(drive.MAX_VELOCITY,71,fieldSide(), 180,0); // Was 71
             drive.moveCm(drive.MAX_VELOCITY,28, teamUtil.alliance==RED ? 150:210, 180,0);
             drive.moveCm(drive.MAX_VELOCITY,8, driverSide(), 180, 800);
-            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,1000);
+            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,0);
             /*
             drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 1000);
             drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
@@ -100,17 +100,53 @@ public class Robot {
         } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
             drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
             drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 1000);
+            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 0);
         } else { // Path 2, middle for either Alliance
             drive.moveCm(drive.MAX_VELOCITY, 86, fieldSide(), 180, 0);
             drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 1000);
+            drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 0);
         }
 
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
         return true;
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // SCORE Side Start - Push the purple pixel and get into position for AprilTag Localization based on path
+    public boolean pushPurplePixelScoreV4(int path) {
+
+        teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
+        // TODO: SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths, Maybe don't stop between all the movements
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Under the Rigging
+            drive.moveCm(drive.MAX_VELOCITY,71,fieldSide(), 180,0); // Was 71
+            drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 155:215, 180,0);
+            drive.moveCm(drive.MAX_VELOCITY,8, driverSide(), 180, 800);
+            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,0);
+            /*
+            drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 1000);
+            drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
+            drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
+
+             */
+        } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
+            drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?75:300, 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 0);
+        } else { // Path 2, middle for either Alliance
+            drive.moveCm(drive.MAX_VELOCITY, 86, fieldSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 75, teamUtil.alliance == RED ? 340: 20, 180, 0);
+        }
+
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
+        return true;
+    }
+
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // WING Side Start - Push the purple pixel and drive to nearest stack
@@ -226,12 +262,14 @@ public class Robot {
     public boolean driveToBackDropV2 (int path, boolean operateArms, int encoderCenterTile, double initialDistance, float level, double rotatorPos, double straferPos) {
         // TODO: Optimize Inside path to save another .5-1 seconds on cycle
         int finishEncoderStrafe;
+        double transitionVelocity;
         if (teamUtil.alliance==RED) {
             finishEncoderStrafe = path==1? encoderCenterTile-4000 : path==2 ? encoderCenterTile-5800: encoderCenterTile-6900;
+            transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
         } else {
             finishEncoderStrafe =path==1? encoderCenterTile+6900 : path==2 ? encoderCenterTile+5800: encoderCenterTile+4000;
+            transitionVelocity = path==3? 650 : path==2 ? 950: 1250;
         }
-        double transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
         double seekVelocity = 400;
 
         // Move across the field while holding the center of the tile
@@ -269,6 +307,26 @@ public class Robot {
         intake.closeLid();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
             if(teamUtil.alliance == RED){
+                //robot.drive.moveCm(2000,56+robot.a,90,180,650);
+
+                drive.strafeToEncoderWithDecel(90,180,2000,7300,650, drive.MAX_STRAFE_DECELERATION,2000);
+            }else{
+                //robot.drive.moveCm(2000,59+robot.b,270,180,650);
+
+                drive.strafeToEncoderWithDecel(270,180,2000,-7600,650, drive.MAX_STRAFE_DECELERATION,2000);
+            }
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED? 33:36,180,180,650);
+            releaser.release();
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.moveCm(650,4,180,180,650);
+            drive.strafeToEncoderWithDecel(teamUtil.alliance == RED? 90:270,180,650, (teamUtil.alliance == RED? 1: -1)*12250,450, drive.MAX_STRAFE_DECELERATION,1500 );
+            drive.moveCm(drive.MAX_VELOCITY,13,180,180,0);
+
+            /*
+
+            if(teamUtil.alliance == RED){
                 drive.strafeToEncoder(124,180,2000,7000,2000); //timeout should probably be shorter //heading was 126,124
 
             }else{
@@ -282,6 +340,8 @@ public class Robot {
             }
             drive.strafeToEncoder(teamUtil.alliance == RED? 110:250,180,500, (teamUtil.alliance == RED? 1: -1)*12500,2000); //was 12280
             drive.moveCm(drive.MAX_VELOCITY,12,180,180,0);
+
+             */
 
         }
         else if(path == 2){
@@ -308,7 +368,7 @@ public class Robot {
         else{
             drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,1700,(teamUtil.alliance == RED? 1:-1)*(4100), 10000);
             drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,600,(teamUtil.alliance == RED? 1:-1)*(8200), 10000);
-            drive.moveCm(drive.MAX_VELOCITY,15,0,180,0);
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED? 15:13,0,180,0);
             releaser.release();
             if (operateArms) {
                 intake.startIntake();
@@ -330,14 +390,23 @@ public class Robot {
         drive.moveCm(drive.MAX_VELOCITY,2,0,180,750);
         intake.ready();
         drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
-        int distance = path==1? 250 : path==2 ? 235: 215;
+        int distance;
+        if (teamUtil.alliance == teamUtil.alliance.RED){
+            distance = path==1? 250 : path==2 ? 235: 215;
+        }
+        else{
+            distance = path==1? 215 : path==2 ? 235: 250;
+
+        }
+
+
         double rotation, strafe;
         if(path==2||path==3){
             rotation = output.GrabberRotatorHorizontal2;
             strafe = output.StraferLoad+4*output.StraferPositionPerCm;
         }else{
             rotation = output.GrabberRotatorHorizontal1;
-            strafe = output.StraferLoad-4*output.StraferPositionPerCm;
+            strafe = output.StraferLoad-4.5*output.StraferPositionPerCm;
         }
         if(teamUtil.alliance == RED){
             drive.strafeToEncoder(90,180,1000,16700,2000);
@@ -411,7 +480,12 @@ public class Robot {
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         int distance = 275;
-        driveToBackDropV2(1, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad);
+        if(!driveToBackDropV2(teamUtil.alliance == RED? 1:3, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad)){
+            drive.stopMotors();
+            teamUtil.log("Drive To BackDropV2 Failed");
+            return false;
+        }
+
 
 
         if (operateArms) {
@@ -507,32 +581,46 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public void autoV4(int path, boolean operateArms, boolean cycle){
+    public void autoV4(int path, boolean operateArms, int delaySeconds){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
+        teamUtil.log("Delay Time Seconds" + delaySeconds*1000);
+
+        teamUtil.pause(delaySeconds*1000);
 
 
         drive.setHeading(180); // Zero is towards the scoring side of field
         if(teamUtil.SIDE== teamUtil.Side.WING){
             pushPurplePlaceYellowPixelWingV4(path,operateArms);
         }else{ //score case
+            //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            // Get AprilTag Finder up and running
+            if (operateArms) {
+                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2,output.StraferLoad); // TODO: Adjust this level for higher consistency?
+            }
+            if (!pushPurplePixelScoreV4(path)) { //pushes pixel and gets to good location for April tag localization
+                return;   //Auto Bailout
+            }
+            if (true) return ;
 
         }
 
         double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
+        if(System.currentTimeMillis()-startTime<20000){
+            if(cycleV4(xOffset,operateArms,path,startTime)){
+                if(System.currentTimeMillis()-startTime<21000){
+                    if(cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
 
-        if(cycleV4(xOffset,operateArms,path,startTime)){
-            if(System.currentTimeMillis()-startTime<20000){
-                if(cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
-
+                    }
+                    else{
+                        teamUtil.log("First CycleV4 failed");
+                    }
+                }else{
+                    teamUtil.log("Second Cycle AutoV4 Timed Out");
                 }
-                else{
-                    teamUtil.log("First CycleV4 failed");
-                }
-            }else{
-                teamUtil.log("Second Cycle AutoV4 Timed Out");
             }
         }
+
         else{
             teamUtil.log("Cycle V4 Failsafed Out");
         }
