@@ -1997,6 +1997,63 @@ public class Drive {
             return true;
         }
     }
+
+    public boolean strafeToAprilTagOffsetV3(double velocity, double xDriftCms, double driveHeading, double robotHeading, double xOffset, double yOffset, long timeout) {
+        teamUtil.log("Strafe to April Tag V3 Offset X: " + xOffset );
+        boolean details = true;
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        long aprilTagTimeoutTime = 0;
+        org.opencv.core.Point tagOffset = new org.opencv.core.Point();
+        teamUtil.log("Waiting to see tags");
+        aprilTag.getFreshDetections();
+        while (!getRobotBackdropOffset(tagOffset,true) && teamUtil.keepGoing(timeOutTime)) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity); // continue on initial heading until we see a tag
+        }
+        teamUtil.log("Driving based on tags");
+        long lastDetectionTime = System.currentTimeMillis();
+        long lastCycleDuration = 1; // initialize to very small amount of time
+        double lastTagOffsetX = tagOffset.x;
+        double lastTagOffsetY = tagOffset.y;
+        while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
+            double cmsToStrafe = tagOffset.x - xOffset;
+            double cmsToBackup = tagOffset.y - yOffset;
+
+            //if ((driveHeading > 180 && cmsToStrafe < xDriftCms) || (driveHeading < 180 && cmsToStrafe > xDriftCms)) { // TODO: Go back to this code after confirming signs
+            if (Math.abs(cmsToStrafe) < xDriftCms) {
+                lastAprilTagOffset.x = cmsToStrafe;
+                lastAprilTagOffset.y = cmsToBackup;
+                break;
+            }
+
+            if (details)  teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup );
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity); // Update the motors
+            if (!getRobotBackdropOffset(tagOffset,true)) { // try to get a fresh April Tag detection, but if we can't...
+                // ...Continue to update position and motors even though we don't have new data from our AprilTag processor
+                if (details) teamUtil.log("Navigating without fresh AprilTag");
+                // Compute new offsets assuming everything is changing linearly with time but loop time is unpredictable
+                long now = System.currentTimeMillis();
+                double lastXDistance = lastAprilTagOffset.x-lastTagOffsetX;
+                double lastYDistance = lastAprilTagOffset.y-lastTagOffsetY;
+                double timeRatio = (now-lastDetectionTime)/lastCycleDuration;
+
+                lastAprilTagOffset.x = lastAprilTagOffset.x + lastXDistance * timeRatio;
+                lastAprilTagOffset.y = lastAprilTagOffset.y + lastYDistance * timeRatio;
+                lastTagOffsetX = lastAprilTagOffset.x;
+                lastTagOffsetY = lastAprilTagOffset.y;
+                lastCycleDuration = now-lastDetectionTime;
+                lastDetectionTime = now;
+            }
+        }
+        stopMotors();
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("StrafeToAprilTagOffsetV3 - TIMED OUT!");
+            return false;
+        } else {
+            teamUtil.log("Strafe to April Tag Offset V3 - FINISHED");
+            return true;
+        }
+    }
+
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
