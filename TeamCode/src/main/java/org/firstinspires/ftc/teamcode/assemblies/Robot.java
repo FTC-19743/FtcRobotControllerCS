@@ -401,9 +401,19 @@ public class Robot {
 
 
         double rotation, strafe;
-        if(path==2||path==3){
+        if(path==2){
+            if(teamUtil.alliance==RED){
+                rotation = output.GrabberRotatorHorizontal2;
+                strafe = output.StraferLoad+4*output.StraferPositionPerCm;
+            }else{
+                rotation = output.GrabberRotatorHorizontal1;
+                strafe = output.StraferLoad-4*output.StraferPositionPerCm;
+            }
+
+        }else if(path==3){
             rotation = output.GrabberRotatorHorizontal2;
             strafe = output.StraferLoad+4*output.StraferPositionPerCm;
+
         }else{
             rotation = output.GrabberRotatorHorizontal1;
             strafe = output.StraferLoad-4.5*output.StraferPositionPerCm;
@@ -479,7 +489,7 @@ public class Robot {
 
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int distance = 275;
+        int distance = 285;
         if(!driveToBackDropV2(teamUtil.alliance == RED? 1:3, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad)){
             drive.stopMotors();
             teamUtil.log("Drive To BackDropV2 Failed");

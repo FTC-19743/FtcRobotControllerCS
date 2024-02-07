@@ -61,7 +61,7 @@ public class Output {
 
     public static long servoSkewTimeMs = 75; //tentative value
     public static double GrabberOpen = 0.53;
-    public static double GrabberClosed = 0.73;
+    public static double GrabberClosed = 0.75;
     public static double GrabberOnePixel = .81;
     public static int StallBuffer = 225;
     public static double ElevCrawlIncrement = 30;
@@ -547,7 +547,7 @@ public class Output {
         if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
                 grabber.setPosition(GrabberClosed);
-                teamUtil.pause(250);
+                teamUtil.pause(350);
                 if(details){
                     teamUtil.log("Grabbing 2 pixels");
                 }
@@ -556,7 +556,7 @@ public class Output {
         else{
             if(grabber.getPosition()< GrabberOpen + .1) {
                 grabber.setPosition(GrabberOnePixel);
-                teamUtil.pause(300);
+                teamUtil.pause(350);
                 if(details){
                     teamUtil.log("Grabbing 1 pixel");
                 }

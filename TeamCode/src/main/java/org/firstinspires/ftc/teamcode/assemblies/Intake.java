@@ -205,10 +205,14 @@ public class Intake {
 
     public void grabOneTeleop(){
         collecterMoving = true;
-        startIntake();
-        teamUtil.pause(500);
+        if(!intakeRunning){
+            startIntake();
+            teamUtil.pause(500);
+        }
         collectFull();
+        teamUtil.pause(500);
         collecterMoving = false;
+        ready();
     }
 
     public void grabOneTeleopNoWait(){
@@ -339,10 +343,24 @@ public class Intake {
             teamUtil.log("Start Time" + startTime);
 
         }
+        while(teamUtil.keepGoing(startTime+2500)){
+            if(twoPixelsPresent()){
+                if(lastTimePixelSeen == 0) {
+                    lastTimePixelSeen = System.currentTimeMillis();
+                }
+                else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
+                    break;
+                }
 
-        while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 2500)){
+            }
+            else{
+                lastTimePixelSeen = 0;
+            }
             teamUtil.pause(50);
+
         }
+
+
         if(details){
             teamUtil.log("Two pixels Present" + twoPixelsPresent());
             teamUtil.log("Time after pixel Collection" + System.currentTimeMillis());
@@ -350,7 +368,7 @@ public class Intake {
 
         if(twoPixelsPresent()){
             sweeper.setPower(0);
-            kicker.setPower(.1);
+            kicker.setPower(.2);
             return true;
         }
         else{
