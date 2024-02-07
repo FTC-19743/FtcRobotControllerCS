@@ -481,7 +481,7 @@ public class Robot {
         if (operateArms) {
 
             intake.automaticGrabTwoNoWait();
-            teamUtil.pause(250);
+            teamUtil.pause(250); // TODO: What is this about?  Previous line is a "no wait" method
         } else {
             teamUtil.pause(250);//Use the same amount of time
         }

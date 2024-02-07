@@ -314,7 +314,7 @@ public class Intake {
             teamUtil.pause(50);
         }
         if(details){
-            teamUtil.log("Bottom Pixel Present" + bottomPixelPresent());
+            teamUtil.log("Bottom Pixel Present: " + bottomPixelPresent());
             teamUtil.log("Time after first pixel Collection" + System.currentTimeMillis());
 
         }
@@ -326,7 +326,7 @@ public class Intake {
             }
             //todo figure out a failsafe
             sweeper.setPower(0);
-            kicker.setPower(.1);
+            kicker.setPower(.3);  // was .1 then .2
         }
         else{
             //todo figure out failsafe
