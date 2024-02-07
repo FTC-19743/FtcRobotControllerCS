@@ -283,7 +283,8 @@ public class Robot {
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
 
         // Localize using the April Tags
-        if (drive.strafeToAprilTagOffsetV2(seekVelocity,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
+//        if (drive.strafeToAprilTagOffsetV2(seekVelocity,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
+        if (drive.strafeToAprilTagOffsetV3(seekVelocity,5,driverSide(),180,path==1? -drive.TAG_CENTER_TO_CENTER : path==2 ? 0: drive.TAG_CENTER_TO_CENTER,20,5000))
         {
             // Compute the final movement to the backdrop location for pixel drop
             drive.stopCV();

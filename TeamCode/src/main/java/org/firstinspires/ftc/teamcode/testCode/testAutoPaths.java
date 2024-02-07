@@ -246,7 +246,7 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
-                robot.releaser.toggle();
+//                robot.releaser.toggle();
 
 //                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
                 /*
@@ -296,18 +296,23 @@ public class testAutoPaths extends LinearOpMode {
 
 
                 // Test April Tag Localization
-//                while(!driverGamepad.wasAPressed()){
-//                    driverGamepad.loop();
-//                    telemetry.addLine("Toggle CV");
-//                    telemetry.update();
-//                    if(driverGamepad.wasRightBumperPressed()){
-//                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-//                    }
-//                }
-//                int path = (int)robot.a;
-//                long startTime = System.currentTimeMillis();
-//                robot.drive.setHeading(180);
-//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                while(!driverGamepad.wasAPressed()){
+                    driverGamepad.loop();
+                    telemetry.addLine("Toggle CV");
+                    telemetry.update();
+                    if(driverGamepad.wasRightBumperPressed()){
+                        robot.drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+                    }
+                }
+                int path = (int)robot.a;
+                long startTime = System.currentTimeMillis();
+                robot.drive.setHeading(180);
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                //robot.drive.strafeToAprilTagOffsetV3(400,5+robot.b,270,180,0,20,3000);
+                robot.driveToBackDropV2(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),285+robot.b,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
+                if (useArms) {robot.output.dropAndGoToLoad();}
+                elapsedTime = System.currentTimeMillis()-startTime;
+                teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));
 //
 //                /* from cycle stack */
                 //int distance = path==1? 260 : path==2 ? 243: 225;
