@@ -2014,6 +2014,7 @@ public class Drive {
         long lastCycleDuration = 1; // initialize to very small amount of time
         double lastTagOffsetX = tagOffset.x;
         double lastTagOffsetY = tagOffset.y;
+        long now;
         while (teamUtil.keepGoing(timeOutTime)) { // Use April Tags to go the rest of the way
             double cmsToStrafe = tagOffset.x - xOffset;
             double cmsToBackup = tagOffset.y - yOffset;
@@ -2031,18 +2032,20 @@ public class Drive {
                 // ...Continue to update position and motors even though we don't have new data from our AprilTag processor
                 if (details) teamUtil.log("Navigating without fresh AprilTag");
                 // Compute new offsets assuming everything is changing linearly with time but loop time is unpredictable
-                long now = System.currentTimeMillis();
+                now = System.currentTimeMillis();
                 double lastXDistance = lastAprilTagOffset.x-lastTagOffsetX;
                 double lastYDistance = lastAprilTagOffset.y-lastTagOffsetY;
                 double timeRatio = (now-lastDetectionTime)/lastCycleDuration;
 
                 lastAprilTagOffset.x = lastAprilTagOffset.x + lastXDistance * timeRatio;
                 lastAprilTagOffset.y = lastAprilTagOffset.y + lastYDistance * timeRatio;
-                lastTagOffsetX = lastAprilTagOffset.x;
-                lastTagOffsetY = lastAprilTagOffset.y;
-                lastCycleDuration = now-lastDetectionTime;
-                lastDetectionTime = now;
+            } else {
+                now = System.currentTimeMillis();
             }
+            lastTagOffsetX = lastAprilTagOffset.x;
+            lastTagOffsetY = lastAprilTagOffset.y;
+            lastCycleDuration = now-lastDetectionTime;
+            lastDetectionTime = now;
         }
         stopMotors();
         if (System.currentTimeMillis() > timeOutTime) {
