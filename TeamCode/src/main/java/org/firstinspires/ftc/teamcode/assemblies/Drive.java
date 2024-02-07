@@ -1503,7 +1503,7 @@ public class Drive {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             teamUtil.pause(50); // give CPU time to image processing
         }
-        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
 
 
@@ -2041,7 +2041,7 @@ public class Drive {
         lastComputedOffset.y = previousDetectedOffset.y;
 
         // Continue until we get a second fresh detection so we can establish robot's velocity for future projections
-        aprilTagTimeoutTime = System.currentTimeMillis() + 500;
+        aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
         while (!getRobotBackdropOffset(lastDetectedOffset,true) && teamUtil.keepGoing(aprilTagTimeoutTime)) {
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             if (details) teamUtil.log("Waiting for 2nd Fresh Detection");
@@ -2053,7 +2053,7 @@ public class Drive {
         }
         // set up the history using the first two detections
         now = System.currentTimeMillis();
-        lastCycleDuration = now-lastDetectionTime;
+        lastCycleDuration = Math.max(now-lastDetectionTime,1);
         lastDetectionTime = now;
         lastDistance.x = lastDetectedOffset.x-previousDetectedOffset.x;
         lastDistance.y = lastDetectedOffset.y-previousDetectedOffset.y;
@@ -2069,7 +2069,11 @@ public class Drive {
             if ((driveHeading > 180 && cmsToStrafe > -xDriftCms) || (driveHeading < 180 && cmsToStrafe < xDriftCms)) {
             //if (Math.abs(cmsToStrafe) < xDriftCms) {
                 lastAprilTagOffset.x = cmsToStrafe;
-                lastAprilTagOffset.y = cmsToBackup;
+                if (loops > 2) {
+                    lastAprilTagOffset.y = cmsToBackup;
+                } else  {
+                    lastAprilTagOffset.y = lastDetectedOffset.y - yOffset;
+                }
                 break;
             }
             if (details)  teamUtil.log("strafe: " + cmsToStrafe + " back: " + cmsToBackup );

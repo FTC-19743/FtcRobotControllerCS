@@ -279,6 +279,7 @@ public class Robot {
         if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
 
         // Strafe over to a good starting point for April Tag Localization
+        drive.aprilTag.getFreshDetections(); // clear out any detections it saw on the way over
         drive.strafeToEncoderWithDecel(driverSide(), 180, transitionVelocity, finishEncoderStrafe, seekVelocity,drive.MAX_STRAFE_DECELERATION,2000);
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
 
@@ -290,7 +291,8 @@ public class Robot {
             drive.stopCV();
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             teamUtil.log("Final Offset x/y: " + drive.lastAprilTagOffset.x + "/" + drive.lastAprilTagOffset.y);
-            drive.backToPoint(180,drive.lastAprilTagOffset.x, 6+ drive.lastAprilTagOffset.y, 0 );
+            drive.moveCm(drive.MAX_VELOCITY,6+ drive.lastAprilTagOffset.y,0,180,0); // ignore x offset to overcome drift due to arms
+            //drive.backToPoint(180,drive.lastAprilTagOffset.x, 6+ drive.lastAprilTagOffset.y, 0 );
             return true;
         } else {
             // April tag localization failed
@@ -323,7 +325,7 @@ public class Robot {
             }
             drive.moveCm(650,4,180,180,650);
             drive.strafeToEncoderWithDecel(teamUtil.alliance == RED? 90:270,180,650, (teamUtil.alliance == RED? 1: -1)*12250,450, drive.MAX_STRAFE_DECELERATION,1500 );
-            drive.moveCm(drive.MAX_VELOCITY,13,180,180,0);
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?13:16,180,180,0);
 
             /*
 
@@ -362,7 +364,7 @@ public class Robot {
             if (operateArms) {
                 intake.startIntake();
             }
-            drive.moveCm(drive.MAX_VELOCITY,57,180,180,0);
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?57:61,180,180,0);
 
         }
 
@@ -375,7 +377,7 @@ public class Robot {
                 intake.startIntake();
             }
             drive.strafeToEncoder(teamUtil.alliance == RED? 135: 225,180,700,(teamUtil.alliance == RED? 1:-1)*(12500), 10000);
-            drive.moveCm(drive.MAX_VELOCITY,44,180,180,0);
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?44:45,180,180,0);
         }
 
 
@@ -396,7 +398,7 @@ public class Robot {
             distance = path==1? 250 : path==2 ? 235: 215;
         }
         else{
-            distance = path==1? 215 : path==2 ? 235: 250;
+            distance = path==1? 215 : path==2 ? 237: 250;
 
         }
 
@@ -490,7 +492,7 @@ public class Robot {
 
         drive.switchCV(Drive.cvCam.REAR_APRILTAG);
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        int distance = 285;
+        int distance = (teamUtil.alliance==RED ? 285 : 283);
         if(!driveToBackDropV2(teamUtil.alliance == RED? 1:3, operateArms,0,distance,3.5f,output.GrabberRotatorHorizontal2, output.StraferLoad)){
             drive.stopMotors();
             teamUtil.log("Drive To BackDropV2 Failed");
@@ -598,7 +600,6 @@ public class Robot {
         teamUtil.log("Delay Time Seconds" + delaySeconds*1000);
 
         teamUtil.pause(delaySeconds*1000);
-
 
         drive.setHeading(180); // Zero is towards the scoring side of field
         if(teamUtil.SIDE== teamUtil.Side.WING){
