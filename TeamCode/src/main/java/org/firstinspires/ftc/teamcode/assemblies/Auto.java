@@ -194,7 +194,7 @@ public class Auto extends LinearOpMode {
         robot.drive.stopCV(); // shut down prop detector
          // Delay start if needed
         long startTime = System.currentTimeMillis();
-        robot.autoV4(robot.drive.findTeamPropProcesser.getPropPosition(), true,delay);
+        robot.autoV4(robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle);
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime-startTime;
         teamUtil.log("Elapsed Auto Time Without Wait At End: " + elapsedTime);

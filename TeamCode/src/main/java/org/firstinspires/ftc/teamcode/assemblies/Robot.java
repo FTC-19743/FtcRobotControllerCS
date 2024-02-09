@@ -426,7 +426,10 @@ public class Robot {
         }else{
             drive.strafeToEncoder(270,180,1000,-15750,2000); //strafe value was 17560 when res
         }
-        driveToBackDropV2(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),distance,3,rotation, strafe);
+        driveToBackDropV2(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),distance,2.5f,rotation, strafe);
+        teamUtil.pause(250);
+
+        drive.spinToHeading(180);
 
         teamUtil.log("AprilTagFPS" + drive.rearVisionPortal.getFps());
 
@@ -594,7 +597,7 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public void autoV4(int path, boolean operateArms, int delaySeconds){
+    public void autoV4(int path, boolean operateArms, int delaySeconds, boolean cycle){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
         teamUtil.log("Delay Time Seconds" + delaySeconds*1000);
@@ -616,26 +619,28 @@ public class Robot {
             if (true) return ;
 
         }
+        if(cycle){
+            double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
+            if(System.currentTimeMillis()-startTime<20000){
+                if(cycleV4(xOffset,operateArms,path,startTime)){
+                    if(System.currentTimeMillis()-startTime<21000){
+                        if(cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
 
-        double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
-        if(System.currentTimeMillis()-startTime<20000){
-            if(cycleV4(xOffset,operateArms,path,startTime)){
-                if(System.currentTimeMillis()-startTime<21000){
-                    if(cycleV4(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
-
+                        }
+                        else{
+                            teamUtil.log("First CycleV4 failed");
+                        }
+                    }else{
+                        teamUtil.log("Second Cycle AutoV4 Timed Out");
                     }
-                    else{
-                        teamUtil.log("First CycleV4 failed");
-                    }
-                }else{
-                    teamUtil.log("Second Cycle AutoV4 Timed Out");
                 }
+            }
+
+            else{
+                teamUtil.log("Cycle V4 Failsafed Out");
             }
         }
 
-        else{
-            teamUtil.log("Cycle V4 Failsafed Out");
-        }
 
     }
 

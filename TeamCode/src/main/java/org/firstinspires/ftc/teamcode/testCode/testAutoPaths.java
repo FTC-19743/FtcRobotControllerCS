@@ -28,6 +28,7 @@ public class testAutoPaths extends LinearOpMode {
     TeamGamepad armsGamepad;
     boolean useArms = false;
     boolean liveStream = true;
+    boolean cycle = true;
 
     public long startTime;
     public long elapsedTime;
@@ -109,6 +110,8 @@ public class testAutoPaths extends LinearOpMode {
             armsGamepad.loop();
             telemetry.addLine("Alliance: "+ teamUtil.alliance);
             telemetry.addLine("Use Arms: "+ useArms);
+            telemetry.addLine("Cycle: "+ cycle);
+
             telemetry.addLine("Strafe: "+ robot.drive.strafeEncoder.getCurrentPosition());
             telemetry.addLine("Rear Vision Portal FPS: "+ robot.drive.rearVisionPortal.getFps());
 
@@ -144,6 +147,8 @@ public class testAutoPaths extends LinearOpMode {
                 useArms = !useArms;
             }
             if (driverGamepad.wasLeftTriggerPressed()) {
+                cycle = !cycle;
+                /*
                 if (liveStream) {
                     liveStream = false;
                     robot.drive.sideVisionPortal.stopLiveView();
@@ -151,6 +156,8 @@ public class testAutoPaths extends LinearOpMode {
                     liveStream = true;
                     robot.drive.sideVisionPortal.resumeLiveView();
                 }
+
+                 */
             }
             if(driverGamepad.wasRightTriggerPressed()){ // set drive variables
                 armsGamepad.reset();
@@ -192,7 +199,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(1, useArms, 0);
+                robot.autoV4(1, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -200,7 +207,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(2, useArms, 0);
+                robot.autoV4(2, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -208,7 +215,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(3, useArms, 0);
+                robot.autoV4(3, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -216,7 +223,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV4(1, useArms, 0);
+                robot.autoV4(1, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -225,7 +232,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV4(2, useArms, 0);
+                robot.autoV4(2, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -234,7 +241,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV4(3, useArms, 0);
+                robot.autoV4(3, useArms, 0,cycle);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }

@@ -114,7 +114,7 @@ public class Drive {
     public double SIDE_VECTOR_COEFFICIENT = .92;
     public double FORWARD_VECTOR_COEFFICIENT = 1.08;
     public double SPIN_END_OF_MAX_VELOCITY = 60;
-    public double DRIFT_SPINS = 3.5;
+    public double DRIFT_SPINS = 1;
     public double CRAWL_SPEED = 200;
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;

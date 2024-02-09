@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
+import static androidx.core.math.MathUtils.clamp;
+import static org.firstinspires.ftc.teamcode.assemblies.Output.GrabberOpen;
 import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -191,7 +193,8 @@ public class TestDrive extends LinearOpMode {
 
             if (gamepad.wasLeftPressed()) {
                 //drive.findPixelProcesser.reset();
-                output.moveStraferLeft();
+               // output.moveStraferLeft();
+                drive.spinToHeading(180);
             }
             if (gamepad.wasRightPressed()) {
                 output.moveStraferRight();
@@ -230,27 +233,29 @@ public class TestDrive extends LinearOpMode {
                 double sweeperSpeed = 0;
                 while (!gamepad.wasXPressed() && opModeIsActive()){
                     gamepad.loop();
-//                    if(gamepad.wasUpPressed()){
-//                        kickerSpeed=kickerSpeed+0.1;
-//                    }else if(gamepad.wasDownPressed()){
-//                        kickerSpeed = kickerSpeed - 0.1;
-//                    }else if(gamepad.wasLeftPressed()){
-//                        sweeperSpeed = sweeperSpeed - 0.1;
-//                    }
-//                    else if(gamepad.wasRightPressed()){
-//                        sweeperSpeed = sweeperSpeed + 0.1;
-//                    }
-                    //intake.kicker.setPower(kickerSpeed);
-                    //intake.sweeper.setPower(-sweeperSpeed);
+                    if(gamepad.wasUpPressed()){
+                        kickerSpeed=kickerSpeed+0.1;
+                    }else if(gamepad.wasDownPressed()){
+                        kickerSpeed = kickerSpeed - 0.1;
+                    }else if(gamepad.wasLeftPressed()){
+                        sweeperSpeed = sweeperSpeed - 0.1;
+                    }
+                    else if(gamepad.wasRightPressed()){
+                        sweeperSpeed = sweeperSpeed + 0.1;
+                    }
+                    intake.kicker.setPower(kickerSpeed);
+                    intake.sweeper.setPower(-sweeperSpeed);
                     if (gamepad.wasLeftBumperPressed()) {
                         intake.ready();
                     }
                     if (gamepad.wasRightBumperPressed()) {
                         intake.grabOnePixel();
                     }
-                    if (gamepad.wasRightTriggerPressed()) {
-                        intake.grabTwoPixels();
-                    }
+                    //if (gamepad.wasRightTriggerPressed()) {
+                    //    intake.grabTwoPixels();
+                    //}
+                    output.grabber.setPosition(clamp(gamepad.gamepad.right_trigger,output.GrabberOpen, output.GrabberClosed));
+
                     if (gamepad.wasLeftTriggerPressed()) {
                         intake.toggleIntake();
                     }
