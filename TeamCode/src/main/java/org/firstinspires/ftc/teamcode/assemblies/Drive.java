@@ -108,6 +108,7 @@ public class Drive {
     public double MAX_DECELERATION = 1.0; //calibrated with 435s
 
     public double MAX_STRAFE_DECELERATION = 1.5; //calibrated with 435s
+    public double MAX_STRAFE_ACCELERATION = 2; // tentaive
     public double MAX_VELOCITY = 2450; // Was 2680
     public double MAX_VELOCITY_STRAFE = 2000; // Added with new motors
     public double ROTATION_ADJUST_FACTOR = 0.04;
@@ -780,12 +781,12 @@ public class Drive {
         double totalTics = centimeters * COUNTS_PER_CENTIMETER;
         double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
         double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
-        double postCruiseDistance = totalTics - decelerationDistance;
-        if (postCruiseDistance < 0) {
+        double postCruiseTargetDistance = totalTics - decelerationDistance;
+        if (postCruiseTargetDistance < 0) {
             double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
-            accelerationDistance += postCruiseDistance * percentageToRemoveAccel;
-            decelerationDistance += postCruiseDistance * percentageToRemoveAccel;
-            postCruiseDistance = 0;
+            accelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            decelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            postCruiseTargetDistance = 0;
         }
         double distance = 0;
         if (details) {
@@ -793,7 +794,7 @@ public class Drive {
             teamUtil.log("Total tics: " + totalTics);
             teamUtil.log("Acceleration distance: " + accelerationDistance);
             teamUtil.log("Deceleration distance: " + decelerationDistance);
-            teamUtil.log("Post Cruise distance: " + postCruiseDistance);
+            teamUtil.log("Post Cruise distance: " + postCruiseTargetDistance);
         }
 //acceleration
         while (distance < accelerationDistance) {
@@ -809,7 +810,7 @@ public class Drive {
             teamUtil.log("distance after acceleration: " + distance);
         }
 //cruise
-        while (distance < postCruiseDistance) {
+        while (distance < postCruiseTargetDistance) {
 
             distance = getEncoderDistance(data);
             driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
@@ -831,6 +832,90 @@ public class Drive {
         }
         if (details) {
             teamUtil.log("distance after deceleration: " + distance);
+        }
+        if (endVelocity <= MIN_END_VELOCITY) {
+            stopMotors();
+            if (details) {
+                teamUtil.log("Went below or was min end velocity");
+            }
+        }
+        lastVelocity = endVelocity;
+        teamUtil.log("MoveCM--Finished");
+
+    }
+
+
+
+    public void strafeMoveCm(double maxVelocity, double strafeValue, double driveHeading, double robotHeading, double endVelocity) {
+        teamUtil.log("strafeMoveCM value:" + strafeValue + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
+
+        details = false;
+
+
+        double velocityChangeNeededAccel;
+        double velocityChangeNeededDecel;
+        if (endVelocity < MIN_END_VELOCITY) {
+            endVelocity = MIN_END_VELOCITY;
+        }
+        // tics^2/s
+        if (lastVelocity == 0) {
+            velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        } else {
+            velocityChangeNeededAccel = maxVelocity - lastVelocity;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }
+        // all are measured in tics
+        double totalTics = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_STRAFE_ACCELERATION);
+        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_STRAFE_DECELERATION);
+        double postCruiseTargetDistance = totalTics - decelerationDistance;
+        if (postCruiseTargetDistance < 0) {
+            double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
+            accelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            decelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            postCruiseTargetDistance = 0;
+        }
+        double distanceRemaining = 0;
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + strafeValue);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+            teamUtil.log("Post Cruise distance: " + postCruiseTargetDistance);
+        }
+//acceleration
+        while (distanceRemaining < accelerationDistance) {
+            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+            if (lastVelocity == 0) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY);
+            } else {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity);
+            }
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distanceRemaining);
+        }
+//cruise
+        while (distanceRemaining < postCruiseTargetDistance) {
+            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distanceRemaining);
+        }
+
+
+//deceleration
+        while (distanceRemaining < strafeValue) {
+            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * distanceRemaining + endVelocity);
+
+        }
+        if (details) {
+            teamUtil.log("distance after deceleration: " + distanceRemaining);
         }
         if (endVelocity <= MIN_END_VELOCITY) {
             stopMotors();

@@ -479,7 +479,7 @@ public class Robot {
             intake.startIntake();
         }
         intake.ready();
-        drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000);
+        drive.driveToStackNoStopWithStrafeV2(180, 180, 1000, 5000); // TODO: do something with the return value
 
         if (operateArms) {
 
