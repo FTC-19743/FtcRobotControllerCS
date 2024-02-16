@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
-import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
-
 import androidx.core.math.MathUtils;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -13,12 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
-import org.checkerframework.checker.units.qual.C;
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
@@ -29,7 +23,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
-import org.firstinspires.ftc.teamcode.testCode.calibrateCV;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -106,8 +99,9 @@ public class Drive {
     public double MIN_END_VELOCITY = 400; //calibrated with 435s
     public double MAX_ACCELERATION = 22; //calibrated with 435s
     public double MAX_DECELERATION = 1.0; //calibrated with 435s
-
-    public double MAX_STRAFE_DECELERATION = 1.5; //calibrated with 435s
+    public double MIN_STRAFE_START_VELOCITY = 800; //calibrated with 435s
+    public double MIN_STRAFE_END_VELOCITY = 400; //calibrated with 435s
+    public double MAX_STRAFE_DECELERATION = .15; //calibrated with 435s
     public double MAX_STRAFE_ACCELERATION = 2; // tentaive
     public double MAX_VELOCITY = 2450; // Was 2680
     public double MAX_VELOCITY_STRAFE = 2000; // Added with new motors
@@ -846,60 +840,77 @@ public class Drive {
 
 
 
-    public void strafeMoveCm(double maxVelocity, double strafeValue, double driveHeading, double robotHeading, double endVelocity) {
-        teamUtil.log("strafeMoveCM value:" + strafeValue + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
-
+    public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
+        teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
 
+        if (details) teamUtil.log("Starting Strafe Encoder: "+ strafeEncoder.getCurrentPosition());
 
         double velocityChangeNeededAccel;
         double velocityChangeNeededDecel;
-        if (endVelocity < MIN_END_VELOCITY) {
-            endVelocity = MIN_END_VELOCITY;
+        if (endVelocity < MIN_STRAFE_END_VELOCITY) {
+            endVelocity = MIN_STRAFE_END_VELOCITY;
         }
         // tics^2/s
         if (lastVelocity == 0) {
-            velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
+            velocityChangeNeededAccel = maxVelocity - MIN_STRAFE_START_VELOCITY;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
         } else {
             velocityChangeNeededAccel = maxVelocity - lastVelocity;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
         }
         // all are measured in tics
-        double totalTics = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+        double startEncoder = strafeEncoder.getCurrentPosition();
+        if ((driveHeading< 180 && strafeTarget-startEncoder <=0) || (driveHeading > 180 && startEncoder-strafeTarget <=0))
+        {
+            teamUtil.log("ALREADY PAST TARGET--Not Strafing");
+            stopMotors();
+            return;
+        }
+        double totalTics = Math.abs(startEncoder-strafeTarget);
         double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_STRAFE_ACCELERATION);
         double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_STRAFE_DECELERATION);
-        double postCruiseTargetDistance = totalTics - decelerationDistance;
-        if (postCruiseTargetDistance < 0) {
-            double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
-            accelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
-            decelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
-            postCruiseTargetDistance = 0;
+        if (accelerationDistance+decelerationDistance >= totalTics ) { // No room for cruise phase
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+            double accelPercentage = accelerationDistance / (accelerationDistance + decelerationDistance);
+            double decelPercentage = 1-accelPercentage;
+            accelerationDistance = totalTics * accelPercentage;
+            decelerationDistance = totalTics * decelPercentage;
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+
         }
         double distanceRemaining = 0;
         if (details) {
             teamUtil.log("Heading:" + getHeading());
-            teamUtil.log("Total tics: " + strafeValue);
+            teamUtil.log("Total tics: " + totalTics);
             teamUtil.log("Acceleration distance: " + accelerationDistance);
             teamUtil.log("Deceleration distance: " + decelerationDistance);
-            teamUtil.log("Post Cruise distance: " + postCruiseTargetDistance);
         }
+        distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+
+        setBulkReadAuto();
+
 //acceleration
-        while (distanceRemaining < accelerationDistance) {
-            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+        double currentVelocity = 0;
+        while (distanceRemaining > (totalTics-accelerationDistance)) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (lastVelocity == 0) {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY);
+                currentVelocity = MAX_STRAFE_ACCELERATION * (totalTics-distanceRemaining) + MIN_STRAFE_START_VELOCITY;
             } else {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity);
+                currentVelocity = MAX_STRAFE_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
             }
+            if (details) teamUtil.log("Accelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+
         }
         if (details) {
             teamUtil.log("Heading:" + getHeading());
             teamUtil.log("distance after acceleration: " + distanceRemaining);
         }
 //cruise
-        while (distanceRemaining < postCruiseTargetDistance) {
-            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
+        while (distanceRemaining > decelerationDistance) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+            if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
         }
         if (details) {
@@ -909,22 +920,24 @@ public class Drive {
 
 
 //deceleration
-        while (distanceRemaining < strafeValue) {
-            distanceRemaining = Math.abs(strafeEncoder.getCurrentPosition()-strafeValue);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * distanceRemaining + endVelocity);
-
+        while (distanceRemaining > 0) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+            currentVelocity = MAX_STRAFE_DECELERATION * distanceRemaining + endVelocity;
+            if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
         }
         if (details) {
             teamUtil.log("distance after deceleration: " + distanceRemaining);
         }
-        if (endVelocity <= MIN_END_VELOCITY) {
+        if (endVelocity <= MIN_STRAFE_END_VELOCITY) {
             stopMotors();
             if (details) {
                 teamUtil.log("Went below or was min end velocity");
             }
         }
+        setBulkReadOff();
         lastVelocity = endVelocity;
-        teamUtil.log("MoveCM--Finished");
+        teamUtil.log("strafeToTarget--Finished.  Current Strafe Encoder:" + strafeEncoder.getCurrentPosition());
 
     }
 
