@@ -12,17 +12,17 @@
             <goBILDA5202SeriesMotor name="liftAndStrafeEncoder" port="0" />
             <goBILDA5202SeriesMotor name="elevRight" port="1" />
             <goBILDA5202SeriesMotor name="elevLeft" port="2" />
-            <goBILDA5202SeriesMotor name="sweeper" port="3" />
+            <goBILDA5202SeriesMotor name="sweeperAndForwardEncoder" port="3" />
 
             <RevBlinkinLedDriver name="blinkin" port="0"/>
             <Servo name="launcher" port="1" />
             <Servo name="pixelrelease" port="2" />
             <ContinuousRotationServo name="kicker" port="3" />
-            <Servo name="rKnocker" port="4" />
-            <Servo name="lKnocker" port="5" />
+            <Servo name="flicker" port="4" />
+            <Servo name="knockers" port="5" />
 
-            <RevColorSensorV3 name="bottomColor1" port="0" bus="0" />
-            <RevColorSensorV3 name="bottomColor2" port="0" bus="1" />
+            <!-- <RevColorSensorV3 name="bottomColor1" port="0" bus="0" /> /> -->
+            <!--<RevColorSensorV3 name="bottomColor2" port="0" bus="1" />/> -->
 
             <DigitalDevice name="prx_right" port="1" />
             <DigitalDevice name="prx_left" port="3" />

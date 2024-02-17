@@ -20,7 +20,12 @@ public class Intake {
     Telemetry telemetry;
     public Servo lKnocker;
     public Servo rKnocker;
+
+    public Servo flicker;
+
+    public Servo knockers;
     public Servo pixelLid;
+
     public CRServo kicker;
     public DcMotorEx sweeper;
 
@@ -42,6 +47,18 @@ public class Intake {
 
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
+
+    public double newKnockersReady = .16;
+
+    public double newKnockersHold = .55;
+
+    public double newKnockersCollectOne = .57;
+
+    public double newKnockersCollectFull = 0.7;
+
+    public double flickerUp = 1.0;
+
+    public double flickerDown = 0;
 
     public double leftKnockerReady = 0.833; // was .9 was .74
 
@@ -76,15 +93,17 @@ public class Intake {
 
     public void initalize(){
         teamUtil.log("Initializing Intake");
-        sweeper = hardwareMap.get(DcMotorEx.class,"sweeper");
-        sweeper.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        sweeper = hardwareMap.get(DcMotorEx.class,"sweeperAndForwardEncoder");
+        sweeper.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         kicker = hardwareMap.get(CRServo.class,"kicker");
-
-        rKnocker = hardwareMap.get(Servo.class,"rKnocker");
-        lKnocker = hardwareMap.get(Servo.class,"lKnocker");
+        knockers = hardwareMap.get(Servo.class,"knockers");
+        flicker = hardwareMap.get(Servo.class,"flicker");
+        //rKnocker = hardwareMap.get(Servo.class,"rKnocker");
+        //lKnocker = hardwareMap.get(Servo.class,"lKnocker");
         pixelLid = hardwareMap.get(Servo.class,"pixellid");
 
-        store();
+        ready();
+        flicker.setPosition(flickerUp);
         openLid();
 
         pixelSensorTop = hardwareMap.get(RevColorSensorV3.class, "pixelSensor");
@@ -101,33 +120,34 @@ public class Intake {
     public void closeLid() {
         pixelLid.setPosition(lidClosed);
     }
-    public void store() {
-        lKnocker.setPosition(leftKnockerStore);
-        rKnocker.setPosition(rightKnockerStore);
-    }
+
 
     public void ready() {
         if (!collecterMoving){
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
-            lKnocker.setPosition(leftKnockerReady);
-            rKnocker.setPosition(rightKnockerReady);
+            knockers.setPosition(newKnockersReady);
         }
     }
     public void collectTopPixel() {
+
+        knockers.setPosition(newKnockersCollectOne);
+        /*
         lKnocker.setPosition(leftKnockerCollect);
         rKnocker.setPosition(rightKnockerCollect);
 
-    }
-    public void collectAuto() {
-        lKnocker.setPosition(leftKnockerCollectAuto);
-        rKnocker.setPosition(rightKnockerCollectAuto);
+         */
 
     }
+
 
     public void collectHold(){
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.JUDGING_BLINKIN);
+        knockers.setPosition(newKnockersHold);
+        /*
         lKnocker.setPosition(leftKnockerHold);
         rKnocker.setPosition(rightKnockerHold);
+
+         */
     }
 
 
@@ -164,8 +184,25 @@ public class Intake {
 
     }
     public void collectFull(){
+        knockers.setPosition(newKnockersCollectFull);
+        /*
         lKnocker.setPosition(leftKnockerFullCollect);
         rKnocker.setPosition(rightKnockerFullCollect);
+
+         */
+    }
+    public void testWithFlicker(){
+        startIntake();
+        teamUtil.pause(500);
+        flicker.setPosition(flickerDown);
+        teamUtil.pause(500);
+        knockers.setPosition(newKnockersCollectFull);
+        while(!onlyOnePixelPresent()){
+        }
+        flicker.setPosition(flickerUp);
+        knockers.setPosition(newKnockersReady);
+
+
     }
 
     public void startIntake(){
@@ -264,7 +301,7 @@ public class Intake {
             public void run() {
                 grabOnePixelToReady();
                 if(!teamUtil.theOpMode.gamepad2.dpad_left){
-                    store();
+                   ready();
                 }
             }
         });
@@ -285,20 +322,7 @@ public class Intake {
     }
 
 
-    public void grabTwoPixels(){
 
-        collectAuto();
-        teamUtil.pause(300); // TENATIVE VALUE
-
-        ready();
-        teamUtil.pause(350); // TENATIVE VALUE
-
-        collectFull();
-        teamUtil.pause(350); // TENATIVE VALUE
-
-        //store();
-
-    }
 
     public void automaticGrabTwo(){
         boolean details = true;

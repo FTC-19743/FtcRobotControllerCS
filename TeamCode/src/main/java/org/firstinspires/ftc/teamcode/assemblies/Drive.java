@@ -42,7 +42,7 @@ public class Drive {
     // constants
     HardwareMap hardwareMap;
     Telemetry telemetry;
-    public bottomColorSensor tapeSensor1, tapeSensor2;
+    //public bottomColorSensor tapeSensor1, tapeSensor2;
     public DigitalChannelController proxmityBackRight;
 
 
@@ -59,6 +59,8 @@ public class Drive {
     public DcMotorEx bl = null;
     public DcMotorEx br = null;
     public DcMotorEx strafeEncoder;
+
+    public DcMotorEx forwardEncoder;
     public AnalogInput ultLeft = null;
     public DigitalChannel prxLeft = null, prxRight = null;
 
@@ -135,6 +137,7 @@ public class Drive {
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
         strafeEncoder = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
+        forwardEncoder = hardwareMap.get(DcMotorEx.class, "sweeperAndForwardEncoder");
         ultLeft = hardwareMap.analogInput.get("ult");
         prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
         prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
@@ -146,10 +149,10 @@ public class Drive {
         bl.setDirection(DcMotor.Direction.REVERSE);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
-        tapeSensor1 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor1"));
-        tapeSensor2 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor2"));
-        tapeSensor1.calibrate();
-        tapeSensor2.calibrate();
+        //tapeSensor1 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor1"));
+        //tapeSensor2 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor2"));
+        //tapeSensor1.calibrate();
+        //tapeSensor2.calibrate();
 
         //These are the parameters that the imu uses in the code to name and keep track of the data
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -418,14 +421,14 @@ public class Drive {
     }
 
     public void driveMotorTelemetry() {
-        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d strafe:%d heading:%f ",
-                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), strafeEncoder.getCurrentPosition(), getHeading());
+        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d strafe:%d forward:%d heading:%f ",
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), strafeEncoder.getCurrentPosition(), forwardEncoder.getCurrentPosition(),getHeading());
     }
 
     public void sensorTelemetry() {
-        telemetry.addData("On Line:", " %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
-        telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
-        telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
+        //telemetry.addData("On Line:", " %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
+        //telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
+        //telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
 
         telemetry.addData("UltrasonicLeft Distance: ", "%.1f", getUltrasonicDistance());
         telemetry.addLine("Right proximity sensor: " + getProximity(false));
@@ -840,7 +843,7 @@ public class Drive {
 
 
 
-    public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
+    public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
 
@@ -890,9 +893,12 @@ public class Drive {
 
         setBulkReadAuto();
 
+        long startTime = System.currentTimeMillis();
+        long timeoutTime = startTime+timeout;
+
 //acceleration
         double currentVelocity = 0;
-        while (distanceRemaining > (totalTics-accelerationDistance)) {
+        while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (lastVelocity == 0) {
                 currentVelocity = MAX_STRAFE_ACCELERATION * (totalTics-distanceRemaining) + MIN_STRAFE_START_VELOCITY;
@@ -907,8 +913,15 @@ public class Drive {
             teamUtil.log("Heading:" + getHeading());
             teamUtil.log("distance after acceleration: " + distanceRemaining);
         }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered After Acceleration Phase");
+            stopMotors();
+            return;
+
+
+        }
 //cruise
-        while (distanceRemaining > decelerationDistance) {
+        while ((distanceRemaining > decelerationDistance)&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
@@ -917,10 +930,17 @@ public class Drive {
             teamUtil.log("Heading:" + getHeading());
             teamUtil.log("distance after cruise: " + distanceRemaining);
         }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered After Cruise Phase");
+            stopMotors();
+            return;
+
+
+        }
 
 
 //deceleration
-        while (distanceRemaining > 0) {
+        while ((distanceRemaining > 0)&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             currentVelocity = MAX_STRAFE_DECELERATION * distanceRemaining + endVelocity;
             if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
@@ -935,9 +955,141 @@ public class Drive {
                 teamUtil.log("Went below or was min end velocity");
             }
         }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered");
+            stopMotors();
+            return;
+
+
+        }
         setBulkReadOff();
         lastVelocity = endVelocity;
         teamUtil.log("strafeToTarget--Finished.  Current Strafe Encoder:" + strafeEncoder.getCurrentPosition());
+
+    }
+
+    public void driveToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+        teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
+        details = false;
+
+        if (details) teamUtil.log("Starting Forward Encoder: "+ forwardEncoder.getCurrentPosition());
+
+        double velocityChangeNeededAccel;
+        double velocityChangeNeededDecel;
+        if (endVelocity < MIN_END_VELOCITY) {
+            endVelocity = MIN_END_VELOCITY;
+        }
+        // tics^2/s
+        if (lastVelocity == 0) {
+            velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        } else {
+            velocityChangeNeededAccel = maxVelocity - lastVelocity;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }
+        // all are measured in tics
+        double startEncoder = forwardEncoder.getCurrentPosition();
+        if (((driveHeading< 90 || driveHeading>270)&&forwardTarget-startEncoder <=0) || ((driveHeading> 90 && driveHeading<270) && startEncoder-forwardTarget >=0)){
+
+            teamUtil.log("ALREADY PAST TARGET--Not Strafing");
+            stopMotors();
+            return;
+        }
+        double totalTics = Math.abs(startEncoder-forwardTarget);
+        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
+        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
+        if (accelerationDistance+decelerationDistance >= totalTics ) { // No room for cruise phase
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+            double accelPercentage = accelerationDistance / (accelerationDistance + decelerationDistance);
+            double decelPercentage = 1-accelPercentage;
+            accelerationDistance = totalTics * accelPercentage;
+            decelerationDistance = totalTics * decelPercentage;
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+
+        }
+        double distanceRemaining = 0;
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + totalTics);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+        }
+        distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
+
+        setBulkReadAuto();
+
+        long startTime = System.currentTimeMillis();
+        long timeoutTime = startTime+timeout;
+
+//acceleration
+        double currentVelocity = 0;
+        while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
+            if (lastVelocity == 0) {
+                currentVelocity = MAX_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY;
+            } else {
+                currentVelocity = MAX_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
+            }
+            if (details) teamUtil.log("Accelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distanceRemaining);
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered After Acceleration Phase");
+            stopMotors();
+            return;
+
+
+        }
+//cruise
+        while ((distanceRemaining > decelerationDistance)&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
+            if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distanceRemaining);
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered After Cruise Phase");
+            stopMotors();
+            return;
+
+
+        }
+
+
+//deceleration
+        while ((distanceRemaining > 0)&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
+            currentVelocity = MAX_DECELERATION * distanceRemaining + endVelocity;
+            if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+        }
+        if (details) {
+            teamUtil.log("distance after deceleration: " + distanceRemaining);
+        }
+        if (endVelocity <= MIN_END_VELOCITY) {
+            stopMotors();
+            if (details) {
+                teamUtil.log("Went below or was min end velocity");
+            }
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("Timeout Triggered");
+            stopMotors();
+            return;
+
+
+        }
+        setBulkReadOff();
+        lastVelocity = endVelocity;
+        teamUtil.log("strafeToTarget--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
 
     }
 
@@ -1295,6 +1447,7 @@ public class Drive {
     // drive until either sensor sees some tape or we time out.
     // Returns true if it was successful, false if it timed out
     // Does NOT stop motors at end!
+    /*
     public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout) {
         teamUtil.log("Drive To Tape");
         long timeOutTime = System.currentTimeMillis() + timeout;
@@ -1375,6 +1528,8 @@ public class Drive {
             thread.start();
         }
     }
+
+     */
 
 
     // drive until either rear proximity sensor is triggered, OR we are interrupted, OR we time out.

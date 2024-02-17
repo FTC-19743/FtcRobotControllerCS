@@ -148,7 +148,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasLeftTriggerPressed()){
-                if (Math.abs(robot.intake.lKnocker.getPosition() - robot.intake.leftKnockerReady) < .001){
+                if (Math.abs(robot.intake.knockers.getPosition() - robot.intake.newKnockersReady) < .001){
                     robot.intake.collectHold();
                 }
                 else{

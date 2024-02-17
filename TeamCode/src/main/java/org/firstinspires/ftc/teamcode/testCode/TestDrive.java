@@ -154,7 +154,9 @@ public class TestDrive extends LinearOpMode {
                 drive.stopCV();
             }
             if(gamepad.wasLeftBumperPressed()){
-                launcher.toggleRelease();
+                //launcher.toggleRelease();
+                intake.startIntake();
+
 
             }
             /*
@@ -197,7 +199,8 @@ public class TestDrive extends LinearOpMode {
                 drive.spinToHeading(180);
             }
             if (gamepad.wasRightPressed()) {
-                output.moveStraferRight();
+                //output.moveStraferRight();
+                intake.testWithFlicker();
             }
             /*
             if(gamepad.wasYPressed()){

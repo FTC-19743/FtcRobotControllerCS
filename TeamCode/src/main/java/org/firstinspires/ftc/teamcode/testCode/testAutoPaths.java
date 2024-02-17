@@ -256,7 +256,7 @@ public class testAutoPaths extends LinearOpMode {
                 //robot.drive.MIN_STRAFE_START_VELOCITY = robot.d; // 800
 
                 robot.drive.setHeading(180);
-                robot.drive.strafeToTarget(robot.drive.MAX_VELOCITY_STRAFE-200, -10000+robot.c, 270, 180, 0);
+                robot.drive.strafeToTarget(robot.drive.MAX_VELOCITY_STRAFE-200, -10000+robot.c, 270, 180, 0,2000);
 
 //                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
                 /*

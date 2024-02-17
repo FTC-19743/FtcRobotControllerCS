@@ -556,7 +556,7 @@ public class Robot {
 
         drive.stopCV(); // shut down line detector early to help april tag detector get started
         if (operateArms) {
-            intake.grabTwoPixels();
+            //intake.grabTwoPixels();
         } else {
             teamUtil.pause(1000);//grabTwoPixels
 
