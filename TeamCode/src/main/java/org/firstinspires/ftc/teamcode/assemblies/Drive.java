@@ -95,12 +95,16 @@ public class Drive {
     public double COUNTS_PER_MOTOR_REV = 537.7;    // GoBilda 5202 312 RPM
     public double COUNTS_PER_CENTIMETER = 12.855; // Used with 435 RPM
     public double COUNTS_PER_CENTIMETER_312 = 17.923; // Used with 312 RPM
+    public double TICS_PER_CM_STRAFE_ENCODER = 130;
+    public double TICS_PER_CM_STRAIGHT_ENCODER = 735;
 
 
     public double MIN_START_VELOCITY = 300; //calibrated with 435s
     public double MIN_END_VELOCITY = 400; //calibrated with 435s
     public double MAX_ACCELERATION = 22; //calibrated with 435s
     public double MAX_DECELERATION = 1.0; //calibrated with 435s
+    public double MAX_STRAIGHT_ACCELERATION = 1.0; //calibrated with 435s
+    public double MAX_STRAIGHT_DECELERATION = 0.02; //calibrated with 435s
     public double MIN_STRAFE_START_VELOCITY = 800; //calibrated with 435s
     public double MIN_STRAFE_END_VELOCITY = 400; //calibrated with 435s
     public double MAX_STRAFE_DECELERATION = .15; //calibrated with 435s
@@ -116,7 +120,6 @@ public class Drive {
     public double CRAWL_DISTANCE_SPINS = 30;
     public boolean details = true;
     public double CMS_PER_INCH = 2.54;
-    public double TICS_PER_CM_STRAFE_ENCODER = 130;
 
     public Output output;
 
@@ -846,6 +849,8 @@ public class Drive {
     public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
+        long startTime = System.currentTimeMillis();
+        long timeoutTime = startTime+timeout;
 
         if (details) teamUtil.log("Starting Strafe Encoder: "+ strafeEncoder.getCurrentPosition());
 
@@ -893,8 +898,7 @@ public class Drive {
 
         setBulkReadAuto();
 
-        long startTime = System.currentTimeMillis();
-        long timeoutTime = startTime+timeout;
+
 
 //acceleration
         double currentVelocity = 0;
@@ -914,7 +918,7 @@ public class Drive {
             teamUtil.log("distance after acceleration: " + distanceRemaining);
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered After Acceleration Phase");
+            teamUtil.log("TIMEOUT Triggered After Acceleration Phase");
             stopMotors();
             return;
 
@@ -931,7 +935,7 @@ public class Drive {
             teamUtil.log("distance after cruise: " + distanceRemaining);
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered After Cruise Phase");
+            teamUtil.log("TIMEOUT Triggered After Cruise Phase");
             stopMotors();
             return;
 
@@ -956,7 +960,7 @@ public class Drive {
             }
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered");
+            teamUtil.log("TIMEOUT Triggered");
             stopMotors();
             return;
 
@@ -968,9 +972,11 @@ public class Drive {
 
     }
 
-    public void driveToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+    public void driveStraightToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
+        long startTime = System.currentTimeMillis();
+        long timeoutTime = startTime+timeout;
 
         if (details) teamUtil.log("Starting Forward Encoder: "+ forwardEncoder.getCurrentPosition());
 
@@ -989,15 +995,15 @@ public class Drive {
         }
         // all are measured in tics
         double startEncoder = forwardEncoder.getCurrentPosition();
-        if (((driveHeading< 90 || driveHeading>270)&&forwardTarget-startEncoder <=0) || ((driveHeading> 90 && driveHeading<270) && startEncoder-forwardTarget >=0)){
+        if (((driveHeading< 90 || driveHeading>270)&&forwardTarget-startEncoder >=0) || ((driveHeading> 90 && driveHeading<270) && startEncoder-forwardTarget >=0)){
 
             teamUtil.log("ALREADY PAST TARGET--Not Strafing");
             stopMotors();
             return;
         }
         double totalTics = Math.abs(startEncoder-forwardTarget);
-        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
-        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
+        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_STRAIGHT_ACCELERATION);
+        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_STRAIGHT_DECELERATION);
         if (accelerationDistance+decelerationDistance >= totalTics ) { // No room for cruise phase
             if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
             double accelPercentage = accelerationDistance / (accelerationDistance + decelerationDistance);
@@ -1018,17 +1024,15 @@ public class Drive {
 
         setBulkReadAuto();
 
-        long startTime = System.currentTimeMillis();
-        long timeoutTime = startTime+timeout;
 
 //acceleration
         double currentVelocity = 0;
         while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
             if (lastVelocity == 0) {
-                currentVelocity = MAX_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY;
+                currentVelocity = MAX_STRAIGHT_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY;
             } else {
-                currentVelocity = MAX_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
+                currentVelocity = MAX_STRAIGHT_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
             }
             if (details) teamUtil.log("Accelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
@@ -1039,7 +1043,7 @@ public class Drive {
             teamUtil.log("distance after acceleration: " + distanceRemaining);
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered After Acceleration Phase");
+            teamUtil.log("TIMEOUT Triggered After Acceleration Phase");
             stopMotors();
             return;
 
@@ -1056,7 +1060,7 @@ public class Drive {
             teamUtil.log("distance after cruise: " + distanceRemaining);
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered After Cruise Phase");
+            teamUtil.log("TIMEOUT Triggered After Cruise Phase");
             stopMotors();
             return;
 
@@ -1067,7 +1071,7 @@ public class Drive {
 //deceleration
         while ((distanceRemaining > 0)&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
-            currentVelocity = MAX_DECELERATION * distanceRemaining + endVelocity;
+            currentVelocity = MAX_STRAIGHT_DECELERATION * distanceRemaining + endVelocity;
             if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
         }
@@ -1081,7 +1085,7 @@ public class Drive {
             }
         }
         if(System.currentTimeMillis()>timeoutTime){
-            teamUtil.log("Timeout Triggered");
+            teamUtil.log("TIMEOUT Triggered");
             stopMotors();
             return;
 

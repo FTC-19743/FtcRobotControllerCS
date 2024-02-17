@@ -81,7 +81,7 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public boolean sawLine () {
         return lastValidMidPoint.get() > 0;
     }
-    public boolean details = false;
+    public boolean details = true;
 
     public double getLargestArea() {
         return largestArea;
@@ -99,9 +99,9 @@ public class OpenCVFindLine extends OpenCVProcesser {
     // These three need to be tuned together
     public int whiteThreshold = 250;
 
-    public int differenceFromAverageThreshold=35; //can be between 30 and 90
+    public double differenceFromAverageThreshold; //can be between 30 and 90
     public int lineExposure = 10 ; // frame exposure in ms (use TestDrive opMode to calibrate)
-    public int lineGain = 205; // Unknown--  DOESN'T WORK DUE TO FTC BUG
+    public int lineGain = 100; // Was 205
     public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack
     public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT*.53)); // hide pixel stack
 
@@ -132,7 +132,9 @@ public class OpenCVFindLine extends OpenCVProcesser {
 
         //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
         double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
+        differenceFromAverageThreshold = 35; //(255-lowHSVValue)*0.3
         if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
+        if (details) teamUtil.log("Calculated Threshold Difference: "+ differenceFromAverageThreshold);
         Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold
 
         Core.inRange(blurredMat, lowHSV, highHSV, thresholdMat); // find areas that we see as "white"

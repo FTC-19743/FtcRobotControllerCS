@@ -48,13 +48,13 @@ public class Intake {
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
 
-    public double newKnockersReady = .16;
+    public double newKnockersReady = .168; // was .16
 
     public double newKnockersHold = .55;
 
-    public double newKnockersCollectOne = .57;
+    public double newKnockersCollectOne = .61; // was .57
 
-    public double newKnockersCollectFull = 0.7;
+    public double newKnockersCollectFull = 0.77; // was .7
 
     public double flickerUp = 1.0;
 

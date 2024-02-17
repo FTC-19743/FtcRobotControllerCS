@@ -108,6 +108,7 @@ public class testAutoPaths extends LinearOpMode {
             telemetry.addLine("Cycle: "+ cycle);
 
             telemetry.addLine("Strafe: "+ robot.drive.strafeEncoder.getCurrentPosition());
+            telemetry.addLine("Forward: "+ robot.drive.forwardEncoder.getCurrentPosition());
             telemetry.addLine("Rear Vision Portal FPS: "+ robot.drive.rearVisionPortal.getFps());
 
 
@@ -115,6 +116,7 @@ public class testAutoPaths extends LinearOpMode {
             if (driverGamepad.gamepad.right_stick_button && driverGamepad.gamepad.left_stick_button) {
                 robot.drive.setHeading(180);
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if (teamUtil.alliance == teamUtil.Alliance.RED) {
                 robot.drive.universalDriveJoystick(
@@ -165,9 +167,9 @@ public class testAutoPaths extends LinearOpMode {
                     }else if(driverGamepad.wasDownPressed()){
                         robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
                     }
                     if (driverGamepad.wasYPressed()) {
                         robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
@@ -251,12 +253,12 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.robot = robot;
                 //robot.releaser.toggle();
 
-                //robot.drive.MAX_STRAFE_ACCELERATION = robot.a; // 1.5
-                //robot.drive.MAX_STRAFE_DECELERATION = robot.b; // .15
+                //robot.drive.MAX_STRAIGHT_ACCELERATION = robot.a; // 1.5
+                //robot.drive.MAX_STRAIGHT_DECELERATION = robot.b; // .15
                 //robot.drive.MIN_STRAFE_START_VELOCITY = robot.d; // 800
 
                 robot.drive.setHeading(180);
-                robot.drive.strafeToTarget(robot.drive.MAX_VELOCITY_STRAFE-200, -10000+robot.c, 270, 180, 0,2000);
+                robot.drive.driveStraightToTarget(robot.drive.MAX_VELOCITY-200, -75000+robot.c, 0, 180, 0,3000);
 
 //                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
                 /*

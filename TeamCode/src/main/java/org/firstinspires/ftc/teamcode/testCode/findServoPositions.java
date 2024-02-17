@@ -19,7 +19,7 @@ public class findServoPositions extends LinearOpMode {
     TeamGamepad gamepad;
     private Servo servo;
     private int port = 4;
-    private boolean ch = true; // Start on Expansion Hub port 0
+    private boolean ch = false; // Start on Expansion Hub port 0
 
     private void updateServo()
     {
