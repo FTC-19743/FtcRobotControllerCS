@@ -400,7 +400,7 @@ public class Intake {
 
         if(twoPixelsPresent()){
             sweeper.setPower(0);
-            kicker.setPower(.2);
+            kicker.setPower(.3);
             return true;
         }
         else{
@@ -449,7 +449,7 @@ public class Intake {
                 else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
                     intakeRunning = false;
                     sweeper.setPower(0);
-                    kicker.setPower(.2);
+                    kicker.setPower(.3);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
                     openLid();
                 }
