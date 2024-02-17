@@ -194,15 +194,23 @@ public class Intake {
     public void testWithFlicker(){
         startIntake();
         teamUtil.pause(500);
-        flicker.setPosition(flickerDown);
+        putFlickerDown();
         teamUtil.pause(500);
         knockers.setPosition(newKnockersCollectFull);
         while(!onlyOnePixelPresent()){
         }
-        flicker.setPosition(flickerUp);
+        putFlickerUp();
         knockers.setPosition(newKnockersReady);
 
 
+    }
+
+    public void putFlickerUp(){
+        flicker.setPosition(flickerUp);
+    }
+
+    public void putFlickerDown(){
+        flicker.setPosition(flickerDown);
     }
 
     public void startIntake(){
