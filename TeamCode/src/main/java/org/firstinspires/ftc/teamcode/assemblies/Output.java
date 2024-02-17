@@ -485,9 +485,11 @@ public class Output {
         long timeOutTime2 = System.currentTimeMillis() + 4000;
         while (teamUtil.keepGoing(timeOutTime2)&&elevLeft.getCurrentPosition() > elevatorMin+10 && elevRight.getCurrentPosition() > elevatorMin+10) {
         }
+
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
         intake.closeLid();
+        intake.startIntake();
         intake.ready();
         teamUtil.log("Go To Load-Finished");
         moving.set(false);

@@ -248,43 +248,33 @@ public class Intake {
         }
     }
 
-    public void grabOneTeleop(){
-        collecterMoving = true;
-        if(!intakeRunning){
-            startIntake();
-            teamUtil.pause(500);
-        }
-        collectFull();
-        teamUtil.pause(500);
-        collecterMoving = false;
-        ready();
-    }
-
-    public void grabOneTeleopNoWait(){
-        if (!collecterMoving){
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    grabOneTeleop();
-                }
-            });
-            thread.start();
-        }
-
-    }
-
     public void grabOnePixel(){
-        grabbingOnePixel.set(true);
-        collectTopPixel();
-        teamUtil.pause(500); // TENATIVE VALUE
-        grabbingOnePixel.set(false);
+
+    }
+    public void teleopFlickOne(){
+        if(!twoPixelsPresent())
+        {
+            putFlickerDown();
+            teamUtil.pause(300);
+            teleopGetOne();
+        }
     }
 
-    public void grabOnePixelNoWait(){
+
+
+
+//    public void grabOnePixel(){
+//        grabbingOnePixel.set(true);
+//        collectTopPixel();
+//        teamUtil.pause(500); // TENATIVE VALUE
+//        grabbingOnePixel.set(false);
+//    }
+//
+    public void teleopFlickOneNoWait(){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                grabOnePixel();
+                teleopFlickOne();
             }
         });
         thread.start();
@@ -294,20 +284,38 @@ public class Intake {
 
 
 
-    public void grabOnePixelToReady(){
+    public void teleopGetOne(){
         grabbingOnePixel.set(true);
-        collectTopPixel();
-        teamUtil.pause(300); // TENATIVE VALUE
-        ready();
-        teamUtil.pause(250);
+        long startTime = System.currentTimeMillis();
+        if(!twoPixelsPresent()){
+            int pixelsPresent = 0;
+            if(bottomPixelPresent()){
+                pixelsPresent = 1;
+            }
+            collectFull();
+            if (pixelsPresent == 0){
+                while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1500)){
+                    teamUtil.pause(50);
+                }
+            }
+            else{
+                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1500)){
+                    teamUtil.pause(50);
+                }
+            }
+            ready();
+            if(System.currentTimeMillis()-startTime>1500){
+                teamUtil.log("teleopOnePixel TIMED OUT");
+            }
+        }
         grabbingOnePixel.set(false);
     }
 
-    public void grabOnePixelToReadyNoWait(){
+    public void teleopGetOneNoWait(){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                grabOnePixelToReady();
+                teleopGetOne();
                 if(!teamUtil.theOpMode.gamepad2.dpad_left){
                    ready();
                 }
@@ -318,51 +326,82 @@ public class Intake {
 
     }
 
-    public void grabOnePixelLoop(boolean buttonPressed){
-        if(buttonPressed){
-            if(grabbingOnePixel.get()){
-                teamUtil.log("Grab One Pixel Loop Triggered While already grabbing");
-            }else{
-                grabOnePixelToReadyNoWait();
+//    public void grabOnePixelLoop(boolean buttonPressed){
+//        if(buttonPressed){
+//            if(grabbingOnePixel.get()){
+//                teamUtil.log("Grab One Pixel Loop Triggered While already grabbing");
+//            }else{
+//                grabOnePixelToReadyNoWait();
+//
+//            }
+//        }
+//    }
 
-            }
-        }
-    }
-
-
-
-
-    public void automaticGrabTwo(){
+    public void teleopGetTwo(){
         boolean details = true;
-        collectTopPixel();
         long startTime = System.currentTimeMillis();
 
         if(details){
             teamUtil.log("Start Time" + startTime);
-
         }
 
-        while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 2500)){
-            teamUtil.pause(50);
-        }
-        if(details){
-            teamUtil.log("Bottom Pixel Present: " + bottomPixelPresent());
-            teamUtil.log("Time after first pixel Collection" + System.currentTimeMillis());
-
-        }
-        if(bottomPixelPresent()){
-            collectFull();
-            teamUtil.pause(500);
-            while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) {
-                teamUtil.pause(50);
-            }
-            //todo figure out a failsafe
-            sweeper.setPower(0);
-            kicker.setPower(.3);  // was .1 then .2
+        if(bottomPixelPresent()){ //Checks if there are one or two pixels present if so it does not run
+            teamUtil.log("Pixels were present so we FAILSAFED");
+            return;
         }
         else{
-            //todo figure out failsafe
+            collectTopPixel();
+            while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1500)){
+                teamUtil.pause(50);
+            }
+            if(details){
+                teamUtil.log("Bottom Pixel Present: " + bottomPixelPresent());
+                teamUtil.log("Time after first pixel Collection" + System.currentTimeMillis());
+            }
+            if(bottomPixelPresent()){
+                collectFull();
+                teamUtil.pause(500);
+                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) {
+                    teamUtil.pause(50);
+                }
+            }
+            else{
+                ready();
+                teamUtil.log("We TIMED OUT");
+            }
         }
+
+
+    }
+    public void automaticGrabTwo(){
+        boolean details = true;
+        long startTime = System.currentTimeMillis();
+
+        if(details){
+            teamUtil.log("Start Time" + startTime);
+        }
+
+            collectTopPixel();
+            while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1500)){
+                teamUtil.pause(50);
+            }
+            if(details){
+                teamUtil.log("Bottom Pixel Present: " + bottomPixelPresent());
+                teamUtil.log("Time after first pixel Collection" + System.currentTimeMillis());
+            }
+            if(bottomPixelPresent()){
+                collectFull();
+                teamUtil.pause(500);
+                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) {
+                    teamUtil.pause(50);
+                }
+            }
+            else{
+                ready();
+                teamUtil.log("We TIMED OUT");
+            }
+
+
 
     }
 
@@ -412,6 +451,16 @@ public class Intake {
 
     }
 
+    public void teleopGetTwoNoWait(){
+        teamUtil.log("Auto Grab Two No Wait");
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                teleopGetTwo();
+            }
+        });
+        thread.start();
+    }
     public void automaticGrabTwoNoWait(){
         teamUtil.log("Auto Grab Two No Wait");
         Thread thread = new Thread(new Runnable() {

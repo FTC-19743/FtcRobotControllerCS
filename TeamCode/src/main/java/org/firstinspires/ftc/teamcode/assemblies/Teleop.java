@@ -148,40 +148,28 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasLeftTriggerPressed()){
-                if (Math.abs(robot.intake.knockers.getPosition() - robot.intake.newKnockersReady) < .001){
-                    robot.intake.collectHold();
-                }
-                else{
-                    robot.intake.holdToCollectNoWait(2500);
-                }
-
+                robot.intake.ready();
             }
 
             if(gamepad2.back){
                 robot.intake.ready();
                 robot.intake.reverseIntake();
-
             }
+
             if(armsGamepad.wasBackPressed()){
-                robot.intake.stopIntake();
+                robot.intake.startIntake();
             }
 
 
-            if(armsGamepad.wasRightPressed()){
-                //Needs to be implemented; free for now
-
-            }
-
-            if(gamepad2.dpad_left){
-                //robot.intake.grabOnePixelLoop(gamepad2.dpad_left);
-
+            if(armsGamepad.wasRightPressed()||armsGamepad.wasLeftPressed()){
+                robot.intake.teleopFlickOneNoWait();
             }
             if(armsGamepad.wasDownPressed()){
-                robot.intake.ready();
+                robot.intake.teleopGetOneNoWait();
             }
 
             if(armsGamepad.wasUpPressed()){
-                robot.intake.grabOneTeleopNoWait();
+                robot.intake.teleopGetTwoNoWait();
             }
 
 
