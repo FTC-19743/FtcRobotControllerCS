@@ -353,7 +353,6 @@ public class Robot {
                     + aprilTagOffset.x*drive.TICS_PER_CM_STRAFE_ENCODER // offset with distance to center of backdrop
                     + (path==1? drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: path==3 ? -drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: 0) // adjust for path
                     + driftFactor *drive.TICS_PER_CM_STRAFE_ENCODER; // adjust for drift
-            // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
         } else {
             // No April Tag Detection so fail over to pure encoder approach
             teamUtil.log("FAILED to see AprilTags");
@@ -382,10 +381,12 @@ public class Robot {
         drive.stopCV();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
-        teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);
-        drive.moveCm(drive.MAX_VELOCITY,-5+ aprilTagOffset.y+ c,0,180,0); // was 6
-        return true;
+       if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
+        // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
 
+        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
+        teamUtil.log("driveToBackDropV3 ---FINISHED");
+        return true;
     }
 
     public boolean pushPurplePlaceYellowPixelWingV4(int path, boolean operateArms){
