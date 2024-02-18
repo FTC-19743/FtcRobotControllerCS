@@ -75,12 +75,12 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
     }
 
     Mat HSVMat = new Mat();
-    Scalar lowHSV = new Scalar(15, 50, 25); // lower bound HSV for yellow
+    Scalar lowHSV = new Scalar(15, 100, 100); // lower bound HSV for yellow
     Scalar highHSV = new Scalar(35, 255, 255); // higher bound HSV for yellow
     //    Scalar lowHSV = new Scalar(20, 100, 100); // lower bound HSV for yellow
     //Scalar highHSV = new Scalar(30, 255, 255); // higher bound HSV for yellow
     Mat blurredMat = new Mat();
-    Size blurFactor = new Size(10, 10);
+    Size blurFactor = new Size(20, 20);
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();
     Mat hierarchy = new Mat();
@@ -137,7 +137,8 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
                 case EDGES: { Utils.matToBitmap(edges, bmp); break;}
                 default: {}
             }
-            canvas.drawBitmap(bmp, 0,0,null);
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bmp, (int)(640*scaleBmpPxToCanvasPx), (int)(480*scaleBmpPxToCanvasPx), false);
+            canvas.drawBitmap(resizedBitmap, 0,0,null);
         }
 
         if (userContext != null) {

@@ -319,9 +319,8 @@ public class Robot {
             finishEncoderStrafe =path==1? encoderCenterTile+6900 : path==2 ? encoderCenterTile+5800: encoderCenterTile+4000;
             transitionVelocity = path==3? 650 : path==2 ? 950: 1250;
         }
-        double seekVelocity = 450;
-        double driftFactor = 5; // cm assuming seek speed of 450
-
+        double seekVelocity = 450+teamUtil.robot.c; //850 velocity was consistent with extra 3-3.5 cm of drift
+        double driftFactor = 5+teamUtil.robot.d; // cm assuming seek speed of 450
         // Move across the field while holding the center of the tile
         drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,finishStraight,encoderCenterTile,0,180, transitionVelocity,3000);
 
@@ -331,8 +330,8 @@ public class Robot {
         // Strafe over to a good starting point for April Tag Localization
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE); // turn on the headlights for better vision
 
-        drive.aprilTag.getFreshDetections(); // clear out any detections it saw on the way over
         drive.strafeToTarget(transitionVelocity, finishEncoderStrafe, driverSide(), 180, seekVelocity,1500);
+        drive.aprilTag.getFreshDetections(); // clear out any detections it saw on the way over
 
         // Look for some April Tags
         org.opencv.core.Point aprilTagOffset = new Point();
@@ -352,7 +351,8 @@ public class Robot {
             strafeTarget = drive.strafeEncoder.getCurrentPosition() // start with our current position
                     + aprilTagOffset.x*drive.TICS_PER_CM_STRAFE_ENCODER // offset with distance to center of backdrop
                     + (path==1? drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: path==3 ? -drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: 0) // adjust for path
-                    + driftFactor *drive.TICS_PER_CM_STRAFE_ENCODER; // adjust for drift
+                    + driftFactor *drive.TICS_PER_CM_STRAFE_ENCODER*(teamUtil.alliance== RED?1:-1); // adjust for drift
+
         } else {
             // No April Tag Detection so fail over to pure encoder approach
             teamUtil.log("FAILED to see AprilTags");
@@ -366,7 +366,7 @@ public class Robot {
 
         drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
 
-        // TODO: Get an updated Y reading here?
+        // Get an updated Y reading here
         if (drive.getRobotBackdropOffset(aprilTagOffset, false)) {
 
         } else {
@@ -384,7 +384,7 @@ public class Robot {
        if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
         // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
 
-        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
+        drive.moveCm(drive.MAX_VELOCITY,-15+ aprilTagOffset.y,0,180,0); // -13 is magic
         teamUtil.log("driveToBackDropV3 ---FINISHED");
         return true;
     }

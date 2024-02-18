@@ -324,7 +324,13 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 //robot.drive.strafeToAprilTagOffsetV3(400,5+robot.b,270,180,0,20,3000);
-                int backupTarget = path==1? -188500 : path==2 ? -188500: -188500; // add 15
+                int backupTarget;
+                if(teamUtil.alliance==RED){
+                    backupTarget = path==1? -188500 : path==2 ? -177500: -166500; // add 15 //path 2 = -177500 path 1 =-166500
+                }else{
+                    backupTarget = path==3? -188500 : path==2 ? -177500: -166500; // add 15 //path 2 = -177500 path 1 =-166500
+                }
+
 
                 robot.driveToBackDropV3(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),(int)(backupTarget+robot.b),3);
                 if (useArms) {robot.output.dropAndGoToLoad();}

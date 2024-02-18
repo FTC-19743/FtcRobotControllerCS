@@ -72,7 +72,7 @@ public class Drive {
     public static int aprilTagExposure = 3; // frame exposure in ms (use TestDrive opMode to calibrate)
     public static int aprilTagGain = 255; // High gain to compensate for fast exposure  DOESN'T WORK DUE TO FTC BUG
     public OpenCVFindLine findLineProcesser;
-    //public OpenCVYellowPixelDetector findPixelProcesser;
+    public OpenCVYellowPixelDetector findPixelProcesser;
 
     public OpenCVPropFinder findTeamPropProcesser;
 
@@ -81,7 +81,7 @@ public class Drive {
     public double noAprilTag = 999.0;
     public float TAG_CENTER_TO_CENTER = 15.2f;
 
-    public enum cvCam {NONE, REAR_APRILTAG, SIDE_PROP, FRONT_LINE};
+    public enum cvCam {NONE, REAR_APRILTAG, REAR_YELLOW_APRILTAG, SIDE_PROP, FRONT_LINE};
 
     public Drive.cvCam currentCam = Drive.cvCam.NONE;
 
@@ -174,7 +174,7 @@ public class Drive {
 
         // Setup a separate VisionPortal for each camera.  We will switch between cameras and processers as needed
         aprilTag = new AprilTagProcessor.Builder().build();
-        //findPixelProcesser = new OpenCVYellowPixelDetector();
+        findPixelProcesser = new OpenCVYellowPixelDetector();
         findLineProcesser = new OpenCVFindLine();
         findTeamPropProcesser = new OpenCVPropFinder();
 
@@ -202,9 +202,11 @@ public class Drive {
             rearBuilder.enableLiveView(false);
         }
         rearBuilder.addProcessor(aprilTag);
+        rearBuilder.addProcessor(findPixelProcesser);
         // Can also set resolution and stream format if we want to optimize resource usage.
         rearVisionPortal = rearBuilder.build();
         stopStreaming(rearVisionPortal);
+        rearVisionPortal.setProcessorEnabled(findPixelProcesser,false);
 
         // Set up side Camera
         teamUtil.log("Setting up sideVisionPortal");
@@ -235,6 +237,8 @@ public class Drive {
         teamUtil.log("Updating Exposure Settings");
         switchCV(cvCam.REAR_APRILTAG);
         updateCVManualExposure(rearVisionPortal,aprilTagExposure,aprilTagGain);
+
+        switchCV(cvCam.REAR_YELLOW_APRILTAG);
 
         switchCV(cvCam.FRONT_LINE);
         updateCVManualExposure(frontVisionPortal, findLineProcesser.lineExposure, findLineProcesser.lineGain);
@@ -360,6 +364,9 @@ public class Drive {
             case REAR_APRILTAG:
                 rearVisionPortal.stopStreaming();
                 break;
+            case REAR_YELLOW_APRILTAG:
+                rearVisionPortal.stopStreaming();
+                break;
             case FRONT_LINE:
                 teamUtil.log("Switching CV to " + newCam);
                 frontVisionPortal.stopStreaming();
@@ -373,7 +380,15 @@ public class Drive {
         switch (newCam) {
             case REAR_APRILTAG:
                 rearVisionPortal.resumeStreaming();
+                rearVisionPortal.setProcessorEnabled(findPixelProcesser,false);
+
                 break;
+
+            case REAR_YELLOW_APRILTAG:
+                rearVisionPortal.resumeStreaming();
+                rearVisionPortal.setProcessorEnabled(findPixelProcesser,true);
+                break;
+
             case FRONT_LINE:
                 frontVisionPortal.resumeStreaming();
                 break;
@@ -450,7 +465,11 @@ public class Drive {
             for (AprilTagDetection detection : currentDetections) {
                 telemetry.addLine("AprilTag: " + detection.id + " X:" + detection.ftcPose.x * CMS_PER_INCH + " Y:" + detection.ftcPose.y * CMS_PER_INCH);
             }
-        } else if (currentCam==cvCam.FRONT_LINE) {
+        }else if(currentCam==cvCam.REAR_YELLOW_APRILTAG){
+            telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState() + " FPS:" + frontVisionPortal.getFps());
+            findPixelProcesser.outputTelemetry();
+        }
+        else if (currentCam==cvCam.FRONT_LINE) {
             telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState() + " FPS:" + frontVisionPortal.getFps());
             findLineProcesser.outputTelemetry();
         } else if (currentCam==cvCam.SIDE_PROP) {
