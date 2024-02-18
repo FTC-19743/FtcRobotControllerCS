@@ -81,7 +81,7 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public boolean sawLine () {
         return lastValidMidPoint.get() > 0;
     }
-    public boolean details = true;
+    public boolean details = false;
 
     public double getLargestArea() {
         return largestArea;
