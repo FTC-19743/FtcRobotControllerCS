@@ -61,6 +61,10 @@ public class TeamGamepad {
     boolean backWasPressedLastTime = false;
     boolean backWasPressed = false;
     boolean backBumpToDo = false;
+    boolean homeWasPressedLastTime = false;
+    boolean homeWasPressed = false;
+    boolean homeBumpToDo = false;
+
 
     public TeamGamepad(){
 
@@ -121,6 +125,9 @@ public class TeamGamepad {
         rightJoystickWasRight = 0;
         optionsWasPressedLastTime = false;
         optionsWasPressed = false;
+        homeWasPressedLastTime = false;
+        homeWasPressed = false;
+        homeBumpToDo = false;
     }
     public void loop(){
         aWasPressedLastTime = aWasPressed;
@@ -158,6 +165,8 @@ public class TeamGamepad {
         startWasPressed = gamepad.start;
         backWasPressedLastTime = backWasPressed;
         backWasPressed = gamepad.back;
+        homeWasPressedLastTime = homeWasPressed;
+        homeWasPressed = gamepad.guide;
 
         if (aWasPressed == false && aWasPressedLastTime == true) {
             aBumpToDo = true;
@@ -209,6 +218,9 @@ public class TeamGamepad {
         }
         if (backWasPressed == false && backWasPressedLastTime == true) {
             backBumpToDo = true;
+        }
+        if (homeWasPressed == false && homeWasPressedLastTime == true) {
+            homeBumpToDo = true;
         }
     }
     public boolean wasAPressed(){
@@ -328,6 +340,14 @@ public class TeamGamepad {
     public boolean wasBackPressed(){
         if(backBumpToDo){
             backBumpToDo = false;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean wasHomePressed(){
+        if(homeBumpToDo){
+            homeBumpToDo = false;
             return true;
         }
         return false;

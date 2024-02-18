@@ -219,17 +219,21 @@ public class TestDrive extends LinearOpMode {
             }
 
 
-            /*
+
             if(gamepad.wasXPressed()){
-                intake.reverseIntake();
+                drive.setHeading(180);
+                drive.driveStraightToTargetWithStrafeEncoderValue(2000, 150000, 0, 180, 180, 0, 5000);
             }
 
-             */
+
 
             if(gamepad.wasYPressed()){
                 //drive.moveCm(2000, 40,180, 180, 1000);
                 //drive.driveToStackNoStop(180,180,1000,500,2000);
-                intake.reverseIntake();
+                //intake.reverseIntake();
+
+                drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
             if(gamepad.wasXPressed()){
                 double kickerSpeed = 0;

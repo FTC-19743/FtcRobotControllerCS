@@ -54,7 +54,7 @@ public class Intake {
 
     public double newKnockersCollectOne = .61; // was .57
 
-    public double newKnockersCollectFull = 0.77; // was .7
+    public double newKnockersCollectFull = 0.72; // was .7 then .77
 
     public double flickerUp = 1.0;
 
@@ -83,6 +83,7 @@ public class Intake {
     public boolean intakeRunning = false;
 
     public boolean collecterMoving = false;
+    public int pixelsLoaded = 0;
 
 
     public Intake(){
@@ -257,6 +258,7 @@ public class Intake {
             putFlickerDown();
             teamUtil.pause(300);
             teleopGetOne();
+            putFlickerUp();
         }
     }
 
@@ -489,6 +491,7 @@ public class Intake {
             if(onlyOnePixelPresent()){
                 teamUtil.log("only one pixel present");
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOLD);
+                pixelsLoaded = 1;
             }
             else if(twoPixelsPresent()){
                 teamUtil.log("both pixels present");
@@ -501,10 +504,12 @@ public class Intake {
                     kicker.setPower(.3);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
                     openLid();
+                    pixelsLoaded = 2;
                 }
             }
             else{
                 lastTimePixelSeen = 0;
+                pixelsLoaded = 0;
             }
         }
     }
@@ -566,6 +571,7 @@ public class Intake {
                 pixelSensorBottom.red(), pixelSensorBottom.green(), pixelSensorBottom.blue(), pixelSensorBottom.alpha());
         telemetry.addData("OnlyOnePixelPresent: ", "TF: %b", onlyOnePixelPresent());
         telemetry.addData("TwoPixelsPresent  ", "TF: %b ", twoPixelsPresent());
+        telemetry.addLine("# Pixels present:  " + pixelsLoaded);
         //telemetry.addData("PixelDistance ", "Distance:%.3f", pixelDistance.getDistance(DistanceUnit.MM));
     }
 

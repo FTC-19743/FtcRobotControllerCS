@@ -19,6 +19,7 @@ public class Teleop extends LinearOpMode {
     Blinkin blinkin;
     TeamGamepad driverGamepad;
     TeamGamepad armsGamepad;
+    boolean endgame = false;
 
     /*
     public void loopRunTimeCalculate(int loopNumber,boolean button){
@@ -46,6 +47,29 @@ public class Teleop extends LinearOpMode {
     }
 
      */
+
+    public void coordinatePositionOnFieldTelemetry(){
+        double xPosition;
+        double yPosition;
+        if(teamUtil.alliance == teamUtil.Alliance.RED&&teamUtil.SIDE == teamUtil.Side.WING){
+            xPosition=132+((double)(robot.drive.strafeEncoder.getCurrentPosition()/130)/2.54);
+            yPosition = 36+((double)(robot.drive.forwardEncoder.getCurrentPosition()/775)/2.54);
+            //132,36
+        }else if(teamUtil.alliance == teamUtil.Alliance.RED&&teamUtil.SIDE == teamUtil.Side.SCORE){
+            xPosition=132+((double)(robot.drive.strafeEncoder.getCurrentPosition()/130)/2.54);
+            yPosition = 86+((double)(robot.drive.forwardEncoder.getCurrentPosition()/775)/2.54);
+            //132,84
+        }else if(teamUtil.alliance == teamUtil.Alliance.BLUE&&teamUtil.SIDE == teamUtil.Side.WING){
+            xPosition=12+((double)(robot.drive.strafeEncoder.getCurrentPosition()/130)/2.54);
+            yPosition = 36+((double)(robot.drive.forwardEncoder.getCurrentPosition()/775)/2.54);
+            //12,36
+        }else{
+            xPosition=12+((double)(robot.drive.strafeEncoder.getCurrentPosition()/130)/2.54);
+            yPosition = 84+((double)(robot.drive.forwardEncoder.getCurrentPosition()/775)/2.54);
+            //12,84
+        }
+        telemetry.addLine("Current X: " + xPosition + " Inches" + "Y:" + yPosition+" Inches");
+    }
 
 
     public void runOpMode() {
@@ -84,11 +108,16 @@ public class Teleop extends LinearOpMode {
         }
         int loopRunNumber=0;
         waitForStart();
+        robot.intake.startIntake();
 
 
         while (opModeIsActive()){
             driverGamepad.loop();
             armsGamepad.loop();
+
+            if(driverGamepad.wasHomePressed()){
+                endgame=true;
+            }
 
             ////////// Drive
             if (driverGamepad.gamepad.right_stick_button && driverGamepad.gamepad.left_stick_button) {
@@ -143,8 +172,10 @@ public class Teleop extends LinearOpMode {
             //}
 
             ////////// Intake
-            if(!gamepad2.start){
-                robot.intake.autoOff();
+            robot.intake.autoOff();
+
+            if(gamepad2.start){
+                robot.intake.stopIntake();
             }
 
             if(armsGamepad.wasLeftTriggerPressed()){
@@ -175,52 +206,67 @@ public class Teleop extends LinearOpMode {
 
 
             ////////// Lift
-            if(driverGamepad.gamepad.left_bumper && driverGamepad.gamepad.right_bumper){
+            if(driverGamepad.gamepad.left_bumper && driverGamepad.gamepad.right_bumper&&endgame){
                 robot.lift.raiseLift();
-            } else if (robot.lift.startedLifting){
+            } else if (robot.lift.startedLifting&&endgame){
                 robot.lift.lowerLift();
             }
             if (driverGamepad.wasUpPressed()) {
-                robot.lift.toggleArm();
+                if(endgame){
+                    robot.lift.toggleArm();
+                }
+
             }
-            if (false) {
+            if (false&&endgame) {
                 robot.lift.stowArm();
             }
 
             ///////// Drone Launcher
 
             if(driverGamepad.wasOptionsPressed()){
-                robot.launcher.toggleRelease();
+                if(endgame){
+                    robot.launcher.toggleRelease();
+                }
+
             }
 
             ////////// Output
-            if(armsGamepad.wasAPressed()){ // Get ready to load the next pixels
-                robot.output.goToLoadNoWait();
+            if(armsGamepad.wasAPressed()){ // Go to score with only one pixel
+                if(robot.intake.pixelsLoaded == 1){
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad,robot.output.StraferLoad);
+                }
+
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
-                if(!robot.output.loading.get()&&!robot.output.moving.get()) {
-                    robot.output.grabberRotater.setPosition(robot.output.GrabberRotatorLoad);
-                }else{
-                    //robot.output.goToScoreNoWait(3);
-                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                    robot.output.goToScoreNoWait(robot.output.lastLevel, robot.output.GrabberRotatorLoad, robot.output.StraferLoad);
+                if(robot.intake.pixelsLoaded == 2){
+                    if(!robot.output.loading.get()&&!robot.output.moving.get()) {
+                        robot.output.grabberRotater.setPosition(robot.output.GrabberRotatorLoad);
+                    }else{
+                        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                        robot.output.goToScoreNoWait(robot.output.lastLevel, robot.output.GrabberRotatorLoad, robot.output.StraferLoad);
+                    }
                 }
+
             }
 
             if(armsGamepad.wasXPressed()){ // Send output system to scoring position
-                //robot.output.goToScoreNoWait(3);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                //TODO fix this to be what zoran actually wants
+                if(robot.intake.pixelsLoaded == 2){
+                    //robot.output.goToScoreNoWait(3);
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                    //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                }
+
             }
 
             if(armsGamepad.wasBPressed()){ // Send output system to scoring position
-                //robot.output.goToScoreNoWait(3);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                //TODO fix this to be what zoran actually wants
-                //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                if(robot.intake.pixelsLoaded == 2){
+                    //robot.output.goToScoreNoWait(3);
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                    //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                }
             }
 
             if(gamepad2.left_bumper||gamepad2.right_bumper){
@@ -265,8 +311,17 @@ public class Teleop extends LinearOpMode {
 
             //loopRunNumber++;
             robot.outputTelemetry();
+            telemetry.addLine("# Pixels present:  " + robot.intake.pixelsLoaded);
+            coordinatePositionOnFieldTelemetry();
             //robot.telemetry.addLine("Loop Run Number: " + loopRunNumber);
             robot.telemetry.addLine("Last Level: " + robot.output.lastLevel);
+            if(endgame){
+                robot.telemetry.addLine("ENDGAME!!!!!!!");
+            }else{
+                robot.telemetry.addLine("Not Endgame");
+            }
+
+
             telemetry.update();
 
 
