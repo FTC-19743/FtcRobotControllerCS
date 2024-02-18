@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -118,7 +120,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
-            if (teamUtil.alliance == teamUtil.Alliance.RED) {
+            if (teamUtil.alliance == RED) {
                 robot.drive.universalDriveJoystick(
                         driverGamepad.gamepad.left_stick_y,
                         -driverGamepad.gamepad.left_stick_x,
@@ -135,10 +137,10 @@ public class testAutoPaths extends LinearOpMode {
             }
 
             if (driverGamepad.wasLeftBumperPressed()) {
-                if (teamUtil.alliance== teamUtil.Alliance.RED) {
+                if (teamUtil.alliance== RED) {
                     teamUtil.alliance = teamUtil.Alliance.BLUE;
                 } else {
-                    teamUtil.alliance = teamUtil.Alliance.RED;
+                    teamUtil.alliance = RED;
                 }
             }
             if (driverGamepad.wasRightBumperPressed()) {
@@ -163,18 +165,18 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .01);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.5);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.5);
                     } else if (driverGamepad.wasXPressed()) {
                         robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
                     }else if (driverGamepad.wasBPressed()) {
@@ -251,14 +253,13 @@ public class testAutoPaths extends LinearOpMode {
             if(driverGamepad.wasAPressed()){
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
+                robot.drive.setHeading(180);
+
                 //robot.releaser.toggle();
 
-                //robot.drive.MAX_STRAIGHT_ACCELERATION = robot.a; // 1.5
-                //robot.drive.MAX_STRAIGHT_DECELERATION = robot.b; // .15
-                //robot.drive.MIN_STRAFE_START_VELOCITY = robot.d; // 800
 
-                robot.drive.setHeading(180);
-                robot.drive.driveStraightToTargetWithStrafeEncoderValue(robot.drive.MAX_VELOCITY-200, -150000, 0,0, 180, 0,3000);
+
+                //robot.drive.driveStraightToTargetWithStrafeEncoderValue(robot.drive.MAX_VELOCITY-200, -150000, 0,0, 180, 0,3000);
 
 //                robot.cycleV4(robot.a*robot.drive.TAG_CENTER_TO_CENTER,useArms,2,0);
                 /*
@@ -308,7 +309,7 @@ public class testAutoPaths extends LinearOpMode {
 
 
                 // Test April Tag Localization
-                /*
+
                 while(!driverGamepad.wasAPressed()){
                     driverGamepad.loop();
                     telemetry.addLine("Toggle CV");
@@ -321,8 +322,11 @@ public class testAutoPaths extends LinearOpMode {
                 long startTime = System.currentTimeMillis();
                 robot.drive.setHeading(180);
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 //robot.drive.strafeToAprilTagOffsetV3(400,5+robot.b,270,180,0,20,3000);
-                robot.driveToBackDropV2(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),(teamUtil.alliance==RED ? 285 : 283)+robot.b,3,robot.output.GrabberRotatorHorizontal2, robot.output.StraferLoad);
+                int backupTarget = path==1? -188500 : path==2 ? -188500: -188500; // add 15
+
+                robot.driveToBackDropV3(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),(int)(backupTarget+robot.b),3);
                 if (useArms) {robot.output.dropAndGoToLoad();}
                 elapsedTime = System.currentTimeMillis()-startTime;
                 teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));

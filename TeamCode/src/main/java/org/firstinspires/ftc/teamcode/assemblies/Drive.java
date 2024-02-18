@@ -98,6 +98,7 @@ public class Drive {
     public double TICS_PER_CM_STRAFE_ENCODER = 130;
     public double TICS_PER_CM_STRAIGHT_ENCODER = 735;
 
+    public double TILE_CENTER_TO_CENTER = 60.325; // tile width in Cms
 
     public double MIN_START_VELOCITY = 300; //calibrated with 435s
     public double MIN_END_VELOCITY = 400; //calibrated with 435s
@@ -850,7 +851,7 @@ public class Drive {
 
     public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = false;
+        details = true;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 
@@ -1103,7 +1104,7 @@ public class Drive {
 
     public void driveStraightToTargetWithStrafeEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = true;
+        details = false;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 

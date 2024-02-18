@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
+import org.opencv.core.Point;
 
 public class Robot {
     public BNO055IMU imu;
@@ -301,6 +302,90 @@ public class Robot {
             output.dropAndGoToLoad();
             return false;
         }
+    }
+
+    public boolean driveToBackDropV3 (int path, boolean operateArms, int encoderCenterTile, int finishStraight, float level) {
+        // TODO: Optimize Inside path to save another .5-1 seconds on cycle
+        boolean details = true;
+        teamUtil.log("driveToBackDropV3");
+        int finishEncoderStrafe;
+        double transitionVelocity;
+        double rotatorPos = Output.GrabberRotatorLoad;
+        double straferPos = Output.StraferLoad;
+        if (teamUtil.alliance==RED) {
+            finishEncoderStrafe = path==1? encoderCenterTile-4000 : path==2 ? encoderCenterTile-5800: encoderCenterTile-6900;
+            transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
+        } else {
+            finishEncoderStrafe =path==1? encoderCenterTile+6900 : path==2 ? encoderCenterTile+5800: encoderCenterTile+4000;
+            transitionVelocity = path==3? 650 : path==2 ? 950: 1250;
+        }
+        double seekVelocity = 450;
+        double driftFactor = 5; // cm assuming seek speed of 450
+
+        // Move across the field while holding the center of the tile
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,finishStraight,encoderCenterTile,0,180, transitionVelocity,3000);
+
+        // launch the output in a separate thread
+        if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
+
+        // Strafe over to a good starting point for April Tag Localization
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE); // turn on the headlights for better vision
+
+        drive.aprilTag.getFreshDetections(); // clear out any detections it saw on the way over
+        drive.strafeToTarget(transitionVelocity, finishEncoderStrafe, driverSide(), 180, seekVelocity,1500);
+
+        // Look for some April Tags
+        org.opencv.core.Point aprilTagOffset = new Point();
+        boolean sawAprilTag = false;
+        long aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
+
+        while (teamUtil.keepGoing(aprilTagTimeoutTime)) {
+            if (details) teamUtil.log("Looking for April Tags");
+            drive.driveMotorsHeadingsFR(driverSide(), 180, seekVelocity);
+            if (drive.getRobotBackdropOffset(aprilTagOffset, true)) {
+                sawAprilTag = true;
+                break;
+            }
+        }
+        double strafeTarget = 0;
+        if (sawAprilTag) { // Use ONLY April Tag info to localize.  We COULD average this with the strafe encoder...
+            strafeTarget = drive.strafeEncoder.getCurrentPosition() // start with our current position
+                    + aprilTagOffset.x*drive.TICS_PER_CM_STRAFE_ENCODER // offset with distance to center of backdrop
+                    + (path==1? drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: path==3 ? -drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER: 0) // adjust for path
+                    + driftFactor *drive.TICS_PER_CM_STRAFE_ENCODER; // adjust for drift
+            // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
+        } else {
+            // No April Tag Detection so fail over to pure encoder approach
+            teamUtil.log("FAILED to see AprilTags");
+            // TODO!!
+            drive.stopCV();
+            drive.stopMotors();
+            if (operateArms) {output.dropAndGoToLoad();}
+            return false;
+        }
+        // TODO: Activate yellow pixel detector
+
+        drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
+
+        // TODO: Get an updated Y reading here?
+        if (drive.getRobotBackdropOffset(aprilTagOffset, false)) {
+
+        } else {
+            // rely on forward encoder
+            teamUtil.log("FAILED to get updated AprilTag Y position");
+            // TODO!!
+            drive.stopCV();
+            drive.stopMotors();
+            if (operateArms) {output.dropAndGoToLoad();}
+            return false;
+        }
+        drive.stopCV();
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
+        teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);
+        drive.moveCm(drive.MAX_VELOCITY,-5+ aprilTagOffset.y+ c,0,180,0); // was 6
+        return true;
+
     }
 
     public boolean pushPurplePlaceYellowPixelWingV4(int path, boolean operateArms){
