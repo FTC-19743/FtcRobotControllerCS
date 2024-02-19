@@ -207,7 +207,9 @@ public class TestDrive extends LinearOpMode {
             }
             if (gamepad.wasRightPressed()) {
                 //output.moveStraferRight();
-                intake.testWithFlicker();
+                //intake.testWithFlicker();
+                drive.findPixelProcesser.reset();
+                teamUtil.log("YELLOW:" + drive.findYellowPixel(1,500));
             }
             /*
             if(gamepad.wasYPressed()){
@@ -393,6 +395,10 @@ public class TestDrive extends LinearOpMode {
             drive.visionTelemetry();
             drive.frontLineCameraDimensionTelemetry();
             telemetry.addLine("Path: "+drive.findTeamPropProcesser.getPropPosition());
+            telemetry.addLine("Yellow Pixel Midpoint" + drive.findPixelProcesser.getMidpoint());
+            //telemetry.addLine("Yellow Pixel Is" + drive.findYellowPixel(1));
+            //teamUtil.log("Yellow Pixel Is " + drive.findYellowPixel(1));
+
             telemetry.update();
         }
     }

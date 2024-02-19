@@ -31,7 +31,9 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
 
     public AtomicBoolean foundPixel = new AtomicBoolean(false);
     public int pixelMidPoint = 0;
-    public int minArea = 400;
+    public int minArea = 500;
+    public int farthestRight = 0;
+    public int farthestLeft = 0;
     public boolean viewingPipeline = false;
     enum Stage {
         RAW_IMAGE,
@@ -71,7 +73,7 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
         return largestArea;
     }
     public double getMidpoint() {
-        return midpoint;
+        return pixelMidPoint;
     }
 
     Mat HSVMat = new Mat();
@@ -80,23 +82,26 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
     //    Scalar lowHSV = new Scalar(20, 100, 100); // lower bound HSV for yellow
     //Scalar highHSV = new Scalar(30, 255, 255); // higher bound HSV for yellow
     Mat blurredMat = new Mat();
-    Size blurFactor = new Size(20, 20);
+    Size blurFactor = new Size(50, 50);
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();
     Mat hierarchy = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
-    double largestArea, midpoint;
+    double largestArea;
 
     public void reset() {
         foundPixel.set(false);
         pixelMidPoint = 0;
         largestArea = 0;
+        farthestLeft = 640;
+        farthestRight = 0;
     }
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
-        largestArea = 0;
-        midpoint = 0;
+        boolean details = false;
+        //largestArea = 0;
+        if (details) teamUtil.log("Yellow Pixel Detector: Process Frame");
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
         Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
         Core.inRange(HSVMat, lowHSV, highHSV, thresholdMat);
@@ -107,20 +112,28 @@ public class OpenCVYellowPixelDetector extends OpenCVProcesser {
             // find the bounding rectangles of those contours, compute midpoint, and prepare labeled mat
             MatOfPoint2f[] contoursPoly = new MatOfPoint2f[contours.size()];
             Rect[] boundRect = new Rect[contours.size()];
+
             for (int i = 0; i < contours.size(); i++) {
                 contoursPoly[i] = new MatOfPoint2f();
                 Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
                 boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
                 double area = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
+
                 if (area > minArea) { // Found one
                     foundPixel.set(true);
-                    pixelMidPoint = (int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x);
-                }
-                if (area > largestArea) { // Found one
-                    largestArea = (int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x);
+                    if (boundRect[i].tl().x < farthestLeft) farthestLeft = (int)boundRect[i].tl().x;
+                    if (boundRect[i].br().x > farthestRight) farthestRight = (int)boundRect[i].br().x;
+                    if (area > largestArea) {
+                        largestArea = area;
+                        pixelMidPoint = (int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x);
+                    }
                 }
             }
+            if (details) teamUtil.log("FoundOne:" + foundPixel.get()+ " Left: " + farthestLeft + " Right: " + farthestRight + " Area: " +largestArea+ " Mid: " +pixelMidPoint);
+
             return boundRect; // return the array of bounding rectangles we found
+        }else{
+            teamUtil.log("No Detections");
         }
         return null;
     }

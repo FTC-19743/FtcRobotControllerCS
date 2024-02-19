@@ -165,22 +165,22 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 50 : .01);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 50 : .01);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.5);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 50 : 0.5);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 0.5);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 50 : 0.5);
                     } else if (driverGamepad.wasXPressed()) {
-                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if (driverGamepad.wasBPressed()) {
-                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : .1);
+                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     telemetry.addLine("Setting Drive Variables");
 
@@ -254,6 +254,7 @@ public class testAutoPaths extends LinearOpMode {
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
                 robot.drive.setHeading(180);
+
 
                 //robot.releaser.toggle();
 
@@ -331,8 +332,9 @@ public class testAutoPaths extends LinearOpMode {
                     backupTarget = path==3? -188500 : path==2 ? -177500: -166500; // add 15 //path 2 = -177500 path 1 =-166500
                 }
 
+                robot.driveToBackDropInsideFastEncodersOnly(useArms,0* (teamUtil.alliance==RED ? 1 : -1));
 
-                robot.driveToBackDropV3(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),(int)(backupTarget+robot.b),3);
+                //robot.driveToBackDropV3(path, useArms,0* (teamUtil.alliance==RED ? 1 : -1),(int)(backupTarget+robot.b),true);
                 if (useArms) {robot.output.dropAndGoToLoad();}
                 elapsedTime = System.currentTimeMillis()-startTime;
                 teamUtil.log("Elapsed Time Path "+ path+" : " + ((float)(System.currentTimeMillis()-startTime)/(float)1000));
@@ -430,6 +432,8 @@ public class testAutoPaths extends LinearOpMode {
             telemetry.addLine("B: " + robot.b);
             telemetry.addLine("C: " + robot.c);
             telemetry.addLine("D: " + robot.d);
+
+
             telemetry.update();
         }
     }

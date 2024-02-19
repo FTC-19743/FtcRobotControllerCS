@@ -6,7 +6,6 @@ import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
@@ -304,10 +303,122 @@ public class Robot {
         }
     }
 
-    public boolean driveToBackDropV3 (int path, boolean operateArms, int encoderCenterTile, int finishStraight) {
+    public boolean driveToBackDropInsideFast (boolean operateArms, int encoderCenterTile) { // TODO: Work in Progress!
+        boolean details = true;
+        teamUtil.log("driveToBackDropInsideFast");
+        int finishEncoderStrafe;
+        double transitionVelocity;
+        double rotatorPos = output.GrabberRotatorLoad;
+        double straferPos = output.StraferLoad;
+        float level = 3; // is this supposed to be 3.5?
+
+        finishEncoderStrafe = teamUtil.alliance==RED? encoderCenterTile-4000 : encoderCenterTile+4000;
+        transitionVelocity =  1000;
+
+        double seekVelocity = 450+teamUtil.robot.c; //850 velocity was consistent with extra 3-3.5 cm of drift
+        double driftFactor = 5+teamUtil.robot.d; // cm assuming seek speed of 450
+        // Move across the field while holding the center of the tile
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,-150000+teamUtil.robot.b,encoderCenterTile,0,180, transitionVelocity,3000);
+
+        // launch the output in a separate thread
+        if (operateArms) {output.goToScoreNoWait(level,rotatorPos, straferPos);}
+
+        // Strafe over to a good starting point for April Tag Localization
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE); // turn on the headlights for better vision
+
+        drive.strafeToTarget(transitionVelocity, finishEncoderStrafe, teamUtil.robot.a + (teamUtil.alliance==RED?315:45), 180, seekVelocity,1500);
+        drive.aprilTag.getFreshDetections(); // clear out any detections it saw on the way over
+
+        // Look for some April Tags
+        org.opencv.core.Point aprilTagOffset = new Point();
+        boolean sawAprilTag = false;
+        long aprilTagTimeoutTime = System.currentTimeMillis() + 1000;
+
+        while (teamUtil.keepGoing(aprilTagTimeoutTime)) {
+            if (details) teamUtil.log("Looking for April Tags");
+            drive.driveMotorsHeadingsFR(driverSide(), 180, seekVelocity);
+            if (drive.getRobotBackdropOffset(aprilTagOffset, true)) {
+                sawAprilTag = true;
+                break;
+            }
+        }
+        double strafeTarget = 0;
+        if (sawAprilTag) { // Use ONLY April Tag info to localize.  We COULD average this with the strafe encoder...
+            strafeTarget = drive.strafeEncoder.getCurrentPosition() // start with our current position
+                    + aprilTagOffset.x*drive.TICS_PER_CM_STRAFE_ENCODER // offset with distance to center of backdrop
+                    + drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER// adjust for path
+                    + driftFactor *drive.TICS_PER_CM_STRAFE_ENCODER*(teamUtil.alliance== RED?1:-1); // adjust for drift
+
+        } else {
+            // No April Tag Detection so fail over to pure encoder approach
+            teamUtil.log("FAILED to see AprilTags");
+            // TODO!!
+            drive.stopCV();
+            drive.stopMotors();
+            if (operateArms) {output.dropAndGoToLoad();}
+            return false;
+        }
+
+        //-11125
+        drive.strafeToTarget(seekVelocity, strafeTarget, teamUtil.robot.a + (teamUtil.alliance==RED?315:45), 180, 0,1500); // TODO: Non-zero end velocity?
+
+        // Get an updated Y reading here
+        if (!drive.getRobotBackdropOffset(aprilTagOffset, false)) {
+            // TODO rely on forward encoder?
+            teamUtil.log("FAILED to get updated AprilTag reading for y offset");
+            drive.stopMotors();
+            if(operateArms){
+                output.dropAndGoToLoad();
+            }
+        }
+        drive.stopCV();
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        double strafeCm = 0;
+
+        // launch the output in a separate thread
+        if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
+
+        if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
+        // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
+if (true) return true;
+        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
+        teamUtil.log("driveToBackDropV3 ---FINISHED");
+        return true;
+    }
+
+    public boolean driveToBackDropInsideFastEncodersOnly (boolean operateArms, int encoderCenterTile) {
+        boolean details = true;
+        teamUtil.log("driveToBackDropInsideFast");
+        int strafeEncoderTarget =  teamUtil.alliance==RED? encoderCenterTile-5900 : encoderCenterTile+5900;
+        int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (10+ (int)teamUtil.robot.d)); // TODO Fix for Blue side
+        int straightEncoderTarget =  -209000;
+        double straightDistance = -142000+teamUtil.robot.a;
+        double transitionVelocity1 = 1000+teamUtil.robot.b;
+        double transitionVelocity2 = 1000+teamUtil.robot.c;
+        double angle= 38;
+        double rotatorPos = output.GrabberRotatorLoad;
+        double straferPos = output.StraferLoad;
+        float level = 3; // is this supposed to be 3.5?
+
+        double driftFactor = 5+teamUtil.robot.d; // cm assuming seek speed of 450
+
+        // Move across the field while holding the center of the tile
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,3000);
+
+        // launch the output in a separate thread
+        if (operateArms) {output.goToScoreNoWait(level,rotatorPos, straferPos);}
+
+        drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:angle), 180, transitionVelocity2,1500);
+
+        drive.driveStraightToTargetWithStrafeEncoderValue(transitionVelocity2, straightEncoderTarget,strafeEncoderTarget, 0, 180, 0,1500);
+
+        teamUtil.log("driveToBackDropV3 ---FINISHED");
+        return true;
+    }
+
+    public boolean driveToBackDropV3 (int path, boolean operateArms, int encoderCenterTile, int finishStraight, boolean yellowPixel) {
         // TODO: Optimize Inside path to save another .5-1 seconds on cycle
         boolean details = true;
-        boolean yellowPixel = true;
         teamUtil.log("driveToBackDropV3");
         int finishEncoderStrafe;
         double transitionVelocity;
@@ -370,29 +481,26 @@ public class Robot {
             if (operateArms) {output.dropAndGoToLoad();}
             return false;
         }
-        // TODO: Activate yellow pixel detector
 
+        //-11125
+        drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,true);
         drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
+        drive.findPixelProcesser.reset();
+        Drive.YellowPixelPosition position = drive.findYellowPixel(path,100);
 
         // Get an updated Y reading here
-        if (drive.getRobotBackdropOffset(aprilTagOffset, false)) {
-
-        } else {
-            // rely on forward encoder
-            teamUtil.log("FAILED to get updated AprilTag Y position");
-            // TODO!!
-            drive.stopCV();
-            drive.stopMotors();
-            if (operateArms) {output.dropAndGoToLoad();}
-            return false;
+        if (!drive.getRobotBackdropOffset(aprilTagOffset, false)) {
+            // TODO rely on forward encoder?
+            teamUtil.log("Using Previous Y Offset");
         }
+        drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,false);
         drive.stopCV();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         double strafeCm = 0;
-        enum yellowPixelLocation = findYellowPixel();
+        teamUtil.log("Yellow Pixel Detection: " + position);
 
         if(yellowPixel){
-            if(yellowPixelLocation == 0){
+            if(position == Drive.YellowPixelPosition.NONE){
                 level = 2;
                 if(teamUtil.alliance == RED){
                     if(path == 3){
@@ -411,7 +519,7 @@ public class Robot {
                     }
                 }
             }
-            else if(yellowPixelLocation == 1){ // LEFT
+            else if(position == Drive.YellowPixelPosition.LEFT){ // LEFT
                 if(path == 1){
                     rotatorPos = output.GrabberRotatorHorizontal1;
                     straferPos = 4; // TODO: positive or negative?
@@ -444,16 +552,27 @@ public class Robot {
                 }
             }
         }
-        output.grabberRotater.setPosition(rotatorPos);
-        output.grabberStrafer.setPosition(output.StraferLoad-straferPos*output.StraferPositionPerCm);
-        drive.moveCm(drive.MAX_VELOCITY,Math.abs(strafeCm), strafeCm>0? 270:90, drive.MIN_END_VELOCITY);
+        teamUtil.log("Rotator Pos" + rotatorPos);
+        teamUtil.log("Strafer Pos" + straferPos);
+        teamUtil.log("Strafer Cm" + strafeCm);
+
+
+
+        if(operateArms){
+            // DO NOT ENABLE THIS CODE, NO ONE CALLED GO TO SCORE!!!
+           // output.grabberRotater.setPosition(rotatorPos);
+           //output.grabberStrafer.setPosition(output.StraferLoad-straferPos*output.StraferPositionPerCm);
+           // drive.moveCm(drive.MAX_VELOCITY,Math.abs(strafeCm), strafeCm>0? 270:90, drive.MIN_END_VELOCITY);
+        }
+        //TODO Vertical Control
+
 
 
 
        if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
         // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
 
-        drive.moveCm(drive.MAX_VELOCITY,-15+ aprilTagOffset.y,0,180,0); // -13 is magic
+        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
         teamUtil.log("driveToBackDropV3 ---FINISHED");
         return true;
     }
@@ -828,7 +947,12 @@ public class Robot {
             }
 
 
-//Drive around the purple pixel (could be optimized for different paths)
+
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            intake.autoOffLoopNoWait(3000);
+
+
+            // Drive around the purple pixel (could be optimized for different paths)
             drive.moveCm(400, 1.5, 0, 180, 400);
 
             drive.moveCm(drive.MAX_VELOCITY,51, fieldSide(), 180, 800);

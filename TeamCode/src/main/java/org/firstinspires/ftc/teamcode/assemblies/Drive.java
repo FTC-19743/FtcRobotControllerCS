@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.assemblies;
 
+import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
+
 import androidx.core.math.MathUtils;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,7 +22,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
-import org.firstinspires.ftc.teamcode.libs.bottomColorSensor;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -180,7 +180,7 @@ public class Drive {
 
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
         frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
-        if (teamUtil.alliance == teamUtil.Alliance.RED) {
+        if (teamUtil.alliance == RED) {
             sideCam = hardwareMap.get(WebcamName.class, "Webcam Right");
         } else {
             sideCam = hardwareMap.get(WebcamName.class, "Webcam Left");
@@ -249,6 +249,9 @@ public class Drive {
 
         teamUtil.log("Initializing Drive CV - FINISHED");
     }
+
+
+
 
 
 
@@ -870,7 +873,7 @@ public class Drive {
 
     public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = true;
+        details = false;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 
@@ -1122,8 +1125,8 @@ public class Drive {
     }
 
     public void driveStraightToTargetWithStrafeEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
-        teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = false;
+        teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
+        details = true;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 
@@ -1265,7 +1268,7 @@ public class Drive {
         }
         setBulkReadOff();
         lastVelocity = endVelocity;
-        teamUtil.log("strafeToTarget--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
+        teamUtil.log("driveStraightToTargetWithStrafeEncoderValue--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
 
     }
 
@@ -2187,6 +2190,73 @@ public class Drive {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // returns an x,y offset of the robot relative to the center of the backdrop.  Negative means robot is  left of center
     // Returns false if it fails or times out.
+    public enum YellowPixelPosition {NONE, LEFT, RIGHT,FAILED};
+
+    public YellowPixelPosition findYellowPixel(int path, long timeout){
+        boolean details = true;
+        teamUtil.log("YellowPixelPosition");
+        long timeoutTime = System.currentTimeMillis()+ timeout;
+        while (teamUtil.keepGoing(timeoutTime)) {
+            if(findPixelProcesser.foundPixel.get()){
+                if (details) teamUtil.log("Found One R: "+ findPixelProcesser.farthestRight + " L: "+findPixelProcesser.farthestLeft);
+                if (teamUtil.alliance==RED) {
+                    if (findPixelProcesser.farthestRight > 500) { // Depends on distance to backdrop, drift, etc.!
+                        teamUtil.log("YellowPixelPosition--FINISHED");
+                        return YellowPixelPosition.RIGHT;
+                    } else {
+                        teamUtil.log("YellowPixelPosition--FINISHED");
+                        return YellowPixelPosition.LEFT;
+                    }
+                } else {
+                    if (findPixelProcesser.farthestLeft < 140) {
+                        teamUtil.log("YellowPixelPosition--FINISHED");
+                        return YellowPixelPosition.LEFT;
+                    } else {
+                        teamUtil.log("YellowPixelPosition--FINISHED");
+                        return YellowPixelPosition.RIGHT;
+                    }
+                }
+            }
+        }
+        teamUtil.log("YellowPixelPosition--FINISHED");
+        return YellowPixelPosition.NONE;
+
+        /*
+        teamUtil.log("Find Yellow Pixel Called");
+        //Both Processor Running on Rear Cam
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+        float offsetTotal = 0;
+        int numTags = 0;
+        double aprilTagMidpoint=0;
+        double aprilTagDetectionNanoTime=0;
+
+        for (AprilTagDetection detection : detections) { // Average whatever readings we have
+            if ((path==1&&(detection.id == 1 || detection.id == 4))||
+                    (path==2&&(detection.id == 2 || detection.id == 5))||
+                    (path==3&&(detection.id == 3 || detection.id == 6))){
+                aprilTagMidpoint = detection.center.x;
+                aprilTagDetectionNanoTime = detection.frameAcquisitionNanoTime;
+            }
+        }
+        if(aprilTagMidpoint==0){
+            teamUtil.log("Find Yellow Pixel Failed Because No April Tag Detected");
+            return YellowPixelPosition.FAILED;
+        }
+        teamUtil.log("April Tag Midpoint"+aprilTagMidpoint);
+
+        if(findPixelProcesser.foundPixel.get()){
+            if(findPixelProcesser.getMidpoint()<aprilTagMidpoint){
+                return YellowPixelPosition.LEFT;
+            }else{
+                return YellowPixelPosition.RIGHT;
+            }
+        }else{
+            teamUtil.log("No Yellow Pixel Detected");
+
+            return YellowPixelPosition.NONE;
+        }
+*/
+    }
     public boolean getRobotBackdropOffset(org.opencv.core.Point p,boolean freshDetection) {
         boolean details = false;
         if (details) teamUtil.log("getRobotBackdropOffset");
