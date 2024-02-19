@@ -930,9 +930,9 @@ public class Drive {
         while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (lastVelocity == 0) {
-                currentVelocity = MAX_STRAFE_ACCELERATION * (totalTics-distanceRemaining) + MIN_STRAFE_START_VELOCITY;
+                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + MIN_STRAFE_START_VELOCITY;
             } else {
-                currentVelocity = MAX_STRAFE_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
+                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + lastVelocity;
             }
             if (details) teamUtil.log("Accelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
@@ -999,7 +999,7 @@ public class Drive {
 
     public void driveStraightToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = false;
+        details = true;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 
@@ -1024,7 +1024,7 @@ public class Drive {
         double startEncoder = forwardEncoder.getCurrentPosition();
         if (((driveHeading< 90 || driveHeading>270)&&forwardTarget-startEncoder >=0) || ((driveHeading> 90 && driveHeading<270) && startEncoder-forwardTarget >=0)){
 
-            teamUtil.log("ALREADY PAST TARGET--Not Strafing");
+            teamUtil.log("ALREADY PAST TARGET--Not Moving");
             stopMotors();
             return;
         }
@@ -1120,7 +1120,7 @@ public class Drive {
         }
         setBulkReadOff();
         lastVelocity = endVelocity;
-        teamUtil.log("strafeToTarget--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
+        teamUtil.log("driveToTarget--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
 
     }
 
@@ -1188,9 +1188,9 @@ public class Drive {
         while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = (driveHeading< 90 || driveHeading>270) ? forwardEncoder.getCurrentPosition()-forwardTarget : forwardTarget - forwardEncoder.getCurrentPosition();
             if (lastVelocity == 0) {
-                currentVelocity = MAX_STRAIGHT_ACCELERATION * (totalTics-distanceRemaining) + MIN_START_VELOCITY;
+                currentVelocity = MAX_STRAIGHT_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + MIN_START_VELOCITY;
             } else {
-                currentVelocity = MAX_STRAIGHT_ACCELERATION * (totalTics-distanceRemaining) + lastVelocity;
+                currentVelocity = MAX_STRAIGHT_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + lastVelocity;
             }
             adjustedDriveHeading = driveHeading + MathUtils.clamp((strafeEncoder.getCurrentPosition() - strafeTarget)*strafeFactor, -maxHeadingDeclination, maxHeadingDeclination) * headingFactor;
             if (details) {

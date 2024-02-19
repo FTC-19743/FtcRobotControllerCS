@@ -149,6 +149,8 @@ public class Robot {
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     // WING Side Start - Push the purple pixel and drive to nearest stack
     // TODO: SPEED UP IDEAS: Make the pixel pusher less deep and try to go on a more direct path? move pixel pusher to back and target middle stack?
 
@@ -422,14 +424,21 @@ if (true) return true;
         teamUtil.log("driveToBackDropV3");
         int finishEncoderStrafe;
         double transitionVelocity;
-        double rotatorPos = output.GrabberRotatorLoad;
-        double straferPos = output.StraferLoad;
-        float level = 3;
-        if (!yellowPixel){
+        double rotatorPos;
+        double straferPos;
+        float level;
+        if(yellowPixel){
+            rotatorPos=output.GrabberRotatorLoad;
+            straferPos=output.StraferLoad;
+            level = 3;
+        }else{
             rotatorPos = output.GrabberRotatorHorizontal2;
             straferPos = output.StraferLoad;
             level = 3.5f;
         }
+
+
+
         if (teamUtil.alliance==RED) {
             finishEncoderStrafe = path==1? encoderCenterTile-4000 : path==2 ? encoderCenterTile-5800: encoderCenterTile-6900;
             transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
@@ -487,6 +496,8 @@ if (true) return true;
         drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
         drive.findPixelProcesser.reset();
         Drive.YellowPixelPosition position = drive.findYellowPixel(path,100);
+        teamUtil.log("Yellow Pixel Detection: " + position);
+
 
         // Get an updated Y reading here
         if (!drive.getRobotBackdropOffset(aprilTagOffset, false)) {
@@ -496,10 +507,65 @@ if (true) return true;
         drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,false);
         drive.stopCV();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-        double strafeCm = 0;
-        teamUtil.log("Yellow Pixel Detection: " + position);
-
         if(yellowPixel){
+            double strafeCm = 0;
+            double rotation, strafe;
+            if(path==2){
+                if(teamUtil.alliance==RED){
+                    rotation = output.GrabberRotatorHorizontal2;
+                    strafe = output.StraferLoad+4*output.StraferPositionPerCm;
+                }else{
+                    rotation = output.GrabberRotatorHorizontal1;
+                    strafe = output.StraferLoad-4*output.StraferPositionPerCm;
+                }
+
+            }else if(path==3){
+                rotation = output.GrabberRotatorHorizontal2;
+                strafe = output.StraferLoad+4*output.StraferPositionPerCm;
+
+            }else{
+                rotation = output.GrabberRotatorHorizontal1;
+                strafe = output.StraferLoad-4.5*output.StraferPositionPerCm;
+            }
+            output.grabberRotater.setPosition(rotation);
+            output.grabberStrafer.setPosition(strafe);
+
+            if(position == Drive.YellowPixelPosition.NONE){
+                teamUtil.log("No Yellow Pixel Adjusting To Level 2");
+                level = 2;
+                while(output.moving.get()){
+                    teamUtil.pause(50);
+                }
+                output.runElevatorsToLevel(level);
+
+            }
+        }
+
+
+
+
+
+        if(operateArms){
+            // DO NOT ENABLE THIS CODE, NO ONE CALLED GO TO SCORE!!!
+           // output.grabberRotater.setPosition(rotatorPos);
+           //output.grabberStrafer.setPosition(output.StraferLoad-straferPos*output.StraferPositionPerCm);
+           // drive.moveCm(drive.MAX_VELOCITY,Math.abs(strafeCm), strafeCm>0? 270:90, drive.MIN_END_VELOCITY);
+        }
+        //TODO Vertical Control
+
+
+
+
+       if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
+        // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
+
+        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
+        teamUtil.log("driveToBackDropV3 ---FINISHED");
+        return true;
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    /*
+    if(yellowPixel){
             if(position == Drive.YellowPixelPosition.NONE){
                 level = 2;
                 if(teamUtil.alliance == RED){
@@ -556,24 +622,170 @@ if (true) return true;
         teamUtil.log("Strafer Pos" + straferPos);
         teamUtil.log("Strafer Cm" + strafeCm);
 
+     */
 
+    public boolean pushPurplePlaceYellowPixelWingV5(int path, boolean operateArms){
+        long startTime = System.currentTimeMillis();
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.ready();
+        intake.closeLid();
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the Stacks
+            if(teamUtil.alliance == RED){
+                //robot.drive.moveCm(2000,56+robot.a,90,180,650);
+
+                //drive.strafeToEncoderWithDecel(90,180,2000,7300,650, drive.MAX_STRAFE_DECELERATION,2000);
+                drive.strafeToTarget(2000,7100,90,180,650,2000);
+            }else{
+                //robot.drive.moveCm(2000,59+robot.b,270,180,650);
+
+                //drive.strafeToEncoderWithDecel(270,180,2000,-7600,650, drive.MAX_STRAFE_DECELERATION,2000);
+                drive.strafeToTarget(2000,-7100,270,180,650,2000);
+
+            }
+            //drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED? 33:36,180,180,650);
+            drive.driveStraightToTarget(1000+b,teamUtil.alliance == RED? 24750: 27250,180,180,0,2000);
+
+            releaser.release();
+            if (operateArms) {
+                intake.startIntake();
+            }
+            //drive.moveCm(650,4,180,180,650);
+            drive.driveStraightToTarget(650,teamUtil.alliance == RED? 31205: 34000,180,180,650,2000);
+
+            //drive.strafeToEncoderWithDecel(teamUtil.alliance == RED? 90:270,180,650, (teamUtil.alliance == RED? 1: -1)*12250,450, drive.MAX_STRAFE_DECELERATION,1500 );
+            drive.strafeToTarget(650,(teamUtil.alliance == RED? 1: -1)*12250,teamUtil.alliance == RED? 90:270,180,450,1500);
+
+
+
+            //drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?13:16,180,180,0);
+            drive.driveStraightToTarget(drive.MAX_VELOCITY,43000,180,180,0,2000);
+
+
+            /*
+
+            if(teamUtil.alliance == RED){
+                drive.strafeToEncoder(124,180,2000,7000,2000); //timeout should probably be shorter //heading was 126,124
+
+            }else{
+                drive.strafeToEncoder(235,180,2000,-6600,2000); //timeout should probably be shorter //heading was 126,124
+
+            }
+
+            releaser.release();
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.strafeToEncoder(teamUtil.alliance == RED? 110:250,180,500, (teamUtil.alliance == RED? 1: -1)*12500,2000); //was 12280
+            drive.moveCm(drive.MAX_VELOCITY,12,180,180,0);
+
+             */
+
+        }
+        else if(path == 2){
+            /*
+            drive.strafeToEncoder(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 1:-1)*(6200), 10000);
+            drive.strafeToEncoder(teamUtil.alliance == RED? 90:270, 180, 800, (teamUtil.alliance == RED? 1:-1)*(11300), 10000);
+
+             */
+            //drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,2300,(teamUtil.alliance == RED? 11225:-11375), 650, drive.MAX_DECELERATION,10000); //a is -75, b is 0, c is -12, d  is 12
+
+            drive.strafeToTarget(2000,(teamUtil.alliance == RED? 11225:-11375),teamUtil.alliance==RED?90:270,180,650,10000);
+
+
+
+
+            drive.moveCm(drive.MAX_VELOCITY,4,180,180,1000);
+            //drive.driveStraightToTarget(drive.MAX_VELOCITY,teamUtil.alliance == RED? 0:0,180,180,0,2000);
+
+            releaser.release();
+
+
+            if (operateArms) {
+                intake.startIntake();
+            }
+            //.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?57:61,180,180,0);
+            drive.driveStraightToTarget(drive.MAX_VELOCITY,43000,180,180,0,2000);
+
+            //drive.driveStraightToTarget(drive.MAX_VELOCITY,teamUtil.alliance == RED? 0:0,180,180,0,2000);
+
+
+        }
+
+        else{
+            drive.strafeToEncoderWithDecel(teamUtil.alliance==RED?90:270,180,1700,(teamUtil.alliance == RED? 1:-1)*(8200), 600, drive.MAX_DECELERATION,10000);
+            //drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,1700,(teamUtil.alliance == RED? 1:-1)*(4100), 10000);
+            //drive.strafeToTarget(1700,(teamUtil.alliance == RED? 1:-1)*(4100),teamUtil.alliance==RED?90:270,180,650,10000);
+
+
+            //drive.strafeToEncoder(teamUtil.alliance == RED? 90:270,180,600,(teamUtil.alliance == RED? 1:-1)*(8200), 10000);
+            //drive.strafeToTarget(600,(teamUtil.alliance == RED? 0:-0),teamUtil.alliance==RED?90:270,180,600,10000);
+
+            drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance == RED? 15:13,0,180,0);
+            releaser.release();
+            if (operateArms) {
+                intake.startIntake();
+            }
+            drive.strafeToTarget(2000,(teamUtil.alliance == RED? 11000:-11000),teamUtil.alliance == RED? 135: 225,180,1500+b,10000);
+
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,43000,(teamUtil.alliance == RED? 1: -1)*13000,180,180,0,2000);
+            //drive.strafeToEncoder(teamUtil.alliance == RED? 135: 225,180,700,(teamUtil.alliance == RED? 1:-1)*(12500), 10000);
+           // drive.driveStraightToTarget(drive.MAX_VELOCITY,43000,180,180,0,2000);
+
+            //drive.moveCm(drive.MAX_VELOCITY,teamUtil.alliance==RED?44:45,180,180,0);
+        }
+
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         if(operateArms){
-            // DO NOT ENABLE THIS CODE, NO ONE CALLED GO TO SCORE!!!
-           // output.grabberRotater.setPosition(rotatorPos);
-           //output.grabberStrafer.setPosition(output.StraferLoad-straferPos*output.StraferPositionPerCm);
-           // drive.moveCm(drive.MAX_VELOCITY,Math.abs(strafeCm), strafeCm>0? 270:90, drive.MIN_END_VELOCITY);
+            intake.autoGrabOne();
         }
-        //TODO Vertical Control
+        else{
+            teamUtil.pause(750);
+        }
+
+        drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+
+        drive.moveCm(drive.MAX_VELOCITY,2,0,180,750);
+        intake.ready();
+        drive.moveCm(drive.MAX_VELOCITY,15,0,180,750);
 
 
 
 
-       if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
-        // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
 
-        drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
-        teamUtil.log("driveToBackDropV3 ---FINISHED");
+
+        if(teamUtil.alliance == RED){
+            drive.strafeToEncoder(90,180,1000,16700,2000);
+        }else{
+            drive.strafeToEncoder(270,180,1000,-15750,2000); //strafe value was 17560 when res
+        }
+        int backupTarget;
+        if(teamUtil.alliance==RED){
+            backupTarget = path==1? -188500 : path==2 ? -177500: -166500; // add 15 //path 2 = -177500 path 1 =-166500
+        }else{
+            backupTarget = path==3? -188500 : path==2 ? -177500: -166500; // add 15 //path 2 = -177500 path 1 =-166500
+        }
+
+        driveToBackDropV3(path, operateArms,17500* (teamUtil.alliance==RED ? 1 : -1),backupTarget,true);
+        teamUtil.pause(250);
+
+        drive.spinToHeading(180);
+
+        teamUtil.log("AprilTagFPS" + drive.rearVisionPortal.getFps());
+
+
+        long purpleYellowWingTime = System.currentTimeMillis() - startTime;
+        teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
+
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(100);
+        }
+
+//        teamUtil.pause(5000);
+        intake.stopIntake();
         return true;
     }
 

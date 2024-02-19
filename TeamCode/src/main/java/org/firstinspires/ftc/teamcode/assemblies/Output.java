@@ -592,6 +592,17 @@ public class Output {
         moving.set(false);
     }
 
+    public void runElevatorsToLevel(float level){
+        int elevDestination = (int)(elevatorMinScoreLevel + (level-1f)*elevatorScoreInc);
+        elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
+        elevRight.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
+
+        while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
+            teamUtil.pause(50);   // yield some time here so drive control gets enough CPU (especially auto!!)
+        }
+
+    }
+
 
     public void goToScoreNoWait(float level, double rotatorPosition,double straferPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
