@@ -304,14 +304,21 @@ public class Robot {
         }
     }
 
-    public boolean driveToBackDropV3 (int path, boolean operateArms, int encoderCenterTile, int finishStraight, float level) {
+    public boolean driveToBackDropV3 (int path, boolean operateArms, int encoderCenterTile, int finishStraight) {
         // TODO: Optimize Inside path to save another .5-1 seconds on cycle
         boolean details = true;
+        boolean yellowPixel = true;
         teamUtil.log("driveToBackDropV3");
         int finishEncoderStrafe;
         double transitionVelocity;
-        double rotatorPos = Output.GrabberRotatorLoad;
-        double straferPos = Output.StraferLoad;
+        double rotatorPos = output.GrabberRotatorLoad;
+        double straferPos = output.StraferLoad;
+        float level = 3;
+        if (!yellowPixel){
+            rotatorPos = output.GrabberRotatorHorizontal2;
+            straferPos = output.StraferLoad;
+            level = 3.5f;
+        }
         if (teamUtil.alliance==RED) {
             finishEncoderStrafe = path==1? encoderCenterTile-4000 : path==2 ? encoderCenterTile-5800: encoderCenterTile-6900;
             transitionVelocity = path==1? 650 : path==2 ? 950: 1250;
@@ -324,8 +331,9 @@ public class Robot {
         // Move across the field while holding the center of the tile
         drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,finishStraight,encoderCenterTile,0,180, transitionVelocity,3000);
 
+
         // launch the output in a separate thread
-        if (operateArms) {output.goToScoreNoWait(level, rotatorPos, straferPos);}
+        if (operateArms) {output.goToScoreNoWait(level,rotatorPos, straferPos);}
 
         // Strafe over to a good starting point for April Tag Localization
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE); // turn on the headlights for better vision
@@ -380,6 +388,67 @@ public class Robot {
         }
         drive.stopCV();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        double strafeCm = 0;
+        enum yellowPixelLocation = findYellowPixel();
+
+        if(yellowPixel){
+            if(yellowPixelLocation == 0){
+                level = 2;
+                if(teamUtil.alliance == RED){
+                    if(path == 3){
+                        rotatorPos = output.GrabberRotatorHorizontal2;
+                    }
+                    else{
+                        rotatorPos = output.GrabberRotatorHorizontal1;
+                    }
+                }
+                else{
+                    if(path == 1){
+                        rotatorPos = output.GrabberRotatorHorizontal1;
+                    }
+                    else{
+                        rotatorPos = output.GrabberRotatorHorizontal2;
+                    }
+                }
+            }
+            else if(yellowPixelLocation == 1){ // LEFT
+                if(path == 1){
+                    rotatorPos = output.GrabberRotatorHorizontal1;
+                    straferPos = 4; // TODO: positive or negative?
+                    strafeCm = 3.5;
+                }
+                else if(path == 2){
+                    rotatorPos =output.GrabberRotatorHorizontal1;
+                    straferPos = 3;
+                    strafeCm = 2;
+                }
+                else{
+                    rotatorPos = output.GrabberRotatorHorizontal2;
+                    straferPos = -3.75;
+                }
+            }
+            else{ // RIGHT
+                if(path == 1){
+                    rotatorPos = output.GrabberRotatorHorizontal1;
+                    straferPos = 3.75;
+                }
+                else if (path == 2){
+                    rotatorPos = output.GrabberRotatorHorizontal2;
+                    straferPos = -3;
+                    strafeCm = -2;
+                }
+                else{
+                    rotatorPos = output.GrabberRotatorHorizontal2;
+                    straferPos = -4;
+                    strafeCm = -3.5;
+                }
+            }
+        }
+        output.grabberRotater.setPosition(rotatorPos);
+        output.grabberStrafer.setPosition(output.StraferLoad-straferPos*output.StraferPositionPerCm);
+        drive.moveCm(drive.MAX_VELOCITY,Math.abs(strafeCm), strafeCm>0? 270:90, drive.MIN_END_VELOCITY);
+
+
 
        if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
         // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
@@ -759,12 +828,7 @@ public class Robot {
             }
 
 
-
-            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-            intake.autoOffLoopNoWait(3000);
-
-
-            // Drive around the purple pixel (could be optimized for different paths)
+//Drive around the purple pixel (could be optimized for different paths)
             drive.moveCm(400, 1.5, 0, 180, 400);
 
             drive.moveCm(drive.MAX_VELOCITY,51, fieldSide(), 180, 800);
