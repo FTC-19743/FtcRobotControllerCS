@@ -165,13 +165,13 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .1);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .01);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .1);
                     }
                     if (driverGamepad.wasYPressed()) {
                         robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 0.5);
@@ -254,6 +254,15 @@ public class testAutoPaths extends LinearOpMode {
                 // Test Something use (a,b,c,d) if you want to
                 teamUtil.robot = robot;
                 robot.drive.setHeading(180);
+                robot.cycleV5(0,false,1,System.currentTimeMillis());
+                robot.drive.stopCV();
+
+                // Test drive to stack
+                //robot.drive.setHeading(180);
+                //robot.drive.driveStraightToTargetWithStrafeEncoderValue(2000, -40000, 0, 180, 180, 1000+robot.a, 5000);
+                //robot.drive.driveStraightToTarget(2000, -40000, 180, 180, 1000, 5000);
+                //robot.drive.driveToStackNoStopWithStrafeV3(180, 180, 1000, 0, true,3500);
+                //robot.drive.stopMotors();
 
 
                 //robot.releaser.toggle();
@@ -308,7 +317,7 @@ public class testAutoPaths extends LinearOpMode {
 */
 
 
-
+/*
                 // Test April Tag Localization
 
                 while(!driverGamepad.wasAPressed()){

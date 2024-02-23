@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoControllerEx;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -48,7 +50,7 @@ public class Intake {
     public double lidOpen = 0.8;
     public double lidClosed = 0.25;
 
-    public double newKnockersReady = .168; // was .16
+    public double newKnockersReady = .177; // was .168
 
     public double newKnockersHold = .55;
 
@@ -99,6 +101,10 @@ public class Intake {
         kicker = hardwareMap.get(CRServo.class,"kicker");
         knockers = hardwareMap.get(Servo.class,"knockers");
         flicker = hardwareMap.get(Servo.class,"flicker");
+        ServoControllerEx flickerControl = (ServoControllerEx) flicker.getController();
+        int flickerPort = flicker.getPortNumber();
+        PwmControl.PwmRange flickerRange = new PwmControl.PwmRange(500, 2500);
+        flickerControl.setServoPwmRange(flickerPort, flickerRange);
         //rKnocker = hardwareMap.get(Servo.class,"rKnocker");
         //lKnocker = hardwareMap.get(Servo.class,"lKnocker");
         pixelLid = hardwareMap.get(Servo.class,"pixellid");

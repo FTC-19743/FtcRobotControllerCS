@@ -61,10 +61,10 @@ public class findServoPositions extends LinearOpMode {
                 servo.setPosition(currentPosition);
             }
             if (gamepad.wasBPressed()){
-                servo.setPosition(0.05);
+                servo.setPosition(0);
             }
             if (gamepad.wasRightTriggerPressed()){
-                servo.setPosition(.8);
+                servo.setPosition(1);
             }
             if (gamepad.wasRightBumperPressed() && (currentPosition < 1)) {
                 currentPosition = currentPosition + MINOR_MINOR_INCREMENT;

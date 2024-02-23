@@ -229,10 +229,13 @@ public class TestDrive extends LinearOpMode {
 
 
 
-            if(gamepad.wasXPressed()){
+            if(gamepad.wasXPressed()) {
                 drive.setHeading(180);
-                drive.driveStraightToTargetWithStrafeEncoderValue(2000, 150000, 0, 180, 180, 0, 5000);
+                drive.driveStraightToTargetWithStrafeEncoderValue(2000, -51000, 0, 180, 180, 1000, 5000);
+                drive.driveToStackNoStopWithStrafeV3(180, 180, 1000, 0, false,3500);
+                drive.stopMotors();
             }
+
 
 
 
