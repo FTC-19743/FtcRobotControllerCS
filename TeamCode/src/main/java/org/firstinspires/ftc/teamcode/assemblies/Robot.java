@@ -344,19 +344,21 @@ if (true) return true;
         }
 
         //-11125
-        drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,true);
+        Drive.YellowPixelPosition position = Drive.YellowPixelPosition.NONE;
+        if (yellowPixel) { drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,true); }
         drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
-        drive.findPixelProcesser.reset();
-        Drive.YellowPixelPosition position = drive.findYellowPixel(path,100);
-        teamUtil.log("Yellow Pixel Detection: " + position);
-
+        if (yellowPixel) {
+            drive.findPixelProcesser.reset();
+            position = drive.findYellowPixel(path,100);
+            teamUtil.log("Yellow Pixel Detection: " + position);
+        }
 
         // Get an updated Y reading here
         if (!drive.getRobotBackdropOffset(aprilTagOffset, false)) {
             // TODO rely on forward encoder?
             teamUtil.log("Using Previous Y Offset");
         }
-        drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,false);
+        if (yellowPixel) {drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,false);}
         drive.stopCV();
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         if(yellowPixel){
