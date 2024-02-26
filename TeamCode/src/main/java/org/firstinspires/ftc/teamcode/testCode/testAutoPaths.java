@@ -165,18 +165,18 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .1);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : .1);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 0.5);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 0.5);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     } else if (driverGamepad.wasXPressed()) {
                         robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
                     }else if (driverGamepad.wasBPressed()) {
@@ -255,6 +255,10 @@ public class testAutoPaths extends LinearOpMode {
 
 
             if(driverGamepad.wasAPressed()){
+                teamUtil.robot = robot;
+                robot.drive.setHeading(180);
+
+                /*
                 while(!driverGamepad.wasAPressed()){
                     driverGamepad.loop();
 
@@ -312,9 +316,23 @@ public class testAutoPaths extends LinearOpMode {
 
 
 
+                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                startTime=System.currentTimeMillis();
+                robot.driveToBackDropInsideFastEncodersOnly(false,0);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+                robot.drive.setMotorsActiveBrake();
+                teamUtil.log("strafe: " + robot.drive.strafeEncoder.getCurrentPosition() + " forward: " + robot.drive.forwardEncoder.getCurrentPosition());
 
-//                robot.cycleV5(0,false,1,System.currentTimeMillis());
-//                robot.drive.stopCV();
+                //robot.driveToBackDropV5(1,false,0,-188500, false);
+                elapsedTime=System.currentTimeMillis()-startTime;
+                robot.drive.stopCV();
+                teamUtil.pause(1000);
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                robot.drive.setMotorsWithEncoder();
+                robot.
+                teamUtil.log("strafe: " + robot.drive.strafeEncoder.getCurrentPosition() + " forward: " + robot.drive.forwardEncoder.getCurrentPosition());
+
 
                 // Test drive to stack
                 //robot.drive.setHeading(180);

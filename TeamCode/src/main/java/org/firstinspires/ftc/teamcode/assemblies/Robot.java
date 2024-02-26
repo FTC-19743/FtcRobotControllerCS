@@ -246,9 +246,9 @@ if (true) return true;
         teamUtil.log("driveToBackDropInsideFast");
         int strafeEncoderTarget =  teamUtil.alliance==RED? encoderCenterTile-5900 : encoderCenterTile+5900;
         int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (10+ (int)teamUtil.robot.d)); // TODO Fix for Blue side
-        int straightEncoderTarget =  -209000;
-        double straightDistance = -142000+teamUtil.robot.a;
-        double transitionVelocity1 = 1000+teamUtil.robot.b;
+        int straightEncoderTarget =  -205325+(int)teamUtil.robot.a;
+        double straightDistance = -142000;
+        double transitionVelocity1 = 1500+teamUtil.robot.b;
         double transitionVelocity2 = 1000+teamUtil.robot.c;
         double angle= 38;
         double rotatorPos = output.GrabberRotatorLoad;
@@ -259,14 +259,18 @@ if (true) return true;
 
         // Move across the field while holding the center of the tile
         drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,3000);
+        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
         // launch the output in a separate thread
         if (operateArms) {output.goToScoreNoWait(level,rotatorPos, straferPos);}
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
 
         drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:angle), 180, transitionVelocity2,1500);
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
         drive.driveStraightToTargetWithStrafeEncoderValue(transitionVelocity2, straightEncoderTarget,strafeEncoderTarget, 0, 180, 0,1500);
-
+        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
         teamUtil.log("driveToBackDropV3 ---FINISHED");
         return true;
     }
