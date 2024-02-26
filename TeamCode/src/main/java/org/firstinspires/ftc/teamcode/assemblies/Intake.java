@@ -407,6 +407,7 @@ public class Intake {
             else{
                 ready();
                 teamUtil.log("We TIMED OUT");
+                //TODO figure out a true failsafe in auto where there would be a pixel sitting in the middle of the field
             }
 
 
