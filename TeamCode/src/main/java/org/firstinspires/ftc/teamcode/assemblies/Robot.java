@@ -81,39 +81,7 @@ public class Robot {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // SCORE Side Start - Push the purple pixel and get into position for AprilTag Localization based on path
-    public boolean pushPurplePixelScoreV3(int path) {
-        teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
-        // TODO: SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths, Maybe don't stop between all the movements
-        teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
-        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Under the Rigging
-            drive.moveCm(drive.MAX_VELOCITY,71,fieldSide(), 180,0); // Was 71
-            drive.moveCm(drive.MAX_VELOCITY,28, teamUtil.alliance==RED ? 150:210, 180,0);
-            drive.moveCm(drive.MAX_VELOCITY,8, driverSide(), 180, 800);
-            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,0);
-            /*
-            drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 1000);
-            drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
-            drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
 
-             */
-        } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
-            drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 0);
-        } else { // Path 2, middle for either Alliance
-            drive.moveCm(drive.MAX_VELOCITY, 86, fieldSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
-            drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 0);
-        }
-
-        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-
-        return true;
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // SCORE Side Start - Push the purple pixel and get into position for AprilTag Localization based on path
     public boolean pushPurplePixelScoreV4(int path) {
 
         teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
@@ -149,12 +117,6 @@ public class Robot {
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    // WING Side Start - Push the purple pixel and drive to nearest stack
-    // TODO: SPEED UP IDEAS: Make the pixel pusher less deep and try to go on a more direct path? move pixel pusher to back and target middle stack?
-
-
 
 
 
@@ -248,27 +210,27 @@ if (true) return true;
         int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (10+ (int)teamUtil.robot.d)); // TODO Fix for Blue side
         int straightEncoderTarget =  -205325+(int)teamUtil.robot.a;
         double straightDistance = -142000;
+        double goToScoreTarget = -80000;
         double transitionVelocity1 = 1500+teamUtil.robot.b;
         double transitionVelocity2 = 1000+teamUtil.robot.c;
         double angle= 38;
-        double rotatorPos = output.GrabberRotatorLoad;
+        double rotatorPos = output.GrabberRotatorHorizontal2;
         double straferPos = output.StraferLoad;
-        float level = 3; // is this supposed to be 3.5?
+        float level = 3.5f;
 
         double driftFactor = 5+teamUtil.robot.d; // cm assuming seek speed of 450
 
-        // Move across the field while holding the center of the tile
-        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,3000);
+        // Move across the field while holding the center of the tile (also goToScore when safe)
+        // TODO: What if the pixels are not fully loaded when we GoToScore?  Need a Failsafe?  Or delay?
+        drive.driveStraightToTargetWithStrafeEncoderAndGoToScore(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,goToScoreTarget,rotatorPos,straferPos,level,3000);
         teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
-        // launch the output in a separate thread
-        if (operateArms) {output.goToScoreNoWait(level,rotatorPos, straferPos);}
-        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
-
+        // drive diagonally toward backdrop while declerating
         drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:angle), 180, transitionVelocity2,1500);
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
+        // close any remaining distance to the backdrop
         drive.driveStraightToTargetWithStrafeEncoderValue(transitionVelocity2, straightEncoderTarget,strafeEncoderTarget, 0, 180, 0,1500);
         teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
         teamUtil.log("driveToBackDropV3 ---FINISHED");
@@ -276,7 +238,6 @@ if (true) return true;
     }
 
     public boolean driveToBackDropV5(int path, boolean operateArms, int encoderCenterTile, int backupTarget, boolean yellowPixel) {
-        // TODO: Optimize Inside path to save another .5-1 seconds on cycle
         boolean details = true;
         teamUtil.log("driveToBackDropV5");
         int finishEncoderStrafe;
@@ -350,7 +311,7 @@ if (true) return true;
         //-11125
         Drive.YellowPixelPosition position = Drive.YellowPixelPosition.NONE;
         if (yellowPixel) { drive.rearVisionPortal.setProcessorEnabled(drive.findPixelProcesser,true); }
-        drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500); // TODO: Non-zero end velocity?
+        drive.strafeToTarget(seekVelocity, strafeTarget, driverSide(), 180, 0,1500);
         if (yellowPixel) {
             drive.findPixelProcesser.reset();
             position = drive.findYellowPixel(path,100);
@@ -444,7 +405,7 @@ if (true) return true;
             else if(position == Drive.YellowPixelPosition.LEFT){ // LEFT
                 if(path == 1){
                     rotatorPos = output.GrabberRotatorHorizontal1;
-                    straferPos = 4; // TODO: positive or negative?
+                    straferPos = 4;
                     strafeCm = 3.5;
                 }
                 else if(path == 2){
@@ -631,7 +592,77 @@ if (true) return true;
         return true;
     }
 
+    int previousDesiredStrafeEncoderTransition;
+    int previousDesiredStrafeEncoderCenter;
+    public boolean cycleVNext(double xOffset, boolean operateArms, int cycle,long autoStartTime){
+        long startTime = System.currentTimeMillis();
+        teamUtil.log("Start Cycle-----------------------------------------");
+        int desiredStrafeEncoderTransition;
+        int desiredStrafeEncoderCenter;
 
+        drive.switchCV(Drive.cvCam.FRONT_LINE);
+        if (cycle==1) {
+            drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (teamUtil.alliance == teamUtil.alliance.RED) {
+                desiredStrafeEncoderTransition = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 6800);
+                desiredStrafeEncoderCenter = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 8100);
+            } else {
+                desiredStrafeEncoderTransition = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER - 6800);
+                desiredStrafeEncoderCenter = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER - 8100);
+            }
+        } else { // 2nd cycle, don't reset strafe
+                desiredStrafeEncoderTransition = previousDesiredStrafeEncoderTransition;
+                desiredStrafeEncoderCenter = previousDesiredStrafeEncoderCenter;
+        }
+        previousDesiredStrafeEncoderTransition = desiredStrafeEncoderTransition;
+        previousDesiredStrafeEncoderCenter = desiredStrafeEncoderCenter;
+
+        if (cycle == 1) {
+            drive.moveCm(drive.MAX_VELOCITY, 2,180,180,0);
+            drive.strafeToTarget(drive.MAX_VELOCITY-200, desiredStrafeEncoderTransition,teamUtil.alliance==RED?90:270,180, 750, 2500 );
+        } else {
+            drive.strafeToTarget(drive.MAX_VELOCITY-200, desiredStrafeEncoderTransition,teamUtil.alliance==RED?135:225,180, 1500, 2500 );
+        }
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,-40000, desiredStrafeEncoderCenter,180, 180, 1000, 4000);
+
+        if (operateArms) {
+            intake.startIntake();
+        }
+        intake.ready();
+        if (!drive.driveToStackNoStopWithStrafeV3(180,180, 1000, desiredStrafeEncoderCenter,false,3000)) {
+            drive.stopMotors();
+            return false;
+        }
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // on audience wall
+        if (operateArms) {
+            intake.automaticGrabTwoNoWait();
+            teamUtil.pause(250);
+        } else {
+            teamUtil.pause(250);//Use the same amount of time
+        }
+        //drive.switchCV(Drive.cvCam.REAR_APRILTAG); // start April Tag detector
+
+        if(!driveToBackDropInsideFastEncodersOnly(operateArms,desiredStrafeEncoderCenter)){
+            drive.stopMotors();
+            teamUtil.log("driveToBackDropInsideFastEncodersOnly Failed");
+            return false;
+        }
+
+        // drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(100);
+        }
+
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        long endTime = System.currentTimeMillis();
+        long cycleTime = endTime-startTime;
+        teamUtil.log("Cycle Time: "+ cycleTime + " ------------------------------------");
+
+        return true;
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -649,7 +680,7 @@ if (true) return true;
             //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
             // Get AprilTag Finder up and running
             if (operateArms) {
-                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2,output.StraferLoad); // TODO: Adjust this level for higher consistency?
+                output.goToScoreNoWait(1.5f,output.GrabberRotatorHorizontal2,output.StraferLoad);
             }
             if (!pushPurplePlaceYellowPixelWingV5(path,operateArms)) { //pushes pixel and gets to good location for April tag localization
                 return;   //Auto Bailout
@@ -659,9 +690,9 @@ if (true) return true;
         }
         if(cycle){
             double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
-            if(System.currentTimeMillis()-startTime<20000){
+            if(System.currentTimeMillis()-startTime<20000){ // TODO: Adjust when cycle is finalized
                 if(cycleV5(xOffset,operateArms,path,startTime)){
-                    if(System.currentTimeMillis()-startTime<21000){
+                    if(System.currentTimeMillis()-startTime<21000){ // TODO: Adjust when cycle is finalized
                         if(cycleV5(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
 
                         }
@@ -681,6 +712,19 @@ if (true) return true;
 
 
     }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //        OLDER STUFF
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     public void autoV4(int path, boolean operateArms, int delaySeconds, boolean cycle){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);
@@ -727,14 +771,6 @@ if (true) return true;
 
 
     }
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public boolean driveToBackDrop (int path, boolean operateArms, int encoderCenterTile, double initialDistance, float level, double rotatorPos, double straferPos) {
         int finishEncoderStrafe;
@@ -1267,6 +1303,36 @@ if (true) return true;
         teamUtil.log("Finished Auto");
     }
 
+    public boolean pushPurplePixelScoreV3(int path) {
+        teamUtil.log("Pushing Pixel and Driving to April Tag Viewing Location");
+        // TODO: SPEED UP IDEAS: Maybe hold the pixel in the collectors and take more direct paths, Maybe don't stop between all the movements
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.VIOLET);
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Under the Rigging
+            drive.moveCm(drive.MAX_VELOCITY,71,fieldSide(), 180,0); // Was 71
+            drive.moveCm(drive.MAX_VELOCITY,28, teamUtil.alliance==RED ? 150:210, 180,0);
+            drive.moveCm(drive.MAX_VELOCITY,8, driverSide(), 180, 800);
+            drive.moveCm(drive.MAX_VELOCITY,83, teamUtil.alliance==RED ? 30:330, 180,0);
+            /*
+            drive.moveCm(drive.MAX_VELOCITY,67, fieldSide(), 180, 1000);
+            drive.moveCm(drive.MAX_VELOCITY,30, teamUtil.alliance==RED ? 140 : 220, 180, 0); // was fieldSide() + 50
+            drive.moveCm(drive.MAX_VELOCITY,10, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 78, 0, 180, 1000);
+
+             */
+        } else if ((teamUtil.alliance==RED && path == 3) || (teamUtil.alliance==BLUE && path == 1)) { // Near the backdrop
+            drive.moveCm(drive.MAX_VELOCITY,68,teamUtil.alliance==RED?58:302, 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,13, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY,  23 , teamUtil.alliance==RED?22.5:337.5, 180, 0);
+        } else { // Path 2, middle for either Alliance
+            drive.moveCm(drive.MAX_VELOCITY, 86, fieldSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 8.5, driverSide(), 180, 0);
+            drive.moveCm(drive.MAX_VELOCITY, 45, 0, 180, 0);
+        }
+
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+
+        return true;
+    }
 
 }
 

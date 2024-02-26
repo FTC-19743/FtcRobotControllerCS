@@ -319,19 +319,11 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 startTime=System.currentTimeMillis();
-                robot.driveToBackDropInsideFastEncodersOnly(false,0);
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
-                robot.drive.setMotorsActiveBrake();
-                teamUtil.log("strafe: " + robot.drive.strafeEncoder.getCurrentPosition() + " forward: " + robot.drive.forwardEncoder.getCurrentPosition());
-
-                //robot.driveToBackDropV5(1,false,0,-188500, false);
+                robot.pushPurplePlaceYellowPixelWingV5(2,useArms);
+                robot.cycleVNext(0,useArms,1,System.currentTimeMillis());
+                robot.cycleVNext(0,useArms,2,System.currentTimeMillis());
                 elapsedTime=System.currentTimeMillis()-startTime;
-                robot.drive.stopCV();
-                teamUtil.pause(1000);
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                robot.drive.setMotorsWithEncoder();
-                robot.
-                teamUtil.log("strafe: " + robot.drive.strafeEncoder.getCurrentPosition() + " forward: " + robot.drive.forwardEncoder.getCurrentPosition());
 
 
                 // Test drive to stack
