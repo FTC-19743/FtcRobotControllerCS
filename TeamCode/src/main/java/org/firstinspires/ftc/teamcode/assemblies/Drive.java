@@ -549,6 +549,13 @@ public class Drive {
         br.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
     }
+    public void setMotorsRunWithoutEncoder() {
+        fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+    }
 
     public void resetAllDriveEncoders() {
         fl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -1500,11 +1507,13 @@ public class Drive {
         teamUtil.log("Waiting For Stall");
         long timeoutTime = System.currentTimeMillis()+timeout;
         int lastEncoder = forwardEncoder.getCurrentPosition();
+        double startEncoderVelocity = forwardEncoder.getVelocity();
         while(teamUtil.keepGoing(timeoutTime)){
-            teamUtil.pause(100);
+            teamUtil.pause(25);
+            if(details){teamUtil.log("Forward Encoder Velocity: " + forwardEncoder.getVelocity());}
             int currentEncoder = forwardEncoder.getCurrentPosition();
             if (details) teamUtil.log("last: " + lastEncoder + " current: "+ currentEncoder);
-            if(currentEncoder < lastEncoder+500){
+            if(forwardEncoder.getVelocity()<startEncoderVelocity*0.5){
                 teamUtil.log("Stalled");
                 return true;
             }

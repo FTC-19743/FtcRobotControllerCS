@@ -593,13 +593,22 @@ public class Output {
     }
 
     public void runElevatorsToLevel(float level){
+        boolean details = true;
+        teamUtil.log("Run Elevators to Level: " + level);
         int elevDestination = (int)(elevatorMinScoreLevel + (level-1f)*elevatorScoreInc);
-        elevLeft.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
-        elevRight.setTargetPosition(Math.max(elevDestination,elevatorScoreLevel3));
+        elevLeft.setTargetPosition(elevDestination);
+        elevRight.setTargetPosition(elevDestination);
+        if(details){
+            teamUtil.log("ElevDestination" + elevDestination);
+        }
 
         while(Math.abs(elevLeft.getCurrentPosition()-elevDestination)>100||Math.abs(elevRight.getCurrentPosition()-elevDestination)>100){
             teamUtil.pause(50);   // yield some time here so drive control gets enough CPU (especially auto!!)
+            if(details){
+                teamUtil.log("Current Position Left: " + elevLeft.getCurrentPosition() + "Right: " + elevRight.getCurrentPosition());
+            }
         }
+        teamUtil.log("Run Elevators to Level FINISHED");
 
     }
 
