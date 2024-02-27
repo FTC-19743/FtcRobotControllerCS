@@ -165,9 +165,9 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 1 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 1 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }else if(driverGamepad.wasLeftPressed()){
                         robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     } else if(driverGamepad.wasRightPressed()){
@@ -178,9 +178,9 @@ public class testAutoPaths extends LinearOpMode {
                     } else if (driverGamepad.wasAPressed()) {
                         robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 50);
                     } else if (driverGamepad.wasXPressed()) {
-                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }else if (driverGamepad.wasBPressed()) {
-                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
                     }
                     telemetry.addLine("Setting Drive Variables");
 
@@ -319,9 +319,11 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 startTime=System.currentTimeMillis();
-                robot.pushPurplePlaceYellowPixelWingV5(2,useArms);
+                robot.pushPurplePlaceYellowPixelWingV5((int)robot.a,useArms);
                 robot.cycleVNext(0,useArms,1,System.currentTimeMillis());
                 robot.cycleVNext(0,useArms,2,System.currentTimeMillis());
+
+                //robot.driveToBackDropInsideFastEncodersOnly(useArms,0);
                 elapsedTime=System.currentTimeMillis()-startTime;
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 

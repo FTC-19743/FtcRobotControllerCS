@@ -1278,7 +1278,7 @@ public class Drive {
 
     }
 
-    public void driveStraightToTargetWithStrafeEncoderAndGoToScore(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, double goToScoreTarget, double rotatorPos, double straferPos, float level, long timeout) {
+    public void driveStraightToTargetWithStrafeEncoderAndGoToScore(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, double goToScoreTarget, double rotatorPos, double straferPos, float level, long timeout, boolean operateArms) {
         teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         boolean wentToScore = false;
@@ -1378,11 +1378,13 @@ public class Drive {
                 teamUtil.log("dh: " + adjustedDriveHeading);
             }
             if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
-
-            if (!wentToScore && goToScoreTarget < -1 && forwardEncoder.getCurrentPosition()<goToScoreTarget) {
-                wentToScore = true;
-                output.goToScoreNoWait(level, rotatorPos, straferPos);
+            if(operateArms){
+                if (!wentToScore && goToScoreTarget < -1 && forwardEncoder.getCurrentPosition()<goToScoreTarget) {
+                    wentToScore = true;
+                    output.goToScoreNoWait(level, rotatorPos, straferPos);
+                }
             }
+
 
             driveMotorsHeadingsFR(adjustedDriveHeading, robotHeading, maxVelocity);
         }
@@ -1408,10 +1410,13 @@ public class Drive {
             if (details) {
                 teamUtil.log("dh: " + adjustedDriveHeading);
             }
-            if (!wentToScore && goToScoreTarget < -1 && forwardEncoder.getCurrentPosition()<goToScoreTarget) {
-                wentToScore = true;
-                output.goToScoreNoWait(level, rotatorPos, straferPos);
+            if(operateArms){
+                if (!wentToScore && goToScoreTarget < -1 && forwardEncoder.getCurrentPosition()<goToScoreTarget) {
+                    wentToScore = true;
+                    output.goToScoreNoWait(level, rotatorPos, straferPos);
+                }
             }
+
             if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
             driveMotorsHeadingsFR(adjustedDriveHeading, robotHeading, currentVelocity);
         }

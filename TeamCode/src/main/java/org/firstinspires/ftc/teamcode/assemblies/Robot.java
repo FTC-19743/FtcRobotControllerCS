@@ -197,7 +197,7 @@ public class Robot {
 
         if (details) {teamUtil.log("Final Offset x/y: " + aprilTagOffset.x + "/" + aprilTagOffset.y);}
         // TODO: Consider using driveStraightToTargetWithStrafeEncoderValue with a target derived from aprilTagOffset.y
-if (true) return true;
+        if (true) return true;
         drive.moveCm(drive.MAX_VELOCITY,-13+ aprilTagOffset.y,0,180,0); // -13 is magic
         teamUtil.log("driveToBackDropV3 ---FINISHED");
         return true;
@@ -207,26 +207,26 @@ if (true) return true;
         boolean details = true;
         teamUtil.log("driveToBackDropInsideFast");
         int strafeEncoderTarget =  teamUtil.alliance==RED? encoderCenterTile-5900 : encoderCenterTile+5900;
-        int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (10+ (int)teamUtil.robot.d)); // TODO Fix for Blue side
-        int straightEncoderTarget =  -205325+(int)teamUtil.robot.a;
+        int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (teamUtil.alliance== RED?13:-6)); // TODO Fix for Blue side
+        int straightEncoderTarget =  -205325;
         double straightDistance = -142000;
         double goToScoreTarget = -80000;
-        double transitionVelocity1 = 1500+teamUtil.robot.b;
-        double transitionVelocity2 = 1000+teamUtil.robot.c;
+        double transitionVelocity1 = 1500;
+        double transitionVelocity2 = 1000;
         double angle= 38;
         double rotatorPos = output.GrabberRotatorHorizontal2;
         double straferPos = output.StraferLoad;
         float level = 3.5f;
 
-        double driftFactor = 5+teamUtil.robot.d; // cm assuming seek speed of 450
+        double driftFactor = 5; // cm assuming seek speed of 450
 
         // Move across the field while holding the center of the tile (also goToScore when safe)
         // TODO: What if the pixels are not fully loaded when we GoToScore?  Need a Failsafe?  Or delay?
-        drive.driveStraightToTargetWithStrafeEncoderAndGoToScore(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,goToScoreTarget,rotatorPos,straferPos,level,3000);
+        drive.driveStraightToTargetWithStrafeEncoderAndGoToScore(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,goToScoreTarget,rotatorPos,straferPos,level,3000,operateArms);
         teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
         // drive diagonally toward backdrop while declerating
-        drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:angle), 180, transitionVelocity2,1500);
+        drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:90-angle), 180, transitionVelocity2,1500);
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
         teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
@@ -691,22 +691,24 @@ if (true) return true;
         if(cycle){
             double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
             if(System.currentTimeMillis()-startTime<20000){ // TODO: Adjust when cycle is finalized
-                if(cycleV5(xOffset,operateArms,path,startTime)){
+                if(cycleVNext(xOffset,operateArms,1,startTime)){
                     if(System.currentTimeMillis()-startTime<21000){ // TODO: Adjust when cycle is finalized
-                        if(cycleV5(teamUtil.alliance==teamUtil.alliance.RED? -drive.TAG_CENTER_TO_CENTER :drive.TAG_CENTER_TO_CENTER,operateArms,path,startTime)){
+                        if(cycleVNext(0,operateArms,2,startTime)){
 
                         }
                         else{
-                            teamUtil.log("First CycleV5 failed");
+                            teamUtil.log("Second CycleV5 failed");
                         }
                     }else{
-                        teamUtil.log("Second Cycle AutoV5 Timed Out");
+                        teamUtil.log("Second Cycle AutoV5 had no time");
                     }
                 }
+                else{
+                    teamUtil.log("First Cycle FAILED");
+                }
             }
-
             else{
-                teamUtil.log("Cycle V5 Failsafed Out");
+                teamUtil.log("First Cycle V5 had no time");
             }
         }
 

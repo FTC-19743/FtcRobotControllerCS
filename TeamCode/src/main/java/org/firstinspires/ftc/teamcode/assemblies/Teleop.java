@@ -47,7 +47,7 @@ public class Teleop extends LinearOpMode {
     }
 
      */
-
+    //tentative test code
     public void coordinatePositionOnFieldTelemetry(){
         double xPosition;
         double yPosition;
@@ -312,7 +312,6 @@ public class Teleop extends LinearOpMode {
             //loopRunNumber++;
             robot.outputTelemetry();
             telemetry.addLine("# Pixels present:  " + robot.intake.pixelsLoaded);
-            coordinatePositionOnFieldTelemetry();
             //robot.telemetry.addLine("Loop Run Number: " + loopRunNumber);
             robot.telemetry.addLine("Last Level: " + robot.output.lastLevel);
             if(endgame){
