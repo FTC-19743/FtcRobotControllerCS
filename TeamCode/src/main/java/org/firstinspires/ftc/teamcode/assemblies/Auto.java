@@ -40,6 +40,7 @@ public class Auto extends LinearOpMode {
         }
         initializeRobot();
         robot.calibrate();
+        teamUtil.robot = robot;
 
         //Delay
         while(!gamepad.wasAPressed()){

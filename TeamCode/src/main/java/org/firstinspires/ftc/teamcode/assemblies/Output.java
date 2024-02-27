@@ -33,7 +33,7 @@ public class Output {
 
     public static double GrabberRotatorLowerLimit = 0.427;
     public static double GrabberRotatorHorizontal1 = 0.515;
-    public static double GrabberRotatorLoad= 0.568; // Vertical for loading
+    public static double GrabberRotatorLoad= 0.565; // Vertical for loading was .568
     public static double GrabberRotatorHorizontal2 = 0.6216; // 180 from Horizontal1
     public static double GrabberRotatorHorizontal3 = 0.7317; // This is the limit in one direction
     public static double GrabberRotatorUpperLimit = GrabberRotatorHorizontal3;
@@ -47,7 +47,7 @@ public class Output {
     //public static double flipperScore = 0.845+0.007*5;
     public static double flipperScore = 0.85; // was .8756
 
-    public static double StraferLoad = 0.5; // was 0.485
+    public static double StraferLoad = 0.4917; // was 0.5
     public static double StraferRight = 0.297 ; // was .28  "Right" when facing the backdrop.  Actually Robot's left
     public static double StraferLeft = 0.675; // was .655
 
@@ -190,7 +190,7 @@ public class Output {
     public void dropAndGoToLoad() {
         teamUtil.log("Drop and Stow");
         grabber.setPosition(GrabberOpen);
-        teamUtil.pause(1000);
+        teamUtil.pause(1000); // TODO: Do we need a full second here?
         goToLoad();
     }
 
@@ -549,7 +549,7 @@ public class Output {
         if (intake.twoPixelsPresent() == true){
             if (grabber.getPosition() < GrabberOpen + .1) { // grabber is currently open
                 grabber.setPosition(GrabberClosed);
-                teamUtil.pause(350);
+                teamUtil.pause(350); // TODO: We are losing a third of a second here.  Maybe grab the pixels as soon as we detect they are both loaded?
                 if(details){
                     teamUtil.log("Grabbing 2 pixels");
                 }
@@ -612,6 +612,34 @@ public class Output {
 
     }
 
+    public void goToScoreWhenLoaded(float level, double rotatorPosition,double straferPosition) {
+        long timeOutTime = System.currentTimeMillis()+3000;
+        while (!teamUtil.robot.intake.doneLoading.get() && teamUtil.keepGoing(timeOutTime))
+        {
+            teamUtil.pause(50);
+        }
+        moving.set(true);
+        goToScore(level,rotatorPosition,straferPosition);
+    }
+
+    public void goToScoreWhenLoadedNoWait(float level, double rotatorPosition,double straferPosition) {
+        if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation
+            teamUtil.log("states in go to score");
+            teamUtil.log("moving" + moving.get());
+            teamUtil.log("loading" + loading.get());
+            teamUtil.log("WARNING: Attempt to goToScore while output system is moving--ignored");
+            return;
+        } else {
+            teamUtil.log("Launching Thread to Go To Score When Loaded");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    goToScoreWhenLoaded(level,rotatorPosition,straferPosition);
+                }
+            });
+            thread.start();
+        }
+    }
 
     public void goToScoreNoWait(float level, double rotatorPosition,double straferPosition) {
         if (moving.get()||!loading.get()) { // Output system is already moving in a long running operation

@@ -204,13 +204,13 @@ public class Robot {
     }
 
     public boolean driveToBackDropInsideFastEncodersOnly (boolean operateArms, int encoderCenterTile) {
-        boolean details = true;
+        boolean details = false;
         teamUtil.log("driveToBackDropInsideFast");
         int strafeEncoderTarget =  teamUtil.alliance==RED? encoderCenterTile-5900 : encoderCenterTile+5900;
         int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (teamUtil.alliance== RED?13:-6)); // TODO Fix for Blue side
         int straightEncoderTarget =  -205325;
         double straightDistance = -142000;
-        double goToScoreTarget = -80000;
+        double goToScoreTarget = -100000;
         double transitionVelocity1 = 1500;
         double transitionVelocity2 = 1000;
         double angle= 38;
@@ -221,18 +221,22 @@ public class Robot {
         double driftFactor = 5; // cm assuming seek speed of 450
 
         // Move across the field while holding the center of the tile (also goToScore when safe)
-        // TODO: What if the pixels are not fully loaded when we GoToScore?  Need a Failsafe?  Or delay?
-        drive.driveStraightToTargetWithStrafeEncoderAndGoToScore(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,goToScoreTarget,rotatorPos,straferPos,level,3000,operateArms);
-        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
+        //drive.driveStraightToTargetWithStrafeEncoderAndGoToScore(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,goToScoreTarget,rotatorPos,straferPos,level,3000,operateArms);
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,straightDistance,encoderCenterTile,0,180, transitionVelocity1,3000);
+        if (details) teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
+
+        if (operateArms) output.goToScoreWhenLoadedNoWait(level, rotatorPos, straferPos); // GotoScore as soon as we are done loading pixels
 
         // drive diagonally toward backdrop while declerating
         drive.strafeToTarget(transitionVelocity1*1.3, strafeDriftTarget, (teamUtil.alliance==RED?270+angle:90-angle), 180, transitionVelocity2,1500);
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
+        if (details) teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
         // close any remaining distance to the backdrop
         drive.driveStraightToTargetWithStrafeEncoderValue(transitionVelocity2, straightEncoderTarget,strafeEncoderTarget, 0, 180, 0,1500);
-        teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
+        if (details) teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
+
+        // TODO: Might need to wait here until gotoScore is finished?
         teamUtil.log("driveToBackDropV3 ---FINISHED");
         return true;
     }
@@ -354,7 +358,7 @@ public class Robot {
             }
 
             boolean blueSidePathOne;
-            if(teamUtil.alliance==BLUE&&path==1){
+            if(teamUtil.alliance==BLUE&&path==1){ // TODO: Revisit this, might work fine now that strafe position on blue side is better.
                 blueSidePathOne=true;
             }else{
                 blueSidePathOne=false;
@@ -485,8 +489,9 @@ public class Robot {
 
 
         drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // on audience wall
+        boolean loadedSecondPixel = false;
         if(operateArms){
-            intake.autoGrabOne();
+            loadedSecondPixel = intake.autoLoadSecondPixelFromStackV2(); // This could fail, But we proceed with only the yellow pixel
         }
         else{
             teamUtil.pause(750);
@@ -562,7 +567,7 @@ public class Robot {
         }
         drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // on audience wall
         if (operateArms) {
-            intake.automaticGrabTwoNoWait();
+            intake.autoLoadTwoPixelsFromStackNoWait();
             teamUtil.pause(250);
         } else {
             teamUtil.pause(250);//Use the same amount of time
@@ -594,7 +599,7 @@ public class Robot {
 
     int previousDesiredStrafeEncoderTransition;
     int previousDesiredStrafeEncoderCenter;
-    public boolean cycleVNext(double xOffset, boolean operateArms, int cycle,long autoStartTime){
+    public boolean cycleV6(double xOffset, boolean operateArms, int cycle, long autoStartTime){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle-----------------------------------------");
         int desiredStrafeEncoderTransition;
@@ -635,21 +640,23 @@ public class Robot {
         }
         drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // on audience wall
         if (operateArms) {
-            intake.automaticGrabTwoNoWait();
-            teamUtil.pause(250);
+            intake.autoLoadTwoPixelsFromStackNoWait(); //TODO This could fail and leave pixels in the middle of the field.  We need a failsafe
+            teamUtil.pause(250); // let the collectors grab the pixels before we start backing up // TODO: Consider waiting another .5 second to get to full collect to help maintain stack shape
         } else {
             teamUtil.pause(250);//Use the same amount of time
         }
         //drive.switchCV(Drive.cvCam.REAR_APRILTAG); // start April Tag detector
 
-        if(!driveToBackDropInsideFastEncodersOnly(operateArms,desiredStrafeEncoderCenter)){
+        if(!driveToBackDropInsideFastEncodersOnly(operateArms,desiredStrafeEncoderCenter)){ // TODO: This could return false if it failed to load pixels
             drive.stopMotors();
             teamUtil.log("driveToBackDropInsideFastEncodersOnly Failed");
             return false;
         }
 
         // drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
+        while (output.moving.get()) { // Output might not be in place just yet
+            teamUtil.pause(50);
+        }
         if (operateArms) {
             output.dropAndGoToLoadNoWait();
         } else {
@@ -691,9 +698,9 @@ public class Robot {
         if(cycle){
             double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
             if(System.currentTimeMillis()-startTime<20000){ // TODO: Adjust when cycle is finalized
-                if(cycleVNext(xOffset,operateArms,1,startTime)){
+                if(cycleV6(xOffset,operateArms,1,startTime)){
                     if(System.currentTimeMillis()-startTime<21000){ // TODO: Adjust when cycle is finalized
-                        if(cycleVNext(0,operateArms,2,startTime)){
+                        if(cycleV6(0,operateArms,2,startTime)){
 
                         }
                         else{
@@ -1005,7 +1012,7 @@ public class Robot {
 
 
     if(operateArms){
-        intake.autoGrabOne();
+        intake.autoLoadSecondPixelFromStack();
     }
     else{
         teamUtil.pause(750);
@@ -1106,7 +1113,7 @@ public class Robot {
 
         if (operateArms) {
 
-            intake.automaticGrabTwoNoWait();
+            intake.autoLoadTwoPixelsFromStackNoWait();
             teamUtil.pause(250); // TODO: What is this about?  Previous line is a "no wait" method
         } else {
             teamUtil.pause(250);//Use the same amount of time

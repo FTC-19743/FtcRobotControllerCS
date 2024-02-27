@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoControllerEx;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
@@ -45,6 +44,7 @@ public class Intake {
 
     public AtomicBoolean grabbingOnePixel = new AtomicBoolean(false);
     public double kickerDirection = 1;
+    public double kickerAutoGrabSpeed = 0.12;
     public double sweeperDirection = 1;
 
     public double lidOpen = 0.8;
@@ -356,8 +356,7 @@ public class Intake {
         if(bottomPixelPresent()){ //Checks if there are one or two pixels present if so it does not run
             teamUtil.log("Pixels were present so we FAILSAFED");
             return;
-        }
-        else{
+        } else{
             collectTopPixel();
             while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1500)){
                 teamUtil.pause(50);
@@ -368,10 +367,12 @@ public class Intake {
             }
             if(bottomPixelPresent()){
                 collectFull();
-                teamUtil.pause(500);
-                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) {
+                teamUtil.pause(500); // TODO: Why is this here?
+                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) { // TODO: Why is this timeout shorter than the earlier one?
                     teamUtil.pause(50);
                 }
+                // TODO: What are we waiting for here?  We wait to see the 2nd pixel but then don't do anything...
+                // TODO: Should we go to ready() or something?
             }
             else{
                 ready();
@@ -381,7 +382,7 @@ public class Intake {
 
 
     }
-    public void automaticGrabTwo(){
+    public void autoLoadTwoPixelsFromStack(){
         boolean details = true;
         long startTime = System.currentTimeMillis();
 
@@ -395,7 +396,6 @@ public class Intake {
             }
             if(details){
                 teamUtil.log("Bottom Pixel Present: " + bottomPixelPresent());
-                teamUtil.log("Time after first pixel Collection" + System.currentTimeMillis());
             }
             if(bottomPixelPresent()){
                 collectFull();
@@ -409,12 +409,59 @@ public class Intake {
                 teamUtil.log("We TIMED OUT");
                 //TODO figure out a true failsafe in auto where there would be a pixel sitting in the middle of the field
             }
-
-
-
     }
 
-    public boolean autoGrabOne(){
+    public AtomicBoolean doneLoading = new AtomicBoolean(false);
+    public void autoLoadTwoPixelsFromStackV2(){
+        teamUtil.log("autoLoadTwoPixelsFromStackV2");
+        doneLoading.set(false);
+        boolean details = true;
+        long startTime = System.currentTimeMillis();
+
+        collectTopPixel();
+        while(!twoPixelsPresent() && !bottomPixelPresent() && teamUtil.keepGoing(startTime + 1500)){
+            teamUtil.pause(50);
+        }
+        if(!bottomPixelPresent() && !twoPixelsPresent()) {
+            teamUtil.log("TIMED OUT while loading first pixel");
+            ready();
+        } else {
+            if(details) teamUtil.log("Loaded one");
+            collectFull();
+            lastTimePixelSeen = 0;
+            while(teamUtil.keepGoing(startTime+3000)){
+                if(twoPixelsPresent()){
+                    if(lastTimePixelSeen == 0) {
+                        lastTimePixelSeen = System.currentTimeMillis();
+                    }
+                    else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
+                        break;
+                    }
+                }
+                else{
+                    lastTimePixelSeen = 0;
+                }
+                teamUtil.pause(50);
+            }
+            if(!twoPixelsPresent()) {
+                teamUtil.log("TIMED OUT while loading second pixel");
+                ready();
+            } else {
+                if(details) teamUtil.log("Loaded two");
+                teamUtil.pause(200); // allow a little extra time to make sure both pixels are fully loaded
+                kicker.setPower(kickerAutoGrabSpeed);
+                sweeper.setPower(0);
+                teamUtil.robot.output.grabPixels();
+                openLid();
+                teamUtil.pause(350);
+                if(details) teamUtil.log("Grabbed two");
+                doneLoading.set(true);
+            }
+        }
+    }
+
+
+    public boolean autoLoadSecondPixelFromStack(){ // assumes we already have 1 pixel loaded
         boolean details = true;
         collectTopPixel();
         long startTime = System.currentTimeMillis();
@@ -423,6 +470,7 @@ public class Intake {
             teamUtil.log("Start Time" + startTime);
 
         }
+        lastTimePixelSeen = 0; // TODO: This was uninitialized, which means if we ran auto 2+ times, the timing loop below would have not worked.  Not sure why it is needed?
         while(teamUtil.keepGoing(startTime+2500)){
             if(twoPixelsPresent()){
                 if(lastTimePixelSeen == 0) {
@@ -448,7 +496,7 @@ public class Intake {
 
         if(twoPixelsPresent()){
             sweeper.setPower(0);
-            kicker.setPower(.3);
+            kicker.setPower(kickerAutoGrabSpeed); // was .3
             return true;
         }
         else{
@@ -458,6 +506,26 @@ public class Intake {
         }
 
 
+    }
+
+    public boolean autoLoadSecondPixelFromStackV2(){ // assumes we already have 1 pixel loaded
+        teamUtil.log("autoLoadSecondPixelFromStackV2");
+        boolean details = true;
+        collectTopPixel();
+        long startTime = System.currentTimeMillis();
+
+        while(!twoPixelsPresent() && teamUtil.keepGoing(startTime+2000)){
+            teamUtil.pause(50);
+        }
+        sweeper.setPower(0);
+        kicker.setPower(kickerAutoGrabSpeed); // was .3
+        if(twoPixelsPresent()) {
+            teamUtil.log("Second Pixel Loaded");
+            return true;
+        } else {
+            teamUtil.log("FAILED to load second pixel");
+            return false;
+        }
     }
 
     public void teleopGetTwoNoWait(){
@@ -470,12 +538,12 @@ public class Intake {
         });
         thread.start();
     }
-    public void automaticGrabTwoNoWait(){
+    public void autoLoadTwoPixelsFromStackNoWait(){
         teamUtil.log("Auto Grab Two No Wait");
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                automaticGrabTwo();
+                autoLoadTwoPixelsFromStackV2();
             }
         });
         thread.start();
@@ -486,7 +554,7 @@ public class Intake {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                autoGrabOne();
+                autoLoadSecondPixelFromStack();
             }
         });
         thread.start();
@@ -558,18 +626,12 @@ public class Intake {
         }
     }
     public boolean twoPixelsPresent(){
-
         //if (pixelSensor.alpha()>2500 || pixelSensor.red()>1500 || pixelSensor.blue()>3000||pixelSensor.green()>2400){
         if (pixelSensorTop.green()>1000){
             return true;
-        }
-
-
-        else{
+        } else {
             return false;
         }
-
-
     }
     public void outputTelemetry() {
         telemetry.addData("PixelSensorTop  ", "RGBA: %d %d %d %d ",

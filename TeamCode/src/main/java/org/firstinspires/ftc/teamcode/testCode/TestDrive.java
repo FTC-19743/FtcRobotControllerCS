@@ -1,28 +1,24 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
 import static androidx.core.math.MathUtils.clamp;
-import static org.firstinspires.ftc.teamcode.assemblies.Output.GrabberOpen;
 import static org.firstinspires.ftc.teamcode.libs.teamUtil.Alliance.RED;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.Intake;
 import org.firstinspires.ftc.teamcode.assemblies.Launcher;
 import org.firstinspires.ftc.teamcode.assemblies.Output;
+import org.firstinspires.ftc.teamcode.assemblies.Robot;
 import org.firstinspires.ftc.teamcode.libs.Blinkin;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
-import org.firstinspires.ftc.vision.VisionPortal;
-
-import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = "Test Drive", group = "LinearOpMode")
 public class TestDrive extends LinearOpMode {
+    Robot robot;
     Drive drive;
     Blinkin blinkin;
     Intake intake;
@@ -72,15 +68,16 @@ public class TestDrive extends LinearOpMode {
         teamUtil.SIDE=teamUtil.Side.SCORE;
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
-        intake = new Intake();
-        intake.initalize();
-        output = new Output(intake);
-        output.initialize();
-        output.calibrate();
-        launcher = new Launcher();
-        launcher.initialize();
-        drive = new Drive();
-        drive.initalize(output);
+        robot = new Robot();
+        robot.initialize();
+        teamUtil.robot = robot;
+        robot.calibrate();
+
+        intake = robot.intake;
+        output = robot.output;
+        launcher = robot.launcher;
+        drive = robot.drive;
+
         while(!gamepad.wasAPressed()){
             gamepad.loop();
             if(gamepad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}
@@ -227,18 +224,6 @@ public class TestDrive extends LinearOpMode {
                 intake.toggleIntake();
             }
 
-
-
-            if(gamepad.wasXPressed()) {
-                drive.setHeading(180);
-                drive.driveStraightToTargetWithStrafeEncoderValue(2000, -51000, 0, 180, 180, 1000, 5000);
-                drive.driveToStackNoStopWithStrafeV3(180, 180, 1000, 0, false,3500);
-                drive.stopMotors();
-            }
-
-
-
-
             if(gamepad.wasYPressed()){
                 //drive.moveCm(2000, 40,180, 180, 1000);
                 //drive.driveToStackNoStop(180,180,1000,500,2000);
@@ -250,29 +235,46 @@ public class TestDrive extends LinearOpMode {
             if(gamepad.wasXPressed()){
                 double kickerSpeed = 0;
                 double sweeperSpeed = 0;
+                boolean grabbed = false;
+                output.dropPixels();
                 while (!gamepad.wasXPressed() && opModeIsActive()){
                     gamepad.loop();
+                    if (gamepad.wasYPressed()) {
+                        intake.autoLoadTwoPixelsFromStackV2();
+                    }
+                    if (gamepad.wasBPressed()) {
+                        intake.autoLoadSecondPixelFromStackV2();
+                    }
+                    if (gamepad.wasAPressed()) {
+                        intake.ready();
+                        intake.startIntake();
+                        output.dropPixels();
+                    }
                     if(gamepad.wasUpPressed()){
-                        kickerSpeed=kickerSpeed+0.1;
+                        kickerSpeed=kickerSpeed+0.01;
+                        intake.kicker.setPower(kickerSpeed);
                     }else if(gamepad.wasDownPressed()){
-                        kickerSpeed = kickerSpeed - 0.1;
+                        kickerSpeed = kickerSpeed - 0.01;
+                        intake.kicker.setPower(kickerSpeed);
+
                     }else if(gamepad.wasLeftPressed()){
                         sweeperSpeed = sweeperSpeed - 0.1;
+                        intake.sweeper.setPower(-sweeperSpeed);
                     }
                     else if(gamepad.wasRightPressed()){
                         sweeperSpeed = sweeperSpeed + 0.1;
+                        intake.sweeper.setPower(-sweeperSpeed);
                     }
-                    intake.kicker.setPower(kickerSpeed);
-                    intake.sweeper.setPower(-sweeperSpeed);
                     if (gamepad.wasLeftBumperPressed()) {
                         intake.ready();
                     }
                     if (gamepad.wasRightBumperPressed()) {
-                        intake.grabOnePixel();
+                        if (intake.kicker.getPower() > .4) {
+                            intake.kicker.setPower(kickerSpeed);
+                        } else {
+                            intake.kicker.setPower(1);
+                        }
                     }
-                    //if (gamepad.wasRightTriggerPressed()) {
-                    //    intake.grabTwoPixels();
-                    //}
                     output.grabber.setPosition(clamp(gamepad.gamepad.right_trigger,output.GrabberOpen, output.GrabberClosed));
 
                     if (gamepad.wasLeftTriggerPressed()) {
@@ -283,6 +285,7 @@ public class TestDrive extends LinearOpMode {
                     telemetry.update();
                 }
                 intake.stopIntake();
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                 /*
                 drive.setHeading(180);
                 drive.moveCm(2000, 40,180, 180, 350);
