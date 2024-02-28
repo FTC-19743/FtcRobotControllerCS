@@ -407,7 +407,6 @@ public class Intake {
             else{
                 ready();
                 teamUtil.log("We TIMED OUT");
-                //TODO figure out a true failsafe in auto where there would be a pixel sitting in the middle of the field
             }
     }
 
@@ -455,7 +454,7 @@ public class Intake {
                 openLid();
                 teamUtil.pause(350);
                 if(details) teamUtil.log("Grabbed two");
-                doneLoading.set(true);
+                doneLoading.set(true); // signal that we have successfully loaded and grabbed two pixels
             }
         }
     }

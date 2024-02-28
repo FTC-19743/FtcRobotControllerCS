@@ -317,11 +317,11 @@ public class testAutoPaths extends LinearOpMode {
 
 
                 robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                //robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 startTime=System.currentTimeMillis();
-                robot.pushPurplePlaceYellowPixelWingV5((int)robot.a,useArms);
+                //robot.pushPurplePlaceYellowPixelWingV5((int)robot.a,useArms);
                 robot.cycleV6(0,useArms,1,System.currentTimeMillis());
-                robot.cycleV6(0,useArms,2,System.currentTimeMillis());
+                //robot.cycleV6(0,useArms,2,System.currentTimeMillis());
 
                 //robot.driveToBackDropInsideFastEncodersOnly(useArms,0);
                 elapsedTime=System.currentTimeMillis()-startTime;

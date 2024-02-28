@@ -613,13 +613,17 @@ public class Output {
     }
 
     public void goToScoreWhenLoaded(float level, double rotatorPosition,double straferPosition) {
-        long timeOutTime = System.currentTimeMillis()+3000;
+        long timeOutTime = System.currentTimeMillis()+1500;
         while (!teamUtil.robot.intake.doneLoading.get() && teamUtil.keepGoing(timeOutTime))
         {
             teamUtil.pause(50);
         }
-        moving.set(true);
-        goToScore(level,rotatorPosition,straferPosition);
+        if (teamUtil.robot.intake.doneLoading.get()) { // two pixels are loaded
+            moving.set(true);
+            goToScore(level, rotatorPosition, straferPosition);
+        } else { // 0 or 1 pixels loaded, timed out while trying to load, may have left a pixel or two in the middle of field
+            teamUtil.log("FAILED to load two pixels, NOT launching output");
+        }
     }
 
     public void goToScoreWhenLoadedNoWait(float level, double rotatorPosition,double straferPosition) {
