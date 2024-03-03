@@ -27,6 +27,8 @@ public class testAutoPaths extends LinearOpMode {
     boolean liveStream = true;
     boolean cycle = true;
 
+    boolean proximity = false;
+
     public long startTime;
     public long elapsedTime;
 
@@ -146,6 +148,9 @@ public class testAutoPaths extends LinearOpMode {
             if (driverGamepad.wasRightBumperPressed()) {
                 useArms = !useArms;
             }
+            if (driverGamepad.wasHomePressed()) {
+                proximity = !proximity;
+            }
             if (driverGamepad.wasLeftTriggerPressed()) {
                 cycle = !cycle;
                 /*
@@ -199,7 +204,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV5(1, useArms, 0,cycle);
+                robot.autoV5(1, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -207,7 +212,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV5(2, useArms, 0,cycle);
+                robot.autoV5(2, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -215,7 +220,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV5(3, useArms, 0,cycle);
+                robot.autoV5(3, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -223,7 +228,7 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.autoV5(1, useArms, 0,cycle);
+                robot.autoV5(1, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -232,7 +237,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV5(2, useArms, 0,cycle);
+                robot.autoV5(2, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -241,7 +246,7 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
 
-                robot.autoV5(3, useArms, 0,cycle);
+                robot.autoV5(3, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }

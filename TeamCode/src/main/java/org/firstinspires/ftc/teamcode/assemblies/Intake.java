@@ -60,7 +60,7 @@ public class Intake {
 
     public double flickerUp = 1.0;
 
-    public double flickerDown = 0;
+    public double flickerDown = .03;
 
     public double leftKnockerReady = 0.833; // was .9 was .74
 
@@ -367,12 +367,14 @@ public class Intake {
             }
             if(bottomPixelPresent()){
                 collectFull();
-                teamUtil.pause(500); // TODO: Why is this here?
-                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) { // TODO: Why is this timeout shorter than the earlier one?
+                teamUtil.pause(500);
+                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)) {
                     teamUtil.pause(50);
                 }
-                // TODO: What are we waiting for here?  We wait to see the 2nd pixel but then don't do anything...
-                // TODO: Should we go to ready() or something?
+                if(!twoPixelsPresent()){
+                    ready();
+                    teamUtil.log("We TIMED OUT with one pixel loaded");
+                }
             }
             else{
                 ready();

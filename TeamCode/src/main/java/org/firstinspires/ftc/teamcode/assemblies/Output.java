@@ -33,11 +33,32 @@ public class Output {
 
     public static double GrabberRotatorLowerLimit = 0.427;
     public static double GrabberRotatorHorizontal1 = 0.515;
-    public static double GrabberRotatorLoad= 0.565; // Vertical for loading was .568
+    public static double GrabberRotatorLoad= 0.56667; // Vertical for loading was .565
+
+    public static double GrabberRotator60Left = 0.585;
+
+    public static double GrabberRotator60Right = 0.5538;
+
+
+    public static double GrabberRotator60LeftDown = 0.665;
+    public static double GrabberRotator60RightDown = 0.475;
+
+    public static double GrabberRotatorHorizontalLeft = 0.6227;
+    public static double GrabberRotatorHorizontalRight = 0.515;
+
+    public static double rotatorPos[] = {0.475,0.515,0.5538,0.56667,0.585,0.6227,0.665};
+
+    public int currentRotatorPos = 3;
+
+    public int minRotatorPos = 0;
+    public int maxRotatorPos = 6;
+
+
     public static double GrabberRotatorHorizontal2 = 0.6216; // 180 from Horizontal1
     public static double GrabberRotatorHorizontal3 = 0.7317; // This is the limit in one direction
     public static double GrabberRotatorUpperLimit = GrabberRotatorHorizontal3;
     public static double GrabberRotatorIncrement = (GrabberRotatorHorizontal2 - GrabberRotatorHorizontal1) * 60/180;
+
 
 
 
@@ -241,23 +262,37 @@ public class Output {
 
    public void rotateGrabberClockwise(){
         if(!loading.get()) {
+            if(currentRotatorPos>minRotatorPos){
+                currentRotatorPos--;
+                grabberRotater.setPosition(rotatorPos[currentRotatorPos]);
+            }
+            /*
             if(Math.abs(grabberRotater.getPosition()-GrabberRotatorLoad)<.001){
                 grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement/2);
             }
             else if (grabberRotater.getPosition() + GrabberRotatorIncrement <= GrabberRotatorUpperLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() - GrabberRotatorIncrement);
             }
+
+             */
         }
    }
 
     public void rotateGrabberCounterclockwise(){
         if(!loading.get()) {
+            if(currentRotatorPos<maxRotatorPos){
+                currentRotatorPos++;
+                grabberRotater.setPosition(rotatorPos[currentRotatorPos]);
+            }
+            /*
             if(Math.abs(grabberRotater.getPosition()-GrabberRotatorLoad)<.001){
                 grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement/2);
             }
             else if (grabberRotater.getPosition() - GrabberRotatorIncrement >= GrabberRotatorLowerLimit) {
                 grabberRotater.setPosition(grabberRotater.getPosition() + GrabberRotatorIncrement);
             }
+
+             */
         }
     }
 
@@ -459,12 +494,16 @@ public class Output {
 
         intake.openLid(); // opens intake lid
 
-        if(Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.12f){
+        if((Math.abs(grabberStrafer.getPosition()-StraferLoad)>0.12f)||currentRotatorPos==0||currentRotatorPos==6){
             teamUtil.log("Strafing to Middle");
+            currentRotatorPos=3;
+            grabberRotater.setPosition(rotatorPos[currentRotatorPos]);
+
 
             grabberStrafer.setPosition(StraferLoad);
             teamUtil.pause(1000); //TODO change recalibrate time
         }
+
         long timeOutTime1 = System.currentTimeMillis() + 1500;
         if (elevLeft.getCurrentPosition() < elevatorSafeStrafeLevel || elevRight.getCurrentPosition() < elevatorSafeStrafeLevel) {
              // we don't know where the servos are so we need to go up to a safe level to move them
@@ -577,6 +616,7 @@ public class Output {
         while (elevLeft.getCurrentPosition() < elevatorSafeFlipRotateLevel || elevRight.getCurrentPosition() < elevatorSafeFlipRotateLevel) {
             teamUtil.pause(50);   // yield some time here so drive control gets enough CPU (especially auto!!)
         }
+        teamUtil.log("GoToScore Is Moving Output Servos Grabber Strafer" + straferPosition + "Flippser" + flipperScore + "grabberRotator" + rotatorPosition);
         grabberStrafer.setPosition(straferPosition);
         flipper.setPosition(flipperScore);
         grabberRotater.setPosition(rotatorPosition);

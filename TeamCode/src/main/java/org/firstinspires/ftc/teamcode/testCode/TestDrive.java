@@ -26,7 +26,35 @@ public class TestDrive extends LinearOpMode {
     Launcher launcher;
     TeamGamepad gamepad;
     int currentCam = 0;
+    public void proximityTriggered(){
+        if(robot.drive.getProximity(true)||robot.drive.getProximity(false)){
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOLD);
+            teamUtil.log("Proximity sensor triggered");
+        }
+        else{
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+            teamUtil.log("Proximity sensor not triggered");
+        }
+    }
+    public int blinkinNumber = 1;
+    public void toggleBlinkin(){
+        blinkinNumber++;
+        if(blinkinNumber>4){
+            blinkinNumber=1;
+        }
+        if(blinkinNumber==1){
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+        }else if(blinkinNumber==2){
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.RED);
+        }else if(blinkinNumber==3){
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.FLASHING_RED);
 
+        }else{
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.BLUE_PATH_1);
+
+        }
+
+    }
     public void toggleCamera() {
         currentCam++;
         if (currentCam > 4) {
@@ -109,6 +137,7 @@ public class TestDrive extends LinearOpMode {
         telemetry.update();
         while (!opModeIsActive()) {
             gamepad.loop();
+
             if(gamepad.wasRightBumperPressed()){
                 toggleCamera();
             }
@@ -221,7 +250,8 @@ public class TestDrive extends LinearOpMode {
             intake.autoOff();
 
             if(gamepad.wasBPressed()){
-                intake.toggleIntake();
+                toggleBlinkin();
+                //toggle intake before
             }
 
             if(gamepad.wasYPressed()){
@@ -394,7 +424,7 @@ public class TestDrive extends LinearOpMode {
 
 
 
-
+            //proximityTriggered();
             drive.driveMotorTelemetry();
             intake.outputTelemetry();
             drive.sensorTelemetry();

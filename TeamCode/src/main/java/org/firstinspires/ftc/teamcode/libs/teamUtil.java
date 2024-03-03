@@ -24,6 +24,8 @@ public class teamUtil {
 
     public static boolean LEFT = true; // Don't use this anymore!
 
+    public static long startTime;
+
 
     public static void init (LinearOpMode opMode) {
         theOpMode = opMode;

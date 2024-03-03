@@ -1004,6 +1004,181 @@ public class Drive {
 
     }
 
+    public boolean strafeToTargetWithProximity(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+        teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
+        details = false;
+        long startTime = System.currentTimeMillis();
+        long timeoutTime = startTime+timeout;
+
+        if (details) teamUtil.log("Starting Strafe Encoder: "+ strafeEncoder.getCurrentPosition());
+
+        double velocityChangeNeededAccel;
+        double velocityChangeNeededDecel;
+        if (endVelocity < MIN_STRAFE_END_VELOCITY) {
+            endVelocity = MIN_STRAFE_END_VELOCITY;
+        }
+        // tics^2/s
+        if (lastVelocity == 0) {
+            velocityChangeNeededAccel = maxVelocity - MIN_STRAFE_START_VELOCITY;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        } else {
+            velocityChangeNeededAccel = maxVelocity - lastVelocity;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }
+        // all are measured in tics
+        double startEncoder = strafeEncoder.getCurrentPosition();
+        if ((driveHeading< 180 && strafeTarget-startEncoder <=0) || (driveHeading > 180 && startEncoder-strafeTarget <=0))
+        {
+            teamUtil.log("ALREADY PAST TARGET--Not Strafing");
+            stopMotors();
+            return true;
+        }
+        double totalTics = Math.abs(startEncoder-strafeTarget);
+        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_STRAFE_ACCELERATION);
+        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_STRAFE_DECELERATION);
+        if (accelerationDistance+decelerationDistance >= totalTics ) { // No room for cruise phase
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+            double accelPercentage = accelerationDistance / (accelerationDistance + decelerationDistance);
+            double decelPercentage = 1-accelPercentage;
+            accelerationDistance = totalTics * accelPercentage;
+            decelerationDistance = totalTics * decelPercentage;
+            if (details) teamUtil.log("Adjusting distances to eliminate cruise phase");
+
+        }
+        double distanceRemaining = 0;
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + totalTics);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+        }
+        distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+
+        setBulkReadAuto();
+
+
+
+//acceleration
+        double currentVelocity = 0;
+        while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+            if (lastVelocity == 0) {
+                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + MIN_STRAFE_START_VELOCITY;
+            } else {
+                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + lastVelocity;
+            }
+            if (details) teamUtil.log("Accelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            if(teamUtil.alliance == RED){
+                if(getLeftProximity()){
+                    stopMotors();
+                    teamUtil.pause(500);
+                    teamUtil.log("Proximity Sensors Triggered in Acceleration Phase");
+                    return false;
+                }
+            }else{
+                if(getRightProximity()){
+                    stopMotors();
+                    teamUtil.pause(500);
+                    teamUtil.log("Proximity Sensors Triggered in Acceleration Phase");
+                    return false;
+                }
+            }
+
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distanceRemaining);
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("TIMEOUT Triggered After Acceleration Phase");
+            teamUtil.log("Tics Left + " + distanceRemaining);
+
+            stopMotors();
+            return false;
+
+
+        }
+//cruise
+        while ((distanceRemaining > decelerationDistance)&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+            if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distanceRemaining);
+        }
+        if(teamUtil.alliance == RED){
+            if(getLeftProximity()){
+                stopMotors();
+                teamUtil.pause(500);
+                teamUtil.log("Proximity Sensors Triggered in Cruise Phase");
+                return false;
+            }
+        }else{
+            if(getRightProximity()){
+                stopMotors();
+                teamUtil.pause(500);
+                teamUtil.log("Proximity Sensors Triggered in Cruise Phase");
+                return false;
+            }
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("TIMEOUT Triggered After Cruise Phase");
+            stopMotors();
+            return false;
+
+
+        }
+
+
+//deceleration
+        while ((distanceRemaining > 0)&&teamUtil.keepGoing(timeoutTime)) {
+            distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
+            currentVelocity = MAX_STRAFE_DECELERATION * distanceRemaining + endVelocity;
+            if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+        }
+        if (details) {
+            teamUtil.log("distance after deceleration: " + distanceRemaining);
+        }
+        if (endVelocity <= MIN_STRAFE_END_VELOCITY) {
+            stopMotors();
+            if (details) {
+                teamUtil.log("Went below or was min end velocity");
+            }
+        }
+        if(teamUtil.alliance == RED){
+            if(getLeftProximity()){
+                stopMotors();
+                teamUtil.pause(500);
+                teamUtil.log("Proximity Sensors Triggered in Deceleration Phase");
+                return false;
+            }
+        }else{
+            if(getRightProximity()){
+                stopMotors();
+                teamUtil.pause(500);
+                teamUtil.log("Proximity Sensors Triggered in Deceleration Phase");
+                return false;
+            }
+        }
+        if(System.currentTimeMillis()>timeoutTime){
+            teamUtil.log("TIMEOUT Triggered");
+            stopMotors();
+            return false;
+
+
+        }
+        setBulkReadOff();
+        lastVelocity = endVelocity;
+        teamUtil.log("strafeToTarget--Finished.  Current Strafe Encoder:" + strafeEncoder.getCurrentPosition());
+        return true;
+
+    }
+
     public void driveStraightToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;

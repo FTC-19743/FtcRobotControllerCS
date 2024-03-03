@@ -18,6 +18,8 @@ public class Auto extends LinearOpMode {
     int delay = 0;
     boolean cycle = true;
 
+    boolean usingProximity = false;
+
     public void initializeRobot(){
         telemetry.addLine("Initializing Robot");
         teamUtil.telemetry.update();
@@ -48,6 +50,7 @@ public class Auto extends LinearOpMode {
             if(gamepad.wasLeftPressed()){ if (delay > 0) delay--; }
             if(gamepad.wasRightPressed()){ if (delay < 10) delay++;}
 
+
             teamUtil.telemetry.addLine("Delayed Start? (use Game Pad 1 DPad L/R)");
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("------------------------------------");
@@ -59,6 +62,7 @@ public class Auto extends LinearOpMode {
             gamepad.loop();
             if(gamepad.wasLeftPressed()||gamepad.wasRightPressed()){cycle=!cycle;}
 
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
 
             teamUtil.telemetry.addLine("Cycle? (use Game Pad 1 DPad L/R)");
             teamUtil.telemetry.addLine("Cycle: " +cycle);
@@ -110,6 +114,29 @@ public class Auto extends LinearOpMode {
         robot.drive.initCV(false); // no live stream enabled means better FPS
         robot.drive.switchCV(Drive.cvCam.SIDE_PROP);
 
+        //PROXIMITY USAGE
+
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
+
+            if(gamepad.wasLeftPressed()||gamepad.wasRightPressed()){ usingProximity=!usingProximity;}
+
+
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
+            teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
+            teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
+            teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Using Proximity Avoidance (use Game Pad 1 DPad Left/Right)");
+            teamUtil.telemetry.addLine("Using Proximity Avoidance : " +usingProximity);
+
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
+
+
         //RELEASER
         while(!gamepad.wasAPressed()&&!robot.releaser.holding){
             gamepad.loop();
@@ -127,6 +154,9 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
             teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Using Proximity Avoidance : " +usingProximity);
+
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Grab Purple Pixel (use Game Pad 1 DPad U to toggle releaser)");
             teamUtil.telemetry.addLine("------------------------------------");
@@ -153,6 +183,9 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
             teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
+
+            teamUtil.telemetry.addLine("Using Proximity Avoidance : " +usingProximity);
+
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Load Pixel (use Game Pad 1 DPad L/R to grab/release) - DON'T GRAB ON WING!!!!!!!!");
             teamUtil.telemetry.addLine("------------------------------------");
@@ -170,6 +203,7 @@ public class Auto extends LinearOpMode {
             telemetry.addLine("Alliance: "+teamUtil.alliance.toString());
             telemetry.addLine("Side: "+teamUtil.SIDE.toString());
             telemetry.addLine("Path: "+path);
+            teamUtil.telemetry.addLine("Using Proximity Avoidance : " +usingProximity);
             telemetry.update();
 
 
@@ -195,7 +229,11 @@ public class Auto extends LinearOpMode {
         robot.drive.stopCV(); // shut down prop detector
          // Delay start if needed
         long startTime = System.currentTimeMillis();
-        robot.autoV4(robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle);
+        if(usingProximity){
+            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle,true);
+        }else{
+            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle,false);
+        }
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime-startTime;
         teamUtil.log("Elapsed Auto Time Without Wait At End: " + elapsedTime);
