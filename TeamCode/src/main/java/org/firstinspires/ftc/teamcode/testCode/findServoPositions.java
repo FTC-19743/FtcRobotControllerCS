@@ -2,7 +2,9 @@ package org.firstinspires.ftc.teamcode.testCode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoControllerEx;
 
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
@@ -31,6 +33,12 @@ public class findServoPositions extends LinearOpMode {
             }
             name = name + port;
             servo = hardwareMap.servo.get(name);
+            if (!ch && port == 4) {
+                ServoControllerEx flickerControl = (ServoControllerEx) servo.getController();
+                int flickerPort = servo.getPortNumber();
+                PwmControl.PwmRange flickerRange = new PwmControl.PwmRange(500, 2500);
+                flickerControl.setServoPwmRange(flickerPort, flickerRange);
+            }
             servo.setPosition(INITIAL_POS);
             currentPosition = INITIAL_POS;
     }

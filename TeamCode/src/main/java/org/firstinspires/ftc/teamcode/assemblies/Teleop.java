@@ -195,6 +195,9 @@ public class Teleop extends LinearOpMode {
             if(armsGamepad.wasRightPressed()||armsGamepad.wasLeftPressed()){
                 robot.intake.teleopFlickOneNoWait();
             }
+            if(gamepad2.right_trigger>0.5&&robot.output.loading.get()){
+                robot.intake.resetFlicker();
+            }
             if(armsGamepad.wasDownPressed()){
                 robot.intake.teleopGetOneNoWait();
             }
@@ -255,7 +258,8 @@ public class Teleop extends LinearOpMode {
                     //robot.output.goToScoreNoWait(3);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                     //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
-                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.rotatorPos[4],robot.output.StraferLoad);
+                    robot.output.currentRotatorPos = 4;
                 }
 
             }
@@ -264,7 +268,8 @@ public class Teleop extends LinearOpMode {
                 if(robot.intake.pixelsLoaded == 2){
                     //robot.output.goToScoreNoWait(3);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
+                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.rotatorPos[2],robot.output.StraferLoad);
+                    robot.output.currentRotatorPos = 2;
                     //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                 }
             }
@@ -284,7 +289,7 @@ public class Teleop extends LinearOpMode {
                 //robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
                 robot.output.elevManualV2(-(armsGamepad.gamepad.left_stick_y));
             }
-            if (armsGamepad.gamepad.right_trigger> 0.5) {
+            if (armsGamepad.gamepad.right_trigger> 0.5&&!robot.output.loading.get()) {
                 robot.output.dropAndGoToLoadNoWait();
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             }

@@ -58,9 +58,11 @@ public class Intake {
 
     public double newKnockersCollectFull = 0.72; // was .7 then .77
 
-    public double flickerUp = 1.0;
-
-    public double flickerDown = .03;
+    public double flickerUp = 0.99;
+    public double flickerDown = .83;
+    public double flickerPos[] = {0.99,0.79, .59, .39, .18, .02};
+    public int currentFlickerPos = 0;
+    public int maxFlickerPos = 5;
 
     public double leftKnockerReady = 0.833; // was .9 was .74
 
@@ -83,6 +85,8 @@ public class Intake {
     public double rightKnockerStore = rightKnockerGetTop; // was 0.29
 
     public boolean intakeRunning = false;
+
+    public boolean flicking = false;
 
     public boolean collecterMoving = false;
     public int pixelsLoaded = 0;
@@ -220,6 +224,17 @@ public class Intake {
         flicker.setPosition(flickerDown);
     }
 
+    public boolean canFlickAgain() {
+        return currentFlickerPos< maxFlickerPos;
+    };
+    public void flick() {
+        currentFlickerPos++;
+        flicker.setPosition(flickerPos[currentFlickerPos]);
+    }
+    public void resetFlicker() {
+        currentFlickerPos = 0;
+        flicker.setPosition(flickerPos[currentFlickerPos]);
+    }
     public void startIntake(){
         intakeRunning = true;
         sweeper.setPower(0.3*sweeperDirection);
@@ -267,6 +282,16 @@ public class Intake {
             putFlickerUp();
         }
     }
+    public void teleopFlickOneV2(){
+        if(!twoPixelsPresent() && canFlickAgain()&&!grabbingOnePixel.get()&&!flicking)
+        {
+            flicking = true;
+            flick();
+            teamUtil.pause(300);
+            teleopGetOne();
+            flicking=false;
+        }
+    }
 
 
 
@@ -282,8 +307,8 @@ public class Intake {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                teleopFlickOne();
-            }
+                teleopFlickOneV2();
+            } // TODO: V2 is experimental
         });
         thread.start();
 
@@ -293,30 +318,36 @@ public class Intake {
 
 
     public void teleopGetOne(){
-        grabbingOnePixel.set(true);
-        long startTime = System.currentTimeMillis();
-        if(!twoPixelsPresent()){
-            int pixelsPresent = 0;
-            if(bottomPixelPresent()){
-                pixelsPresent = 1;
-            }
-            collectFull();
-            if (pixelsPresent == 0){
-                while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1500)){
-                    teamUtil.pause(50);
+        if(!grabbingOnePixel.get()){
+            grabbingOnePixel.set(true);
+            long startTime = System.currentTimeMillis();
+            if(!twoPixelsPresent()){
+                int pixelsPresent = 0;
+                if(bottomPixelPresent()){
+                    pixelsPresent = 1;
+                }
+                collectFull();
+                if (pixelsPresent == 0){
+                    while(bottomPixelPresent() == false && teamUtil.keepGoing(startTime + 1000)){
+                        teamUtil.pause(50);
+                    }
+                }
+                else{
+                    while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1000)){
+                        teamUtil.pause(50);
+                    }
+                }
+                ready();
+                if(System.currentTimeMillis()-startTime>1500){
+                    teamUtil.log("teleopOnePixel TIMED OUT");
                 }
             }
-            else{
-                while(twoPixelsPresent() == false && teamUtil.keepGoing(startTime + 1500)){
-                    teamUtil.pause(50);
-                }
-            }
-            ready();
-            if(System.currentTimeMillis()-startTime>1500){
-                teamUtil.log("teleopOnePixel TIMED OUT");
-            }
+            grabbingOnePixel.set(false);
         }
-        grabbingOnePixel.set(false);
+        else{
+            teamUtil.log("Tele Op Get One Failed because Collectors already moving");
+        }
+
     }
 
     public void teleopGetOneNoWait(){

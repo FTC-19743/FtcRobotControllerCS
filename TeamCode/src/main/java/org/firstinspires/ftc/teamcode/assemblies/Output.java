@@ -565,7 +565,7 @@ public class Output {
         else{
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOTOSCORE_BLUE);
         }
-
+        intake.resetFlicker();
         elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -620,6 +620,7 @@ public class Output {
         grabberStrafer.setPosition(straferPosition);
         flipper.setPosition(flipperScore);
         grabberRotater.setPosition(rotatorPosition);
+
 
         elevLeft.setTargetPosition(elevDestination);
         elevRight.setTargetPosition(elevDestination);

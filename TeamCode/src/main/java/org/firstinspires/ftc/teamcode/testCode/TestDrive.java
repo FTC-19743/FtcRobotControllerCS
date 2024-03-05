@@ -229,13 +229,15 @@ public class TestDrive extends LinearOpMode {
             if (gamepad.wasLeftPressed()) {
                 //drive.findPixelProcesser.reset();
                // output.moveStraferLeft();
-                drive.spinToHeading(180);
+               // drive.spinToHeading(180);
+                intake.teleopFlickOneNoWait();
             }
             if (gamepad.wasRightPressed()) {
                 //output.moveStraferRight();
                 //intake.testWithFlicker();
-                drive.findPixelProcesser.reset();
-                teamUtil.log("YELLOW:" + drive.findYellowPixel(1,500));
+                //drive.findPixelProcesser.reset();
+                //teamUtil.log("YELLOW:" + drive.findYellowPixel(1,500));
+                intake.resetFlicker();
             }
             /*
             if(gamepad.wasYPressed()){
