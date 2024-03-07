@@ -172,7 +172,7 @@ public class Teleop extends LinearOpMode {
             //}
 
             ////////// Intake
-            robot.intake.autoOff();
+            robot.intake.autoOffV2();
 
             if(gamepad2.start){
                 robot.intake.stopIntake();

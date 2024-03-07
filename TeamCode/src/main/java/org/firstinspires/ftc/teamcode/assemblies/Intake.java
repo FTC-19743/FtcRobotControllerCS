@@ -58,9 +58,9 @@ public class Intake {
 
     public double newKnockersCollectFull = 0.72; // was .7 then .77
 
-    public double flickerUp = 0.99;
+    public double flickerUp = 0.99; //was .99
     public double flickerDown = .83;
-    public double flickerPos[] = {0.99,0.79, .59, .39, .18, .02};
+    public double flickerPos[] = {0.99,0.79, .59, .39, .18, .02}; //first value was .99
     public int currentFlickerPos = 0;
     public int maxFlickerPos = 5;
 
@@ -608,7 +608,35 @@ public class Intake {
                 else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
                     intakeRunning = false;
                     sweeper.setPower(0);
-                    kicker.setPower(.3);
+                    kicker.setPower(.15 ); //was 0.3
+                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
+                    openLid();
+                    pixelsLoaded = 2;
+                }
+            }
+            else{
+                lastTimePixelSeen = 0;
+                pixelsLoaded = 0;
+            }
+        }
+    }
+    public void autoOffV2(){
+        if(intakeRunning) {
+            if(onlyOnePixelPresent()){
+                teamUtil.log("only one pixel present");
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOLD);
+                pixelsLoaded = 1;
+                lastTimePixelSeen = 0;
+            }
+            else if(twoPixelsPresent()){
+                teamUtil.log("both pixels present");
+                if(lastTimePixelSeen == 0) {
+                    lastTimePixelSeen = System.currentTimeMillis();
+                }
+                else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){
+                    intakeRunning = false;
+                    sweeper.setPower(0);
+                    kicker.setPower(.15 ); //was 0.3
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
                     openLid();
                     pixelsLoaded = 2;

@@ -12,7 +12,7 @@ public class Launcher {
     HardwareMap hardwareMap;
     public Servo launcher;
 
-    public static double hold  = 0.12;
+    public static double hold  = 0.1;
     public static double release = 0.28;
 
     public boolean held = false;

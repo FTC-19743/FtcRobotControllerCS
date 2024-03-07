@@ -236,7 +236,11 @@ public class calibrateCV extends LinearOpMode
                 rearVisionPortal.stopStreaming();
                 aprilTagProcessorRunning = false;
                 break;
+
+
+
             case FRONT_LINE:
+
                 teamUtil.log("Switching CV to " + newCam);
                 frontVisionPortal.stopStreaming();
                 findLineProcessorRunning = false;
@@ -284,12 +288,19 @@ public class calibrateCV extends LinearOpMode
         switch(currentCamNum) {
             case 1:
                 switchCV(cvCam.REAR_APRILTAG);
+                updateCVManualExposure(rearVisionPortal, 3, 255);
+
                 break;
+
             case 2:
                 switchCV(cvCam.FRONT_LINE);
+                updateCVManualExposure(frontVisionPortal, 10, 100);
+
                 break;
             case 3:
                 switchCV(cvCam.SIDE_PROP);
+                updateCVManualExposure(sideVisionPortal, 10, 100);
+
                 break;
             default:
         }
@@ -403,12 +414,16 @@ public class calibrateCV extends LinearOpMode
                 switch (currentCam) {
                     case REAR_APRILTAG:
                         setAutoExposure(rearVisionPortal);
+
                         break;
+
                     case FRONT_LINE:
                         setAutoExposure(frontVisionPortal);
+
                         break;
                     case SIDE_PROP:
                         setAutoExposure(sideVisionPortal);
+
                         break;
                 }
             }
