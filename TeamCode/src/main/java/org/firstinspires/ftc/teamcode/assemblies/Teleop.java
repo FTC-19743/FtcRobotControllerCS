@@ -172,7 +172,7 @@ public class Teleop extends LinearOpMode {
             //}
 
             ////////// Intake
-            robot.intake.autoOffV2();
+            robot.intake.autoOffV3();
 
             if(gamepad2.start){
                 robot.intake.stopIntake();
@@ -289,7 +289,7 @@ public class Teleop extends LinearOpMode {
                 //robot.output.elevManual(-(armsGamepad.gamepad.left_stick_y)*manualSpeedElevator);
                 robot.output.elevManualV2(-(armsGamepad.gamepad.left_stick_y));
             }
-            if (armsGamepad.gamepad.right_trigger> 0.5&&!robot.output.loading.get()) {
+            if (armsGamepad.gamepad.right_trigger> 0.5&&!robot.output.loading.get()) { // TODO: Should this be a "right trigger pressed"?
                 robot.output.dropAndGoToLoadNoWait();
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             }

@@ -249,7 +249,7 @@ public class TestDrive extends LinearOpMode {
                 output.goToLoad();
             }
 
-            intake.autoOff();
+            intake.autoOffV3();
 
             if(gamepad.wasBPressed()){
                 toggleBlinkin();
@@ -310,7 +310,13 @@ public class TestDrive extends LinearOpMode {
                     output.grabber.setPosition(clamp(gamepad.gamepad.right_trigger,output.GrabberOpen, output.GrabberClosed));
 
                     if (gamepad.wasLeftTriggerPressed()) {
-                        intake.toggleIntake();
+                        if (intake.kicker.getPower()> .2) {
+                            intake.kicker.setPower(.15);
+                            teamUtil.pause(250);
+                            intake.kicker.setPower(.1);
+                        } else {
+                            intake.toggleIntake();
+                        }
                     }
                     telemetry.addLine("Sweeper Power: " + sweeperSpeed);
                     telemetry.addLine("Kicker Power: " + kickerSpeed);

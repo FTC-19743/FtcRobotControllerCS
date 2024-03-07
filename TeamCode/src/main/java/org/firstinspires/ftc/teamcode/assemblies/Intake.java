@@ -649,6 +649,56 @@ public class Intake {
         }
     }
 
+    public boolean intakeSlowing= false;
+    public long intakeSlowStartTime = 0;
+    public long KICKERSLOWTIME = 250;
+    public void autoOffV3(){
+        if(intakeRunning) {
+            if(onlyOnePixelPresent()){ // lower pixel loaded
+                teamUtil.log("One pixel present");
+                teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOLD);
+                pixelsLoaded = 1;
+                lastTimePixelSeen = 0;
+                intakeSlowing = false;
+                intakeSlowStartTime = 0;
+            }
+            else if(twoPixelsPresent()){ // Top pixel visible (but might be the first pixel bouncing high)
+                //teamUtil.log("both pixels present");
+                if(lastTimePixelSeen == 0) { // If this is the first time this cycle where we have seen the top pixel, note the current time
+                    lastTimePixelSeen = System.currentTimeMillis();
+                    teamUtil.log("top pixel present");
+                } else if(System.currentTimeMillis()-lastTimePixelSeen>PIXELSENSORTIME){ // If not the first time, see how long it has been since we first saw the top pixel
+                    // Enough time has gone by so slow down the intake
+                    if (intakeSlowStartTime==0) { // start slowing down the intake
+                        //intakeRunning = false;
+                        intakeSlowing = true;
+                        intakeSlowStartTime = System.currentTimeMillis(); // note when we started the slowing process
+                        sweeper.setPower(0);
+                        kicker.setPower(.15);
+                        teamUtil.log("Decelerating");
+                        //teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
+                        //openLid();
+                        //pixelsLoaded = 2;
+                    } else if (System.currentTimeMillis()-intakeSlowStartTime>KICKERSLOWTIME){ // if enough time has gone by since we started slowing down
+                        intakeRunning = false;
+                        intakeSlowing = false;
+                        sweeper.setPower(0);
+                        kicker.setPower(.1); // slow all the way down
+                        teamUtil.theBlinkin.setSignal(Blinkin.Signals.DARK_GREEN);
+                        openLid();
+                        pixelsLoaded = 2;
+                        teamUtil.log("Running at slowest speed");
+                    }
+                }
+            }
+            else{ // No Pixels present
+                lastTimePixelSeen = 0;
+                pixelsLoaded = 0;
+                intakeSlowing = false;
+                intakeSlowStartTime = 0;
+            }
+        }
+    }
     public void autoOffLoop(long timeOut){
         long timeOutTime = System.currentTimeMillis() + timeOut;
         while(intakeRunning && teamUtil.keepGoing(timeOutTime)) {
