@@ -122,7 +122,7 @@ public class Robot {
 
         intake.closeLid();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the rigging
-            drive.strafeToTarget(2000,7500,fieldSide(),180,650,2000); // todo fix for blue
+            drive.strafeToTarget(2000,7500 * (teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
             drive.driveStraightToTarget(1000,1500,180,180,0,2000);
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
             intake.flicker.setPosition(.915);
@@ -131,20 +131,20 @@ public class Robot {
 
         }
         else if(path == 2){
-            drive.strafeToTarget(2000,10500+b,fieldSide(),180,650,2000); // todo fix for blue
+            drive.strafeToTarget(2000,10500* (teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-            drive.driveStraightToTarget(1000,-13000+c,0,180,0,2000);
+            drive.driveStraightToTarget(1000,-13000,0,180,0,2000);
             intake.flicker.setPosition(.915);
             teamUtil.pause(750);
-            drive.moveCm(1500,40+d,315,180,0); // todo fix for blue
+            drive.moveCm(1500,40,(teamUtil.alliance==RED?315:45),180,0);
 
         } else{
-            drive.strafeToTarget(2000,7250,fieldSide(),180,650,2000); // todo fix for blue
+            drive.strafeToTarget(2000,7250*(teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
             drive.driveStraightToTarget(1000,-28500,0,180,0,2000);
             intake.flicker.setPosition(.915);
             teamUtil.pause(750);
-            drive.moveCm(1000,15,315,180,0); // todo fix for blue
+            drive.moveCm(1000,15,(teamUtil.alliance==RED?315:45),180,0);
             //drive.driveStraightToTarget(1000,-40000+c,0,180,0,2000);
         }
         if (operateArms) {
@@ -166,7 +166,7 @@ public class Robot {
             teamUtil.pause(500);
             drive.moveCm(2, 180);
             intake.resetFlicker();
-            drive.strafeToTarget(2000, 1000, driverSide(), 180, 0, 2000); // todo fix for blue
+            drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
             intake.resetFlicker();
             long purpleYellowWingTime = System.currentTimeMillis() - teamUtil.startTime;
             teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
@@ -182,7 +182,7 @@ public class Robot {
             }
             drive.moveCm(2, 180);
             intake.resetFlicker();
-            drive.strafeToTarget(2000, 1000, driverSide(), 180, 0, 2000); // todo fix for blue
+            drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
             return false;
         }
     }
