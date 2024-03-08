@@ -113,6 +113,80 @@ public class Robot {
         return true;
     }
 
+    public boolean pushPurplePlaceYellowPixelScoreV5(int path, boolean operateArms){
+        teamUtil.startTime = System.currentTimeMillis();
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.ready();
+        intake.kicker.setPower(.1);
+
+        intake.closeLid();
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the rigging
+            drive.strafeToTarget(2000,7500,fieldSide(),180,650,2000); // todo fix for blue
+            drive.driveStraightToTarget(1000,1500,180,180,0,2000);
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            drive.driveStraightToTarget(1000,-35000,0,180,0,2000);
+
+        }
+        else if(path == 2){
+            drive.strafeToTarget(2000,10500+b,fieldSide(),180,650,2000); // todo fix for blue
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            drive.driveStraightToTarget(1000,-13000+c,0,180,0,2000);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            drive.moveCm(1500,40+d,315,180,0); // todo fix for blue
+
+        } else{
+            drive.strafeToTarget(2000,7250,fieldSide(),180,650,2000); // todo fix for blue
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            drive.driveStraightToTarget(1000,-28500,0,180,0,2000);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            drive.moveCm(1000,15,315,180,0); // todo fix for blue
+            //drive.driveStraightToTarget(1000,-40000+c,0,180,0,2000);
+        }
+        if (operateArms) {
+            output.goToScoreNoWait(2f, output.GrabberRotatorHorizontal2, output.StraferLoad);
+        }
+        double xOffset = path == 2 ? 0 : (path == 1 ? -drive.TAG_CENTER_TO_CENTER : drive.TAG_CENTER_TO_CENTER);
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
+        if (drive.driveToAprilTagOffset(1000, 0, 180, xOffset, 30, 4000)) {
+            drive.stopCV();
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            drive.moveCm(drive.MAX_VELOCITY, 15, 0, 180, 0);
+            teamUtil.pause(250);
+            drive.spinToHeading(180);
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            } else {
+                teamUtil.pause(100);
+            }
+            teamUtil.pause(500);
+            drive.moveCm(2, 180);
+            intake.resetFlicker();
+            drive.strafeToTarget(2000, 1000, driverSide(), 180, 0, 2000); // todo fix for blue
+            intake.resetFlicker();
+            long purpleYellowWingTime = System.currentTimeMillis() - teamUtil.startTime;
+            teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
+            teamUtil.pause(1000);
+            intake.stopIntake();
+            return true;
+        } else {
+            teamUtil.log("FAILED while driving to April Tag");
+            drive.stopCV();
+            drive.stopMotors();
+            if (operateArms) {
+                output.dropAndGoToLoadNoWait();
+            }
+            drive.moveCm(2, 180);
+            intake.resetFlicker();
+            drive.strafeToTarget(2000, 1000, driverSide(), 180, 0, 2000); // todo fix for blue
+            return false;
+        }
+    }
+
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -871,6 +945,7 @@ public class Robot {
         if(teamUtil.SIDE== teamUtil.Side.WING){
             pushPurplePlaceYellowPixelWingV5(path,operateArms,proximity);
         }else{ //score case
+            pushPurplePlaceYellowPixelScoreV5(path, operateArms);
             teamUtil.log("Score Doesnot have anything");
 
             if (true) return ;

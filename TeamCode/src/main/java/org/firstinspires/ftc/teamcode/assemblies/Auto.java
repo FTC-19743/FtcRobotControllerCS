@@ -43,6 +43,7 @@ public class Auto extends LinearOpMode {
         initializeRobot();
         robot.calibrate();
         teamUtil.robot = robot;
+        teamUtil.SIDE = teamUtil.Side.WING;
 
         //Delay
         while(!gamepad.wasAPressed()){

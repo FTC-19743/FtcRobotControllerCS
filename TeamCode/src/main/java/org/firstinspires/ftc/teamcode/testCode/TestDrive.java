@@ -246,7 +246,9 @@ public class TestDrive extends LinearOpMode {
 
              */
             if(gamepad.wasAPressed()){
-                output.goToLoad();
+                //output.goToLoad();
+                intake.flicker.setPosition(.915);
+
             }
 
             intake.autoOffV3();
