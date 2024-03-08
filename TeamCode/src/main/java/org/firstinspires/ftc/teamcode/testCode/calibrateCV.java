@@ -439,11 +439,11 @@ public class calibrateCV extends LinearOpMode
         rearVisionPortal.stopStreaming();
         teamUtil.log("Getting Front Camera Settings");
         frontVisionPortal.resumeStreaming();
-        getCameraSettings(2,frontVisionPortal, findLineProcesser.lineExposure, 250);
+        getCameraSettings(2,frontVisionPortal, findLineProcesser.lineExposure, findLineProcesser.lineGain);
         frontVisionPortal.stopStreaming();
         teamUtil.log("Getting Side Camera Settings");
         sideVisionPortal.resumeStreaming();
-        getCameraSettings(3,sideVisionPortal, findTeamPropProcesser.propExposure, 250);
+        getCameraSettings(3,sideVisionPortal, findTeamPropProcesser.propExposure, findTeamPropProcesser.propGain);
         sideVisionPortal.stopStreaming();
     }
 
