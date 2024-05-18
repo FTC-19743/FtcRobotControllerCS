@@ -163,10 +163,11 @@ public class Robot {
             } else {
                 teamUtil.pause(100);
             }
+
             teamUtil.pause(500);
-            drive.moveCm(2, 180);
+            //drive.moveCm(2, 180);
             intake.resetFlicker();
-            drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
+            //drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
             intake.resetFlicker();
             long purpleYellowWingTime = System.currentTimeMillis() - teamUtil.startTime;
             teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
@@ -180,11 +181,66 @@ public class Robot {
             if (operateArms) {
                 output.dropAndGoToLoadNoWait();
             }
-            drive.moveCm(2, 180);
+            //drive.moveCm(2, 180);
             intake.resetFlicker();
-            drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
+            //drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
             return false;
         }
+    }
+
+    public boolean pushPurplePlaceYellowPixelScoreV6(int path, boolean operateArms){
+        teamUtil.startTime = System.currentTimeMillis();
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.ready();
+        intake.kicker.setPower(.1);
+
+        intake.closeLid();
+        if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the rigging
+            drive.strafeToTarget(2000,7500 * (teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
+            drive.driveStraightToTarget(1000,1500,180,180,0,2000);
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            drive.driveStraightToTarget(1000,-35000,0,180,0,2000);
+
+        }
+        else if(path == 2){
+            drive.strafeToTarget(2000,10500* (teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            drive.driveStraightToTarget(1000,-13000,0,180,0,2000);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            if (operateArms) {
+                output.goToScoreNoWait(2f, output.GrabberRotatorHorizontal2, output.StraferLoad);
+            }
+            drive.strafeToTarget(drive.MAX_VELOCITY,10000+b,(teamUtil.alliance==RED?315:45),180,800,3000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000+d,9735+c,0,180,0,3000);
+        } else{
+            drive.strafeToTarget(2000,7250*(teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
+            drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+            drive.driveStraightToTarget(1000,-28500,0,180,0,2000);
+            intake.flicker.setPosition(.915);
+            teamUtil.pause(750);
+            drive.moveCm(1000,15,(teamUtil.alliance==RED?315:45),180,0);
+            //drive.driveStraightToTarget(1000,-40000+c,0,180,0,2000);
+        }
+
+
+
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(100);
+        }
+
+        intake.resetFlicker();
+        long purpleYellowWingTime = System.currentTimeMillis() - teamUtil.startTime;
+        teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
+        teamUtil.pause(1000);
+        intake.stopIntake();
+        return true;
+
     }
 
 
@@ -750,7 +806,18 @@ public class Robot {
         teamUtil.log("Strafer Cm" + strafeCm);
 
      */
+    public void pushPurplePlaceYellowPixelScore(int path, boolean operateArms,boolean proximity){
+        intake.putFlickerDown(); //in initialization
+        teamUtil.pause(2000);
+        teamUtil.startTime = System.currentTimeMillis();
+        drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.ready();
+        intake.closeLid();
 
+
+
+    }
     public boolean pushPurplePlaceYellowPixelWingV5(int path, boolean operateArms,boolean proximity){
         teamUtil.startTime = System.currentTimeMillis();
         drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -855,6 +922,60 @@ public class Robot {
 
     int previousDesiredStrafeEncoderTransition;
     int previousDesiredStrafeEncoderCenter;
+
+    public boolean insideCycle(double xOffset, boolean operateArms, int cycle) {
+        int desiredStrafeEncoderCenter;
+        int desiredStrafeEncoderTransition;
+        //TODO put in all the stuff for blue alliance
+
+        if(cycle ==1){
+            desiredStrafeEncoderCenter = 1400;
+            desiredStrafeEncoderTransition = 2700;
+
+            drive.strafeToTarget(drive.MAX_VELOCITY-200,desiredStrafeEncoderTransition,225,180,750,3000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,70000, desiredStrafeEncoderCenter,180, 180, 0, 4000);
+
+        }
+        else{
+            drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (teamUtil.alliance == teamUtil.alliance.RED) {
+                desiredStrafeEncoderTransition = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER - 6800);
+                desiredStrafeEncoderCenter = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER - 8100);
+            }
+            else{
+                desiredStrafeEncoderTransition = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 6800);
+                desiredStrafeEncoderCenter = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 8100);
+            }
+            drive.strafeToTarget(drive.MAX_VELOCITY-200,desiredStrafeEncoderTransition,225,180,0,3000);
+        }
+
+
+        /*
+        drive.moveCm(drive.MAX_VELOCITY, 15, 0, 180, 0);
+        teamUtil.pause(250);
+        drive.spinToHeading(180);
+        if (operateArms) {
+            output.dropAndGoToLoadNoWait();
+        } else {
+            teamUtil.pause(100);
+        }
+
+        teamUtil.pause(500);
+        drive.moveCm(2, 180);
+        intake.resetFlicker();
+        drive.strafeToTarget(2000, 1000 * (teamUtil.alliance == RED ? 1 : -1), driverSide(), 180, 0, 2000);
+        intake.resetFlicker();
+        long purpleYellowWingTime = System.currentTimeMillis() - teamUtil.startTime;
+        teamUtil.log("purpleYellowWingTime: " + purpleYellowWingTime); // without blocking GoToLoad at end
+        teamUtil.pause(1000);
+        intake.stopIntake();
+        return true;
+        */
+        return true;
+
+}
+
     public boolean cycleV6(double xOffset, boolean operateArms, int cycle, long autoStartTime){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Start Cycle-----------------------------------------");
@@ -933,7 +1054,9 @@ public class Robot {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    public void insideScore(int path, boolean operateArms, int delaySeconds, boolean cycle,boolean proximity, boolean score){
 
+    }
     public void autoV5(int path, boolean operateArms, int delaySeconds, boolean cycle,boolean proximity){
         long startTime = System.currentTimeMillis();
         teamUtil.log("Running Auto Path: " + path + " Alliance: " + (teamUtil.alliance == RED ? "RED" : "BLUE") + " Side: " + teamUtil.SIDE);

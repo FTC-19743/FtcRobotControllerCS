@@ -242,11 +242,10 @@ public class testAutoPaths extends LinearOpMode {
 
             }
             if(driverGamepad.wasBPressed()) {
-                teamUtil.SIDE=teamUtil.Side.WING;
+                teamUtil.SIDE=teamUtil.Side.SCORE;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-
-                robot.autoV5(3, useArms, 0,cycle,proximity);
+                robot.pushPurplePlaceYellowPixelScoreV5((int) robot.a, false);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -255,13 +254,19 @@ public class testAutoPaths extends LinearOpMode {
             }
 
             if(driverGamepad.wasHomePressed()){
-                robot.intake.stopIntake();
+                //robot.intake.stopIntake();
+                robot.intake.putFlickerDown();
             }
 
 
             if(driverGamepad.wasAPressed()){
                 teamUtil.robot = robot;
                 robot.drive.setHeading(180);
+                int path = (int)robot.a;
+                double xOffset = path == 2 ? 0 : (path == 1 ? -robot.drive.TAG_CENTER_TO_CENTER : robot.drive.TAG_CENTER_TO_CENTER);
+                robot.pushPurplePlaceYellowPixelScoreV6(2,useArms);
+                robot.insideCycle(0,false,1);
+                //robot.insideCycle(xOffset,false,1);
 
                 /*
                 while(!driverGamepad.wasAPressed()){
@@ -321,16 +326,16 @@ public class testAutoPaths extends LinearOpMode {
 
 
 
-                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                //robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                startTime=System.currentTimeMillis();
-                //robot.pushPurplePlaceYellowPixelWingV5((int)robot.a,useArms);
-                robot.cycleV6(0,useArms,1,System.currentTimeMillis());
-                //robot.cycleV6(0,useArms,2,System.currentTimeMillis());
-
-                //robot.driveToBackDropInsideFastEncodersOnly(useArms,0);
-                elapsedTime=System.currentTimeMillis()-startTime;
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+//                robot.drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                //robot.drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                startTime=System.currentTimeMillis();
+//                //robot.pushPurplePlaceYellowPixelWingV5((int)robot.a,useArms);
+//                robot.cycleV6(0,useArms,1,System.currentTimeMillis());
+//                //robot.cycleV6(0,useArms,2,System.currentTimeMillis());
+//
+//                //robot.driveToBackDropInsideFastEncodersOnly(useArms,0);
+//                elapsedTime=System.currentTimeMillis()-startTime;
+//                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
 
 
                 // Test drive to stack
