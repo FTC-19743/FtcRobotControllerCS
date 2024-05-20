@@ -261,11 +261,14 @@ public class testAutoPaths extends LinearOpMode {
 
             if(driverGamepad.wasAPressed()){
                 teamUtil.robot = robot;
+                startTime=System.currentTimeMillis();
                 robot.drive.setHeading(180);
                 int path = (int)robot.a;
                 double xOffset = path == 2 ? 0 : (path == 1 ? -robot.drive.TAG_CENTER_TO_CENTER : robot.drive.TAG_CENTER_TO_CENTER);
                 robot.pushPurplePlaceYellowPixelScoreV6(2,useArms);
                 robot.insideCycle(0,false,1);
+                elapsedTime=System.currentTimeMillis()-startTime;
+
                 //robot.insideCycle(xOffset,false,1);
 
                 /*

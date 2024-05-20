@@ -214,8 +214,8 @@ public class Robot {
             if (operateArms) {
                 output.goToScoreNoWait(2f, output.GrabberRotatorHorizontal2, output.StraferLoad);
             }
-            drive.strafeToTarget(drive.MAX_VELOCITY,10000+b,(teamUtil.alliance==RED?315:45),180,800,3000);
-            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000+d,9735+c,0,180,0,3000);
+            drive.strafeToTarget(drive.MAX_VELOCITY,10000,(teamUtil.alliance==RED?315:45),180,800,3000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000,9735,0,180,0,3000);
         } else{
             drive.strafeToTarget(2000,7250*(teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
             drive.switchCV(Drive.cvCam.REAR_APRILTAG);
@@ -926,6 +926,7 @@ public class Robot {
     public boolean insideCycle(double xOffset, boolean operateArms, int cycle) {
         int desiredStrafeEncoderCenter;
         int desiredStrafeEncoderTransition;
+        teamUtil.startTime = System.currentTimeMillis();
         //TODO put in all the stuff for blue alliance
 
         if(cycle ==1){
@@ -933,7 +934,19 @@ public class Robot {
             desiredStrafeEncoderTransition = 2700;
 
             drive.strafeToTarget(drive.MAX_VELOCITY-200,desiredStrafeEncoderTransition,225,180,750,3000);
-            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,70000, desiredStrafeEncoderCenter,180, 180, 0, 4000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,113000, desiredStrafeEncoderCenter,180, 180, 950, 4000);
+            drive.strafeToTarget(950, 9735, fieldSide(), 180, 0,1500);
+            //drive.driveMotorsHeadingsFR(180, 180, 600); // try to avoid extra drift during the wait for stall
+
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,140000, 9735,180, 180, 400, 1000);
+            boolean stallResult = drive.waitForStall(1500);
+            drive.stopMotors(); //TODO: take away after testimg
+
+            if(!stallResult){
+                drive.stopMotors();
+                return false;
+            }
+
 
         }
         else{
@@ -949,6 +962,17 @@ public class Robot {
             }
             drive.strafeToTarget(drive.MAX_VELOCITY-200,desiredStrafeEncoderTransition,225,180,0,3000);
         }
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,134000, 9735,0, 180, 400, 1000);
+        drive.strafeToTarget(drive.MAX_VELOCITY-200,3000+c,driverSide(),180,750,3000);
+        drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+
+        drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,-45000+b, desiredStrafeEncoderCenter,0, 180, 650, 4000);//Todo change end velo
+
+
+
+        long insideCycleTime = System.currentTimeMillis() - teamUtil.startTime;
+        teamUtil.log("InsideCycleTime: " + insideCycleTime);
+
 
 
         /*
