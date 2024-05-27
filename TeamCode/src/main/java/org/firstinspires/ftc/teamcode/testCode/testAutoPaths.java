@@ -40,7 +40,7 @@ public class testAutoPaths extends LinearOpMode {
 
     public void toggleCamera() {
         currentCam++;
-        if (currentCam > 3) {
+        if (currentCam > 4) {
             currentCam = 1;
         }
         switch(currentCam) {
@@ -56,6 +56,10 @@ public class testAutoPaths extends LinearOpMode {
             case 3:
                 teamUtil.log("Toggling TeamProp Finder On");
                 robot.drive.switchCV(Drive.cvCam.SIDE_PROP);
+                break;
+            case 4:
+                teamUtil.log("Toggling StackFinder On");
+                robot.drive.switchCV(Drive.cvCam.PIXEL_STACK);
                 break;
             default:
         }

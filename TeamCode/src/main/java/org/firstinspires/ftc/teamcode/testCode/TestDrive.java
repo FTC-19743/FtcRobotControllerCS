@@ -57,9 +57,11 @@ public class TestDrive extends LinearOpMode {
     }
     public void toggleCamera() {
         currentCam++;
-        if (currentCam > 4) {
+        if (currentCam > 5) {
             currentCam = 1;
         }
+        drive.stopCV();
+        teamUtil.pause(1500);
         switch(currentCam) {
             case 1:
                 teamUtil.log("Toggling LineFinder On");
@@ -68,18 +70,19 @@ public class TestDrive extends LinearOpMode {
             case 2:
                 teamUtil.log("Toggling AprilTag Finder On Without Yellow");
                 drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-
                 break;
             case 3:
                 teamUtil.log("Toggling AprilTag Finder On With Yellow");
                 teamUtil.theBlinkin.setSignal(Blinkin.Signals.NORMAL_WHITE);
                 drive.switchCV(Drive.cvCam.REAR_YELLOW_APRILTAG);
-
                 break;
-
             case 4:
                 teamUtil.log("Toggling TeamProp Finder On");
                 drive.switchCV(Drive.cvCam.SIDE_PROP);
+                break;
+            case 5:
+                teamUtil.log("Toggling StackFinder On");
+                drive.switchCV(Drive.cvCam.PIXEL_STACK);
                 break;
             default:
         }
@@ -186,12 +189,12 @@ public class TestDrive extends LinearOpMode {
             if (gamepad.wasRightTriggerPressed()) {
                 drive.stopCV();
             }
-            if(gamepad.wasLeftBumperPressed()){
-                //launcher.toggleRelease();
-                intake.startIntake();
-
-
-            }
+//            if(gamepad.wasLeftBumperPressed()){
+//                //launcher.toggleRelease();
+//                intake.startIntake();
+//
+//
+//            }
             /*
             if (gamepad.wasDownPressed()) {
                 drive.moveCm(drive.MAX_VELOCITY,58, 90, 180,1000);

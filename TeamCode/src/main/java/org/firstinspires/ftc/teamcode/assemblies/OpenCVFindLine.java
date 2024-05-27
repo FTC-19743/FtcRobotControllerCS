@@ -102,14 +102,8 @@ public class OpenCVFindLine extends OpenCVProcesser {
     public double differenceFromAverageThreshold; //can be between 30 and 90
     public int lineExposure = 10 ; // frame exposure in ms (use TestDrive opMode to calibrate)
     public int lineGain = 100; // Was 205
-    //public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack TODO: change back duplicated for test
-    public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.8075)); // hide pixel stack
-
-    //public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT*.53)); // hide pixel stack TODO: change back duplicated for test
-
-
-    public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT-cropRect.height-1)); // hide pixel stack
-
+    public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.45)); // hide pixel stack
+    public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT*.53)); // hide pixel stack
     Scalar blackColor = new Scalar(0, 0, 0);
 
     Mat HSVMat = new Mat();
@@ -117,9 +111,9 @@ public class OpenCVFindLine extends OpenCVProcesser {
      // lower bound HSV for yellow
     Scalar highHSV = new Scalar(255, 255, 255); // higher bound HSV for yellow
     Mat blurredMat = new Mat();
-    //Size blurFactor = new Size(10, 10); TODO change back
+    Size blurFactor = new Size(10, 10);
 
-    Size blurFactor = new Size(50, 50);
+
 
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();

@@ -83,7 +83,7 @@ public class Drive {
     public double noAprilTag = 999.0;
     public float TAG_CENTER_TO_CENTER = 15.2f;
 
-    public enum cvCam {NONE, REAR_APRILTAG, REAR_YELLOW_APRILTAG, SIDE_PROP, FRONT_LINE};
+    public enum cvCam {NONE, REAR_APRILTAG, REAR_YELLOW_APRILTAG, SIDE_PROP, FRONT_LINE, PIXEL_STACK};
 
     public Drive.cvCam currentCam = Drive.cvCam.NONE;
 
@@ -232,7 +232,7 @@ public class Drive {
         if (!enableLiveView) {
             frontBuilder.enableLiveView(false);
         }
-        //frontBuilder.addProcessor(findLineProcesser);
+        frontBuilder.addProcessor(findWhitePixelProcessor);
         frontBuilder.addProcessor(findLineProcesser);
 
         // Can also set resolution and stream format if we want to optimize resource usage.
@@ -383,13 +383,18 @@ public class Drive {
                 teamUtil.log("Switching CV to " + newCam);
                 sideVisionPortal.stopStreaming();
                 break;
+            case PIXEL_STACK:
+                teamUtil.log("Switching CV to " + newCam);
+                frontVisionPortal.stopStreaming();
+                break;
+
+
         }
         teamUtil.log("Starting " + newCam);
         switch (newCam) {
             case REAR_APRILTAG:
                 rearVisionPortal.resumeStreaming();
                 rearVisionPortal.setProcessorEnabled(findPixelProcesser,false);
-
                 break;
 
             case REAR_YELLOW_APRILTAG:
@@ -399,9 +404,16 @@ public class Drive {
 
             case FRONT_LINE:
                 frontVisionPortal.resumeStreaming();
+                frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, false);
+                frontVisionPortal.setProcessorEnabled(findLineProcesser, true);
                 break;
             case SIDE_PROP:
                 sideVisionPortal.resumeStreaming();
+                break;
+            case PIXEL_STACK:
+                frontVisionPortal.resumeStreaming();
+                frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, true);
+                frontVisionPortal.setProcessorEnabled(findLineProcesser, false);
                 break;
         }
         currentCam = newCam;
@@ -483,6 +495,9 @@ public class Drive {
         } else if (currentCam==cvCam.SIDE_PROP) {
             telemetry.addLine("SideCam:" + sideVisionPortal.getCameraState() + " FPS:" + sideVisionPortal.getFps());
             findTeamPropProcesser.outputTelemetry();
+        } else if (currentCam==cvCam.PIXEL_STACK) {
+            telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState() + " FPS:" + frontVisionPortal.getFps());
+            findWhitePixelProcessor.outputTelemetry();
         }
     }
 

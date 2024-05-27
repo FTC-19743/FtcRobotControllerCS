@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.teamcode.libs.OpenCVProcesser;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
@@ -25,6 +24,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class OpenCVFindWhitePixel extends OpenCVProcesser {
@@ -53,8 +53,8 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
         teamUtil.log("Initializing OpenCVFindLine processor - FINISHED");
     }
     public void outputTelemetry () {
-        telemetry.addLine("Lowest: " + lastValidBottom + "MidPoint: " + lastValidMidPoint);
-        telemetry.addLine(" Area:" + largestArea + "Width: " + width + "thresh Diff:" + differenceFromAverageThreshold);
+        telemetry.addLine("rightmostPoint: "+rightmostPointLastFrame+ " leftmostPoint: "+leftmostPointLastFrame);
+        telemetry.addLine("detectionLastFrame:" +detectionLastFrame.get());
         if (viewingPipeline) {
             telemetry.addLine("Viewing PipeLine:" + stageToRenderToViewport);
         }
@@ -71,24 +71,19 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     }
 
     public void reset() { // Call this when starting this processor to clear out previous results
-        largestArea = 0;
-        midpoint = 0;
-        bottom = 0;
-        width = 0;
-        lastValidMidPoint.set(0);
-        lastValidBottom.set(0);
+        lowestPointLastFrame = 0;
+        leftmostPointLastFrame = 0;
+        rightmostPointLastFrame = 0;
     }
+    public double getLeftmostPoint(){return leftmostPointLastFrame;}
+    public double getRightmostPoint(){return rightmostPointLastFrame;}
+    public double getLowestPoint(){return lowestPointLastFrame;}
+    public boolean detectionLastFrame(){return detectionLastFrame.get();}
     public boolean sawLine () {
         return lastValidMidPoint.get() > 0;
     }
-    public boolean details = false;
+    public boolean details = true;
 
-    public double getLargestArea() {
-        return largestArea;
-    }
-    public double getMidpoint() {
-        return midpoint;
-    }
 
     static public int CAMWIDTH = 640; // Options: 320x240, 640x480, 1280x720
     static public int CAMHEIGHT = 480;
@@ -98,12 +93,14 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
     // These three need to be tuned together
     public int whiteThreshold = 250;
+    private int AREA_THRESHOLD = 25;
+    private int LOW_THRESHOLD = CAMHEIGHT-3;
 
     public double differenceFromAverageThreshold; //can be between 30 and 90
     public int lineExposure = 10 ; // frame exposure in ms (use TestDrive opMode to calibrate)
     public int lineGain = 100; // Was 205
     public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.8075)); // hide pixel stack
-    public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT*.53)); // hide pixel stack
+    public Rect viewRect = new  Rect(0, cropRect.height+1, CAMWIDTH, (int)(CAMHEIGHT-cropRect.height-1)); // hide pixel stack
 
     Scalar blackColor = new Scalar(0, 0, 0);
 
@@ -118,13 +115,15 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     Mat hierarchy = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
-    double midpoint, width, bottom, largestArea;
+    double lowestPointLastFrame, rightmostPointLastFrame, leftmostPointLastFrame;
+    AtomicBoolean detectionLastFrame = new AtomicBoolean(true);
     AtomicInteger lastValidMidPoint = new AtomicInteger(0);
     AtomicInteger lastValidBottom = new AtomicInteger(0);
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
-        int largestArea = 0;
+        double lowestPoint = 0, rightmostPoint = 0, leftmostPoint = CAMWIDTH;
+        boolean foundBox = false;
         if (details) teamUtil.log("Process Frame Start");
         Imgproc.rectangle(frame, cropRect, blackColor,-1); // black out the top portion of the frame to avoid seeing stuff off field
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
@@ -132,7 +131,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
         //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
         double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
-        differenceFromAverageThreshold = 35; //(255-lowHSVValue)*0.3
+        differenceFromAverageThreshold = 20; //(255-lowHSVValue)*0.3
         if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
         if (details) teamUtil.log("Calculated Threshold Difference: "+ differenceFromAverageThreshold);
         Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold
@@ -163,24 +162,27 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
                 }
                 */
                 double area = (boundRect[i].br().y - boundRect[i].tl().y) * (boundRect[i].br().x - boundRect[i].tl().x);
-                if (area > largestArea) {
-                    largestArea = (int) area; // biggest object seen so far in this frame
-                    //midpoint = (boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x;
-                    //bottom = boundRect[i].br().y;
-                    width = boundRect[i].br().x - boundRect[i].tl().x;
-                    if (width > MINWIDTH && width < MAXWIDTH) { // Looks like white tape!
-                        lastValidMidPoint.set((int) ((boundRect[i].br().x - boundRect[i].tl().x)/2 + boundRect[i].tl().x));
-                        lastValidBottom.set((int)boundRect[i].br().y);
-                        if (details) teamUtil.log("Tape Mid:" + lastValidMidPoint.get() + " Bot:" +lastValidBottom.get());
+                lowestPoint = boundRect[i].br().y;
+                if (area > AREA_THRESHOLD && lowestPoint >= LOW_THRESHOLD) {
+                    if(boundRect[i].br().x>rightmostPoint){
+                        rightmostPoint = boundRect[i].br().x;
                     }
+                    if(boundRect[i].tl().x<leftmostPoint){
+                        leftmostPoint = boundRect[i].tl().x;
+                    }
+                    foundBox = true;
                 }
             }
-            if (details) teamUtil.log("Process Frame End");
+            leftmostPointLastFrame = leftmostPoint;
+            rightmostPointLastFrame = rightmostPoint;
 
+            if (details) teamUtil.log("Process Frame End");
+            detectionLastFrame.set(foundBox);
             return boundRect; // return the array of bounding rectangles we found
         }
-        if (details) teamUtil.log("Process Frame End - Nothing Found");
 
+        if (details) teamUtil.log("Process Frame End - Nothing Found");
+        detectionLastFrame.set(false);
         return null;
     }
 
