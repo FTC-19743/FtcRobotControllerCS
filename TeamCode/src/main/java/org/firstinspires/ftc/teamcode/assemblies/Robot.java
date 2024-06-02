@@ -26,6 +26,8 @@ public class Robot {
 
     public int straferDistanceFarStack = 17790;
 
+
+
     public double a,b,c,d;
 
 
@@ -928,27 +930,55 @@ public class Robot {
         int desiredStrafeEncoderTransition;
         teamUtil.startTime = System.currentTimeMillis();
         //TODO put in all the stuff for blue alliance
+        drive.switchCV(Drive.cvCam.PIXEL_STACK);
 
         if(cycle ==1){
             desiredStrafeEncoderCenter = 1400;
             desiredStrafeEncoderTransition = 2700;
 
             drive.strafeToTarget(drive.MAX_VELOCITY-200,desiredStrafeEncoderTransition,225,180,750,3000);
-            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,113000, desiredStrafeEncoderCenter,180, 180, 950, 4000);
-            drive.strafeToTarget(950, 9735, fieldSide(), 180, 0,1500);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,122000, desiredStrafeEncoderCenter,180, 180, 750, 4000);
+            drive.strafeToTarget(750, 8000, fieldSide(), 180, 350,1500);
+
+            if(drive.strafeToInsideCycleStack(teamUtil.alliance == RED? 90:270, 180, 350, 2000, 10)){
+                teamUtil.log("Strafe encoder: " + drive.strafeEncoder.getCurrentPosition() + "Forward Encoder: " + drive.forwardEncoder.getCurrentPosition());
+                teamUtil.log("strafeToInsideCycleStack FOUND STACK");
+                double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition()+6.5*drive.TICS_PER_CM_STRAFE_ENCODER;
+                double desiredEncoderAverage = (currentCameraStrafeTarget+9735)/2; //9735 is middle april tag value
+                teamUtil.log("Desired Encoder Average" + desiredEncoderAverage);
+
+                drive.lastVelocity=350; //manually set to fake out acceleration curve on encoder
+                drive.strafeToEncoder(90,180,350,desiredEncoderAverage,2000);
+                drive.stopMotors();
+                /*drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,140000, 9735,180, 180, 400, 1000);
+                boolean stallResult = drive.waitForStall(1500);
+                drive.stopMotors(); //TODO: take away after testimg
+
+                if(!stallResult){
+                    teamUtil.log("strafeToInsideCycleStack FAILED");
+                    drive.stopMotors();
+                    teamUtil.log("failed stall so motors stalled");
+
+                    return false;
+                }*/
+            }
+            else{
+                teamUtil.log("strafeToInsideCycleStack FAILED (no detection) so motors stopped");
+
+                drive.stopMotors();
+            }
+
             //drive.driveMotorsHeadingsFR(180, 180, 600); // try to avoid extra drift during the wait for stall
 
-            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,140000, 9735,180, 180, 400, 1000);
-            boolean stallResult = drive.waitForStall(1500);
-            drive.stopMotors(); //TODO: take away after testimg
 
-            if(!stallResult){
-                drive.stopMotors();
-                return false;
-            }
 
 
         }
+        if(true){
+            return true;
+        }
+        //TODO remember to take this out
+
         else{
             drive.strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             drive.forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

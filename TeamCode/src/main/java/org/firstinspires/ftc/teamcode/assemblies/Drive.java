@@ -2749,6 +2749,45 @@ public class Drive {
         return true;
     }
 
+    public boolean strafeToInsideCycleStack(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms){
+        teamUtil.log("strafeToInsideCycleStack Starting");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        details = true;
+
+        findWhitePixelProcessor.reset();
+
+        teamUtil.theBlinkin.setSignal(Blinkin.Signals.HEARTBEAT_WHITE);
+        double startEncoderValue = strafeEncoder.getCurrentPosition();
+        double maxEncoder = startEncoderValue+failsafeCms*TICS_PER_CM_STRAFE_ENCODER;
+        boolean sawStack = findWhitePixelProcessor.detectionLastFrame(); // Maybe we can already see it
+        if(sawStack) teamUtil.log("Already Seeing Stack");
+
+        while (!sawStack && teamUtil.keepGoing(timeOutTime)) {
+            if(Math.abs(strafeEncoder.getCurrentPosition() - startEncoderValue)>=failsafeCms*TICS_PER_CM_STRAFE_ENCODER){ // ran out of room to look
+                teamUtil.log("Strafe encoder: " + strafeEncoder.getCurrentPosition() + "Forward Encoder: " + forwardEncoder.getCurrentPosition());
+                teamUtil.log("FAILED: Drive To Stack Ran out space to see Line");
+                return false;
+            }
+            if (details) teamUtil.log("Looking for Stack. Strafe Encoder: " +strafeEncoder.getCurrentPosition());
+
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            teamUtil.pause(50); // give CPU time for image processing
+            sawStack = findWhitePixelProcessor.detectionLastFrame();
+        }
+        if(sawStack){
+            teamUtil.log("Saw Stack");
+            teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
+            teamUtil.log("Left: " + findWhitePixelProcessor.leftmostPointLastFrame + "Right: " + findWhitePixelProcessor.rightmostPointLastFrame);
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            return true;
+        }
+        else{
+            teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            teamUtil.log("FAILED: Drive To Stack Ran out Time");
+            return false;
+        }
+    }
+
 
     public void frontLineCameraDimensionTelemetry(){
         boolean details = false;

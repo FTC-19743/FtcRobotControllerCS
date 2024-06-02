@@ -79,10 +79,8 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     public double getRightmostPoint(){return rightmostPointLastFrame;}
     public double getLowestPoint(){return lowestPointLastFrame;}
     public boolean detectionLastFrame(){return detectionLastFrame.get();}
-    public boolean sawLine () {
-        return lastValidMidPoint.get() > 0;
-    }
-    public boolean details = true;
+
+    public boolean details = false;
 
 
     static public int CAMWIDTH = 640; // Options: 320x240, 640x480, 1280x720
@@ -116,7 +114,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
     List<MatOfPoint> contours = new ArrayList<>();
     double lowestPointLastFrame, rightmostPointLastFrame, leftmostPointLastFrame;
-    AtomicBoolean detectionLastFrame = new AtomicBoolean(true);
+    AtomicBoolean detectionLastFrame = new AtomicBoolean(false);
     AtomicInteger lastValidMidPoint = new AtomicInteger(0);
     AtomicInteger lastValidBottom = new AtomicInteger(0);
 
