@@ -2749,10 +2749,10 @@ public class Drive {
         return true;
     }
 
-    public boolean strafeToInsideCycleStack(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms){
-        teamUtil.log("strafeToInsideCycleStack Starting");
+    public boolean strafeToStackDetection(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms){
+        teamUtil.log("strafeToStackDetection Starting");
         long timeOutTime = System.currentTimeMillis() + timeout;
-        details = true;
+        details = false;
 
         findWhitePixelProcessor.reset();
 
@@ -2777,12 +2777,14 @@ public class Drive {
         if(sawStack){
             teamUtil.log("Saw Stack");
             teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
+            teamUtil.log("Strafe encoder: " + strafeEncoder.getCurrentPosition() + "Forward Encoder: " + forwardEncoder.getCurrentPosition());
             teamUtil.log("Left: " + findWhitePixelProcessor.leftmostPointLastFrame + "Right: " + findWhitePixelProcessor.rightmostPointLastFrame);
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             return true;
         }
         else{
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
             teamUtil.log("FAILED: Drive To Stack Ran out Time");
             return false;
         }
@@ -3313,6 +3315,9 @@ public class Drive {
         double realTarget = targetEncoderValue + (driveHeading < 180? -1:1)*driftCms*TICS_PER_CM_STRAFE_ENCODER;
         double strafeCmsToGo;
         double liveVelocity;
+        if(endVelocity<MIN_END_VELOCITY){
+            endVelocity = MIN_END_VELOCITY;
+        }
 
         if (driveHeading<180) {
             while (strafeEncoder.getCurrentPosition() < realTarget && teamUtil.keepGoing(timeOutTime)) {

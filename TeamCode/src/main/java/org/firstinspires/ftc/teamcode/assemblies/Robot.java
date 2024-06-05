@@ -940,17 +940,23 @@ public class Robot {
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,122000, desiredStrafeEncoderCenter,180, 180, 750, 4000);
             drive.strafeToTarget(750, 8000, fieldSide(), 180, 350,1500);
 
-            if(drive.strafeToInsideCycleStack(teamUtil.alliance == RED? 90:270, 180, 350, 2000, 10)){
-                teamUtil.log("Strafe encoder: " + drive.strafeEncoder.getCurrentPosition() + "Forward Encoder: " + drive.forwardEncoder.getCurrentPosition());
-                teamUtil.log("strafeToInsideCycleStack FOUND STACK");
-                double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition()+6.5*drive.TICS_PER_CM_STRAFE_ENCODER;
-                double desiredEncoderAverage = (currentCameraStrafeTarget+9735)/2; //9735 is middle april tag value
-                teamUtil.log("Desired Encoder Average" + desiredEncoderAverage);
-
+            if(drive.strafeToStackDetection(teamUtil.alliance == RED? 90:270, 180, 350, 2000, 10)){
+                double ticsToStackVision;
+                if(teamUtil.alliance == teamUtil.Alliance.RED){
+                    ticsToStackVision = (1.0/65.0*drive.findWhitePixelProcessor.getLeftmostPoint()-2.0)*drive.TICS_PER_CM_STRAFE_ENCODER;
+                }else {
+                    ticsToStackVision = (-.0176*drive.findWhitePixelProcessor.getRightmostPoint()+10.14)*drive.TICS_PER_CM_STRAFE_ENCODER;
+                }
+                double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition()+ticsToStackVision; // TODO: fix for blue
+                teamUtil.log("currentCameraStrafeTarget: "+ currentCameraStrafeTarget);
+                //double desiredEncoderAverage = (currentCameraStrafeTarget+9735)/2; //9735 is middle april tag value
+                //teamUtil.log("Desired Encoder Average " + desiredEncoderAverage);
+                teamUtil.log("Tics to stack based on vision: "+ticsToStackVision);
                 drive.lastVelocity=350; //manually set to fake out acceleration curve on encoder
-                drive.strafeToEncoder(90,180,350,desiredEncoderAverage,2000);
+                drive.strafeToEncoder(90,180,350,currentCameraStrafeTarget,2000);
                 drive.stopMotors();
-                /*drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,140000, 9735,180, 180, 400, 1000);
+                teamUtil.pause(250);
+                drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,140000, currentCameraStrafeTarget,180, 180, 400, 1000);
                 boolean stallResult = drive.waitForStall(1500);
                 drive.stopMotors(); //TODO: take away after testimg
 
@@ -960,7 +966,7 @@ public class Robot {
                     teamUtil.log("failed stall so motors stalled");
 
                     return false;
-                }*/
+                }
             }
             else{
                 teamUtil.log("strafeToInsideCycleStack FAILED (no detection) so motors stopped");
@@ -973,9 +979,6 @@ public class Robot {
 
 
 
-        }
-        if(true){
-            return true;
         }
         //TODO remember to take this out
 
