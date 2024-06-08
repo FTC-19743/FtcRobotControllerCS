@@ -25,7 +25,6 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class OpenCVFindWhitePixel extends OpenCVProcesser {
     HardwareMap hardwareMap;
@@ -72,13 +71,14 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
     public void reset() { // Call this when starting this processor to clear out previous results
         lowestPointLastFrame = 0;
-        leftmostPointLastFrame = 0;
+        leftmostPointLastFrame = CAMWIDTH;
         rightmostPointLastFrame = 0;
+        detectionLastFrame.set(false);
     }
     public double getLeftmostPoint(){return leftmostPointLastFrame;}
     public double getRightmostPoint(){return rightmostPointLastFrame;}
     public double getLowestPoint(){return lowestPointLastFrame;}
-    public boolean detectionLastFrame(){return detectionLastFrame.get();}
+    public boolean getDetectionLastFrame(){return detectionLastFrame.get();}
 
     public boolean details = false;
 
@@ -113,10 +113,8 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     Mat hierarchy = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
-    double lowestPointLastFrame, rightmostPointLastFrame, leftmostPointLastFrame;
-    AtomicBoolean detectionLastFrame = new AtomicBoolean(false);
-    AtomicInteger lastValidMidPoint = new AtomicInteger(0);
-    AtomicInteger lastValidBottom = new AtomicInteger(0);
+    private double lowestPointLastFrame, rightmostPointLastFrame, leftmostPointLastFrame;
+    private AtomicBoolean detectionLastFrame = new AtomicBoolean(false);
 
     @Override
     public Object processFrame(Mat frame, long captureTimeNanos) {
@@ -199,7 +197,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
                 case RAW_IMAGE: {break;} // no bitmap needed
             }
             Bitmap resizedBitmap = Bitmap.createScaledBitmap(bmp, (int)(CAMWIDTH*scaleBmpPxToCanvasPx), (int)(CAMHEIGHT*scaleBmpPxToCanvasPx), false);
-            canvas.drawBitmap(resizedBitmap, 0,0,null);
+            canvas.drawBitmap(resizedBitmap, 0,-100,null);
         }
 
         if (userContext != null) {

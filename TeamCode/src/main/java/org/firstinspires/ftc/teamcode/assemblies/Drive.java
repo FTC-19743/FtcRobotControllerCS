@@ -1326,7 +1326,7 @@ public class Drive {
 
     }
 
-    public void driveStraightToTargetWithStrafeEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+    public boolean driveStraightToTargetWithStrafeEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         long startTime = System.currentTimeMillis();
@@ -1359,7 +1359,7 @@ public class Drive {
 
             teamUtil.log("ALREADY PAST TARGET--Not Strafing");
             stopMotors();
-            return;
+            return false;
         }
         double totalTics = Math.abs(startEncoder-forwardTarget);
         double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_STRAIGHT_ACCELERATION);
@@ -1412,7 +1412,7 @@ public class Drive {
         if(System.currentTimeMillis()>timeoutTime){
             teamUtil.log("TIMEOUT Triggered After Acceleration Phase");
             stopMotors();
-            return;
+            return false;
 
 
         }
@@ -1435,7 +1435,7 @@ public class Drive {
         if(System.currentTimeMillis()>timeoutTime){
             teamUtil.log("TIMEOUT Triggered After Cruise Phase");
             stopMotors();
-            return;
+            return false;
 
 
         }
@@ -1463,14 +1463,14 @@ public class Drive {
         if(System.currentTimeMillis()>timeoutTime){
             teamUtil.log("TIMEOUT Triggered");
             stopMotors();
-            return;
+            return false;
 
 
         }
         setBulkReadOff();
         lastVelocity = endVelocity;
         teamUtil.log("driveStraightToTargetWithStrafeEncoderValue--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
-
+        return true;
     }
     //potential
     public void strafeToTargetWithForwardEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
@@ -2754,12 +2754,13 @@ public class Drive {
         long timeOutTime = System.currentTimeMillis() + timeout;
         details = false;
 
+        frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, true);
         findWhitePixelProcessor.reset();
 
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.HEARTBEAT_WHITE);
         double startEncoderValue = strafeEncoder.getCurrentPosition();
         double maxEncoder = startEncoderValue+failsafeCms*TICS_PER_CM_STRAFE_ENCODER;
-        boolean sawStack = findWhitePixelProcessor.detectionLastFrame(); // Maybe we can already see it
+        boolean sawStack = findWhitePixelProcessor.getDetectionLastFrame(); // Maybe we can already see it
         if(sawStack) teamUtil.log("Already Seeing Stack");
 
         while (!sawStack && teamUtil.keepGoing(timeOutTime)) {
@@ -2772,13 +2773,13 @@ public class Drive {
 
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             teamUtil.pause(50); // give CPU time for image processing
-            sawStack = findWhitePixelProcessor.detectionLastFrame();
+            sawStack = findWhitePixelProcessor.getDetectionLastFrame();
         }
         if(sawStack){
             teamUtil.log("Saw Stack");
             teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
             teamUtil.log("Strafe encoder: " + strafeEncoder.getCurrentPosition() + "Forward Encoder: " + forwardEncoder.getCurrentPosition());
-            teamUtil.log("Left: " + findWhitePixelProcessor.leftmostPointLastFrame + "Right: " + findWhitePixelProcessor.rightmostPointLastFrame);
+            teamUtil.log("Left: " + findWhitePixelProcessor.getLeftmostPoint() + "Right: " + findWhitePixelProcessor.getRightmostPoint());
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             return true;
         }
