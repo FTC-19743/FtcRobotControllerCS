@@ -2781,10 +2781,12 @@ public class Drive {
             teamUtil.log("Strafe encoder: " + strafeEncoder.getCurrentPosition() + "Forward Encoder: " + forwardEncoder.getCurrentPosition());
             teamUtil.log("Left: " + findWhitePixelProcessor.getLeftmostPoint() + "Right: " + findWhitePixelProcessor.getRightmostPoint());
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, false);
             return true;
         }
         else{
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+            frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, false);
             teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
             teamUtil.log("FAILED: Drive To Stack Ran out Time");
             return false;

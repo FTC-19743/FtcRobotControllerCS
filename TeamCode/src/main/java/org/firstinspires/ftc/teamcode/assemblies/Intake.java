@@ -247,6 +247,7 @@ public class Intake {
     }
 
     public void stopIntake(){
+        teamUtil.log("Stopping Intake");
         intakeRunning = false;
         sweeper.setPower(0);
         kicker.setPower(0);

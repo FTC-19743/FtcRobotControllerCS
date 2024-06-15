@@ -565,7 +565,7 @@ public class Output {
         else{
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.GOTOSCORE_BLUE);
         }
-        intake.resetFlicker();
+
         elevLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elevRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 

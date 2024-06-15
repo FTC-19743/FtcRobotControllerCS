@@ -36,7 +36,7 @@ public class testAutoPaths extends LinearOpMode {
 
     private boolean enableLiveView = false;
 
-    int currentCam;
+    int currentCam = 3;
 
     public void toggleCamera() {
         currentCam++;
@@ -156,7 +156,9 @@ public class testAutoPaths extends LinearOpMode {
                 proximity = !proximity;
             }
             if (driverGamepad.wasLeftTriggerPressed()) {
+                robot.intake.stopIntake();
                 cycle = !cycle;
+
                 /*
                 if (liveStream) {
                     liveStream = false;
@@ -174,22 +176,22 @@ public class testAutoPaths extends LinearOpMode {
                 while (!driverGamepad.wasRightTriggerPressed() && opModeIsActive()){
                     driverGamepad.loop();
                     if(driverGamepad.wasUpPressed()){
-                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 1 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.a=robot.a+ (driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasDownPressed()){
-                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 1 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.a=robot.a-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if(driverGamepad.wasLeftPressed()){
-                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.b=robot.b+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if(driverGamepad.wasRightPressed()){
-                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.b=robot.b-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     if (driverGamepad.wasYPressed()) {
-                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.c=robot.c+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasAPressed()) {
-                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 735);
+                        robot.c= robot.c-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     } else if (driverGamepad.wasXPressed()) {
-                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.d=robot.d+(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }else if (driverGamepad.wasBPressed()) {
-                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 735 : 1);
+                        robot.d=robot.d-(driverGamepad.gamepad.left_bumper ? 10 : driverGamepad.gamepad.left_trigger > .5 ? 100 : 1);
                     }
                     telemetry.addLine("Setting Drive Variables");
 
@@ -257,9 +259,8 @@ public class testAutoPaths extends LinearOpMode {
                 toggleCamera();
             }
 
-            if(driverGamepad.wasHomePressed()){
-                //robot.intake.stopIntake();
-                robot.intake.putFlickerDown();
+            if(driverGamepad.wasStartPressed()){
+                //robot.intake.putFlickerDown();
             }
 
 
@@ -269,9 +270,14 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 int path = (int)robot.a;
                 double xOffset = path == 2 ? 0 : (path == 1 ? -robot.drive.TAG_CENTER_TO_CENTER : robot.drive.TAG_CENTER_TO_CENTER);
-                robot.pushPurplePlaceYellowPixelScoreV6(2,useArms);
-                robot.insideCycle(0,false,1);
+                if(robot.pushPurplePlaceYellowPixelScoreV6(2,useArms)){
+                    if(robot.insideCycle(0,useArms,1)){
+                        robot.insideCycle(0,useArms,2);
+                    }
+                }
                 elapsedTime=System.currentTimeMillis()-startTime;
+                teamUtil.log("Elapsed Time: "+elapsedTime);
+
 
                 //robot.insideCycle(xOffset,false,1);
 

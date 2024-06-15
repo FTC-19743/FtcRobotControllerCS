@@ -238,6 +238,7 @@ public class Teleop extends LinearOpMode {
                 if(robot.intake.pixelsLoaded == 1){
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                     robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad,robot.output.StraferLoad);
+                    robot.intake.resetFlicker();
                 }
 
             }
@@ -248,6 +249,7 @@ public class Teleop extends LinearOpMode {
                     }else{
                         teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                         robot.output.goToScoreNoWait(robot.output.lastLevel, robot.output.GrabberRotatorLoad, robot.output.StraferLoad);
+                        robot.intake.resetFlicker();
                     }
                 }
 
@@ -259,6 +261,7 @@ public class Teleop extends LinearOpMode {
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                     //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad + robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                     robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.rotatorPos[4],robot.output.StraferLoad);
+                    robot.intake.resetFlicker();
                     robot.output.currentRotatorPos = 4;
                 }
 
@@ -269,6 +272,7 @@ public class Teleop extends LinearOpMode {
                     //robot.output.goToScoreNoWait(3);
                     teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
                     robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.rotatorPos[2],robot.output.StraferLoad);
+                    robot.intake.resetFlicker();
                     robot.output.currentRotatorPos = 2;
                     //robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad - robot.output.GrabberRotatorIncrement/2,robot.output.StraferLoad);
                 }

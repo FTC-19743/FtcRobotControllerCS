@@ -111,6 +111,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     Mat thresholdMat = new Mat();
     Mat edges = new Mat();
     Mat hierarchy = new Mat();
+    Mat raw = new Mat();
 
     List<MatOfPoint> contours = new ArrayList<>();
     private double lowestPointLastFrame, rightmostPointLastFrame, leftmostPointLastFrame;
@@ -122,12 +123,13 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
         boolean foundBox = false;
         if (details) teamUtil.log("Process Frame Start");
         Imgproc.rectangle(frame, cropRect, blackColor,-1); // black out the top portion of the frame to avoid seeing stuff off field
+        frame.copyTo(raw);
         Imgproc.cvtColor(frame, HSVMat, Imgproc.COLOR_RGB2HSV); // convert to HSV
         Imgproc.blur(HSVMat, blurredMat, blurFactor); // get rid of noise
 
         //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
         double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
-        differenceFromAverageThreshold = 20; //(255-lowHSVValue)*0.3
+        differenceFromAverageThreshold = 30; //(255-lowHSVValue)*0.3
         if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
         if (details) teamUtil.log("Calculated Threshold Difference: "+ differenceFromAverageThreshold);
         Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold
@@ -185,9 +187,10 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     @Override
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
         // draw rectangles around the objects we found
+        Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(raw, bmp);
         if (viewingPipeline) {
             //Bitmap bmp = Bitmap.createBitmap(greyMat.cols(), greyMat.rows(), Bitmap.Config.ARGB_8888);
-            Bitmap bmp = Bitmap.createBitmap(HSVMat.cols(), HSVMat.rows(), Bitmap.Config.ARGB_8888);
             switch (stageToRenderToViewport) {
                 case BLURRED: { Utils.matToBitmap(blurredMat, bmp); break;}
                 //case HSV: { Utils.matToBitmap(greyMat, bmp); break; }
@@ -196,9 +199,13 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
                 case EDGES: { Utils.matToBitmap(edges, bmp); break;}
                 case RAW_IMAGE: {break;} // no bitmap needed
             }
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bmp, (int)(CAMWIDTH*scaleBmpPxToCanvasPx), (int)(CAMHEIGHT*scaleBmpPxToCanvasPx), false);
-            canvas.drawBitmap(resizedBitmap, 0,-100,null);
+
         }
+
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bmp, (int)(CAMWIDTH*scaleBmpPxToCanvasPx), (int)(CAMHEIGHT*scaleBmpPxToCanvasPx), false);
+        Bitmap croppedBmp = Bitmap.createBitmap(resizedBitmap, 0, resizedBitmap.getHeight()/2, resizedBitmap.getWidth(), resizedBitmap.getHeight()/2-1);
+        canvas.drawBitmap(croppedBmp, 0,0,null);
+
 
         if (userContext != null) {
             Rect[] boundRects = (Rect[]) userContext;
@@ -207,7 +214,8 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
             rectPaint.setStyle(Paint.Style.STROKE);
             rectPaint.setStrokeWidth(scaleCanvasDensity * 4);
             for (int i = 0; i < boundRects.length; i++) {
-                canvas.drawRect(makeGraphicsRect(boundRects[i], scaleBmpPxToCanvasPx), rectPaint);
+                Rect r = new Rect((int)boundRects[i].tl().x,(int)boundRects[i].tl().y-240,boundRects[i].width,boundRects[i].height);
+                canvas.drawRect(makeGraphicsRect(r, scaleBmpPxToCanvasPx), rectPaint);
             }
 
         }
