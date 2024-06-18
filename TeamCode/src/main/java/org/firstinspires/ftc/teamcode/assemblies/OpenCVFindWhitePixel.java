@@ -21,6 +21,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.core.Point;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,16 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     public double getLeftmostPoint(){return leftmostPointLastFrame;}
     public double getRightmostPoint(){return rightmostPointLastFrame;}
     public double getLowestPoint(){return lowestPointLastFrame;}
-    public boolean getDetectionLastFrame(){return detectionLastFrame.get();}
+    public boolean getDetectionLastFrame(Point location){
+        if(detectionLastFrame.get()){
+            location.x = leftmostPointLastFrame;
+            location.y = rightmostPointLastFrame;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
     public boolean details = false;
 
@@ -173,9 +183,8 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
             }
             leftmostPointLastFrame = leftmostPoint;
             rightmostPointLastFrame = rightmostPoint;
-
-            if (details) teamUtil.log("Process Frame End");
             detectionLastFrame.set(foundBox);
+            if (details) teamUtil.log("Process Frame End");
             return boundRect; // return the array of bounding rectangles we found
         }
 

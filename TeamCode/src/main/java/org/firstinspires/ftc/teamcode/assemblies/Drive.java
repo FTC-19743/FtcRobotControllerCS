@@ -547,7 +547,7 @@ public class Drive {
     }
 
     public void stopMotors() {
-
+        teamUtil.log("Stopping Motors");
         lastVelocity = 0;
         fl.setVelocity(0);
         fr.setVelocity(0);
@@ -900,7 +900,7 @@ public class Drive {
 
     public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = false;
+        details = true;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 
@@ -2749,7 +2749,7 @@ public class Drive {
         return true;
     }
 
-    public boolean strafeToStackDetection(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms){
+    public boolean strafeToStackDetection(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms, Point location){
         teamUtil.log("strafeToStackDetection Starting");
         long timeOutTime = System.currentTimeMillis() + timeout;
         details = false;
@@ -2760,7 +2760,7 @@ public class Drive {
         teamUtil.theBlinkin.setSignal(Blinkin.Signals.HEARTBEAT_WHITE);
         double startEncoderValue = strafeEncoder.getCurrentPosition();
         double maxEncoder = startEncoderValue+failsafeCms*TICS_PER_CM_STRAFE_ENCODER;
-        boolean sawStack = findWhitePixelProcessor.getDetectionLastFrame(); // Maybe we can already see it
+        boolean sawStack = findWhitePixelProcessor.getDetectionLastFrame(location); // Maybe we can already see it
         if(sawStack) teamUtil.log("Already Seeing Stack");
 
         while (!sawStack && teamUtil.keepGoing(timeOutTime)) {
@@ -2773,13 +2773,13 @@ public class Drive {
 
             driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
             teamUtil.pause(50); // give CPU time for image processing
-            sawStack = findWhitePixelProcessor.getDetectionLastFrame();
+            sawStack = findWhitePixelProcessor.getDetectionLastFrame(location);
         }
         if(sawStack){
             teamUtil.log("Saw Stack");
             teamUtil.log("Pipline FPS: " + frontVisionPortal.getFps());
             teamUtil.log("Strafe encoder: " + strafeEncoder.getCurrentPosition() + "Forward Encoder: " + forwardEncoder.getCurrentPosition());
-            teamUtil.log("Left: " + findWhitePixelProcessor.getLeftmostPoint() + "Right: " + findWhitePixelProcessor.getRightmostPoint());
+            teamUtil.log("Left: " + location.x + "Right: " + location.y);
             teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
             frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, false);
             return true;

@@ -930,6 +930,7 @@ public class Robot {
         boolean details = false;
         int desiredStrafeEncoderCenter;
         int desiredStrafeEncoderTransition;
+        Point location = new Point();
         teamUtil.startTime = System.currentTimeMillis();
         //TODO put in all the stuff for blue alliance
         drive.switchCV(Drive.cvCam.PIXEL_STACK);
@@ -946,22 +947,22 @@ public class Robot {
 
             drive.strafeToTarget(drive.MAX_VELOCITY - 200, desiredStrafeEncoderTransition, 225, 180, 750, 3000);
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, 122000, desiredStrafeEncoderCenter, 180, 180, 750, 4000);
-            drive.strafeToTarget(750, 7700, fieldSide(), 180, 350, 1500);
+            drive.strafeToTarget(750, 7700, fieldSide(), 180, 401, 2250);
 
-            if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 350, 2000, 10)) {
+            if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 401, 2000, 10,location)) {
                 double ticsToStackVision;
                 if (teamUtil.alliance == teamUtil.Alliance.RED) {
-                    ticsToStackVision = (1.0 / 65.0 * drive.findWhitePixelProcessor.getLeftmostPoint() - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
                 } else {
-                    ticsToStackVision = (-.0176 * drive.findWhitePixelProcessor.getRightmostPoint() + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
                 }
                 double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition() + ticsToStackVision; // TODO: fix for blue
                 teamUtil.log("currentCameraStrafeTarget: " + currentCameraStrafeTarget);
                 //double desiredEncoderAverage = (currentCameraStrafeTarget+9735)/2; //9735 is middle april tag value
                 //teamUtil.log("Desired Encoder Average " + desiredEncoderAverage);
                 teamUtil.log("Tics to stack based on vision: " + ticsToStackVision);
-                drive.lastVelocity = 350; //manually set to fake out acceleration curve on encoder
-                drive.strafeToEncoder(90, 180, 350, currentCameraStrafeTarget, 2000);
+                drive.lastVelocity = 401; //manually set to fake out acceleration curve on encoder
+                drive.strafeToTarget(401, currentCameraStrafeTarget, 90, 180, 0,2000);
                 drive.stopMotors();
                 teamUtil.pause(250);
                 if (!drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, 140000, currentCameraStrafeTarget, 180, 180, 400, 1000)) {
@@ -998,22 +999,22 @@ public class Robot {
 
             drive.strafeToTarget(drive.MAX_VELOCITY - 200, desiredStrafeEncoderTransition, 225, 180, 750, 3000);
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, -18000, desiredStrafeEncoderCenter, 180, 180, 750, 4000);
-            drive.strafeToTarget(750, -1500, fieldSide(), 180, 350, 1500);
+            drive.strafeToTarget(750, -1500, fieldSide(), 180, 401, 1500);
 
-            if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 350, 2000, 10)) {
+            if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 401, 2000, 10, location)) {
                 double ticsToStackVision;
                 if (teamUtil.alliance == teamUtil.Alliance.RED) {
-                    ticsToStackVision = (1.0 / 65.0 * drive.findWhitePixelProcessor.getLeftmostPoint() - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
                 } else {
-                    ticsToStackVision = (-.0176 * drive.findWhitePixelProcessor.getRightmostPoint() + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
                 }
                 double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition() + ticsToStackVision; // TODO: fix for blue
                 teamUtil.log("currentCameraStrafeTarget: " + currentCameraStrafeTarget);
                 //double desiredEncoderAverage = (currentCameraStrafeTarget+9735)/2; //9735 is middle april tag value
                 //teamUtil.log("Desired Encoder Average " + desiredEncoderAverage);
                 teamUtil.log("Tics to stack based on vision: " + ticsToStackVision);
-                drive.lastVelocity = 350; //manually set to fake out acceleration curve on encoder
-                drive.strafeToEncoder(90, 180, 350, currentCameraStrafeTarget, 2000);
+                drive.lastVelocity = 401; //manually set to fake out acceleration curve on encoder
+                drive.strafeToTarget(401, currentCameraStrafeTarget+200, 90, 180, 0,2000);
                 drive.stopMotors();
                 teamUtil.pause(250);
                 if (!drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, 0, currentCameraStrafeTarget, 180, 180, 400, 1000)) {
