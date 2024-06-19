@@ -187,6 +187,7 @@ public class Robot {
             //drive.strafeToTarget(2000, 1000* (teamUtil.alliance==RED?1:-1), driverSide(), 180, 0, 2000);
             return false;
         }
+
     }
 
     public boolean pushPurplePlaceYellowPixelScoreV6(int path, boolean operateArms){
@@ -198,18 +199,23 @@ public class Robot {
 
         intake.closeLid();
         if ((teamUtil.alliance==RED && path == 1) || (teamUtil.alliance==BLUE && path == 3)) { // Near the rigging
-            drive.strafeToTarget(2000,7500 * (teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
+            drive.strafeToTarget(2000,(7500) * (teamUtil.alliance==RED?1:-1),fieldSide(),180,650+d,2000);
+            intake.flicker.setPosition(.915);
             drive.driveStraightToTarget(1000,1500,180,180,0,2000);
             //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-            intake.flicker.setPosition(.915);
-            teamUtil.pause(750);
-            drive.driveStraightToTarget(1000,-35000,0,180,0,2000);
+            if (operateArms) {
+                output.goToScoreNoWait(2f, output.GrabberRotatorHorizontal2, output.StraferLoad);
+            }
+            drive.strafeToTarget(drive.MAX_VELOCITY,9000+(drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER),(teamUtil.alliance==RED?315:45),180,800,3000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000,9600+(drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER),0,180,0,3000);
+
+
 
         }
         else if(path == 2){
-            drive.strafeToTarget(2000,(9000)* (teamUtil.alliance==RED?1:-1),fieldSide()-(17)* (teamUtil.alliance==RED?1:-1),180,1650,2000);
+            drive.strafeToTarget(2000,(10000)* (teamUtil.alliance==RED?1:-1),fieldSide()-(17)*(teamUtil.alliance==RED?1:-1),180,1050,2000);
             intake.flicker.setPosition(.915);
-            drive.strafeToTarget(2000,(10200)* (teamUtil.alliance==RED?1:-1),fieldSide(),180,1650,2000);
+            drive.strafeToTarget(2000,(11200)* (teamUtil.alliance==RED?1:-1),fieldSide(),180,1050,2000);
 
             //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
             //drive.driveStraightToTarget(1000,-13000,0,180,400,2000);
@@ -220,13 +226,17 @@ public class Robot {
             drive.strafeToTarget(drive.MAX_VELOCITY,10000,(teamUtil.alliance==RED?315:45),180,800,3000);
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000,9735,0,180,0,3000);
         } else{
-            drive.strafeToTarget(2000,7250*(teamUtil.alliance==RED?1:-1),fieldSide(),180,650,2000);
+            drive.strafeToTarget(drive.MAX_VELOCITY,9000,(teamUtil.alliance==RED?58:302),180,800,3000);
             //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
-            drive.driveStraightToTarget(1000,-28500,0,180,0,2000);
             intake.flicker.setPosition(.915);
-            teamUtil.pause(750);
-            drive.moveCm(1000,15,(teamUtil.alliance==RED?315:45),180,0);
-            //drive.driveStraightToTarget(1000,-40000+c,0,180,0,2000);
+            if (operateArms) {
+                output.goToScoreNoWait(2f, output.GrabberRotatorHorizontal1, output.StraferLoad);
+            }
+            drive.strafeToTarget(drive.MAX_VELOCITY,10400-(drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER),(teamUtil.alliance==RED?315:45),180,800,3000);
+            drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY,-65000,10100-(drive.TAG_CENTER_TO_CENTER*drive.TICS_PER_CM_STRAFE_ENCODER),0,180,0,3000);
+
+
+
         }
 
 
@@ -947,14 +957,14 @@ public class Robot {
 
             drive.strafeToTarget(drive.MAX_VELOCITY - 200, desiredStrafeEncoderTransition, 225, 180, 750, 3000);
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, 122000, desiredStrafeEncoderCenter, 180, 180, 750, 4000);
-            drive.strafeToTarget(750, 7700, fieldSide(), 180, 401, 2250);
+            drive.strafeToTarget(750, 7200, fieldSide(), 180, 401, 2250);
 
             if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 401, 2000, 10,location)) {
                 double ticsToStackVision;
-                if (teamUtil.alliance == teamUtil.Alliance.RED) {
-                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                if (teamUtil.alliance == teamUtil.Alliance.RED) { // difference is overshooting
+                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER-300;
                 } else {
-                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER+300;
                 }
                 double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition() + ticsToStackVision; // TODO: fix for blue
                 teamUtil.log("currentCameraStrafeTarget: " + currentCameraStrafeTarget);
@@ -999,14 +1009,14 @@ public class Robot {
 
             drive.strafeToTarget(drive.MAX_VELOCITY - 200, desiredStrafeEncoderTransition, 225, 180, 750, 3000);
             drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY - 200, -18000, desiredStrafeEncoderCenter, 180, 180, 750, 4000);
-            drive.strafeToTarget(750, -1500, fieldSide(), 180, 401, 1500);
+            drive.strafeToTarget(750, -2000, fieldSide(), 180, 401, 1500);
 
             if (drive.strafeToStackDetection(teamUtil.alliance == RED ? 90 : 270, 180, 401, 2000, 10, location)) {
                 double ticsToStackVision;
-                if (teamUtil.alliance == teamUtil.Alliance.RED) {
-                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                if (teamUtil.alliance == teamUtil.Alliance.RED) { // 300 is overshooting
+                    ticsToStackVision = (1.0 / 65.0 * location.x - 2.0) * drive.TICS_PER_CM_STRAFE_ENCODER-300;
                 } else {
-                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER;
+                    ticsToStackVision = (-.0176 * location.y + 10.14) * drive.TICS_PER_CM_STRAFE_ENCODER+300;
                 }
                 double currentCameraStrafeTarget = drive.strafeEncoder.getCurrentPosition() + ticsToStackVision; // TODO: fix for blue
                 teamUtil.log("currentCameraStrafeTarget: " + currentCameraStrafeTarget);
@@ -1057,10 +1067,10 @@ public class Robot {
             desiredStrafeEncoderTransition = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 6800);
             desiredStrafeEncoderCenter = (int) (xOffset * drive.TICS_PER_CM_STRAFE_ENCODER + 8100);
         }
-        drive.moveCm(drive.MAX_VELOCITY, 10,0,180, 450);
+        drive.moveCm(drive.MAX_VELOCITY, 9,0,180, 450);
         //drive.driveStraightToTargetWithStrafeEncoderValue(drive.MAX_VELOCITY-200,-, 9735,0, 180, 400, 1000);
         drive.strafeToTarget(drive.MAX_VELOCITY-200,-6500,driverSide(),180,750,3000);
-        drive.switchCV(Drive.cvCam.REAR_APRILTAG);
+        //drive.switchCV(Drive.cvCam.REAR_APRILTAG);
 
         int strafeEncoderTarget =  teamUtil.alliance==RED? desiredStrafeEncoderCenter+5000 : desiredStrafeEncoderCenter-5000;
         int strafeDriftTarget = (int) (strafeEncoderTarget + drive.TICS_PER_CM_STRAFE_ENCODER* (teamUtil.alliance== RED?-6:13));
@@ -1068,7 +1078,7 @@ public class Robot {
         double transitionVelocity1 = 1500;
         double transitionVelocity2 = 1000;
         double angle= 38;
-        double rotatorPos = output.GrabberRotatorHorizontal2;
+        double rotatorPos = output.GrabberRotator60Right;
         double straferPos = output.StraferLoad+(3.75)*output.StraferPositionPerCm; //TODO adjust for blue
         float level = 3.5f;
 
@@ -1088,6 +1098,10 @@ public class Robot {
         if (details) teamUtil.log("strafe: " + drive.strafeEncoder.getCurrentPosition() + " forward: " + drive.forwardEncoder.getCurrentPosition());
 
         if (operateArms) output.dropAndGoToLoadNoWait();
+        teamUtil.pause(500);
+        if(cycle == 2){
+            drive.strafeToTarget(drive.MAX_VELOCITY, -6000,driverSide(),180,0, 3000);
+        }
         long insideCycleTime = System.currentTimeMillis() - teamUtil.startTime;
         teamUtil.log("InsideCycleTime: " + insideCycleTime);
 

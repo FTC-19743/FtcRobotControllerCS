@@ -139,7 +139,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
         //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
         double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
-        differenceFromAverageThreshold = 30; //(255-lowHSVValue)*0.3
+        differenceFromAverageThreshold = 25; //(255-lowHSVValue)*0.3
         if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
         if (details) teamUtil.log("Calculated Threshold Difference: "+ differenceFromAverageThreshold);
         Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold

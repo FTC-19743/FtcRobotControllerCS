@@ -900,7 +900,7 @@ public class Drive {
 
     public void strafeToTarget(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
-        details = true;
+        details = false;
         long startTime = System.currentTimeMillis();
         long timeoutTime = startTime+timeout;
 

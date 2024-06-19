@@ -270,10 +270,9 @@ public class testAutoPaths extends LinearOpMode {
                 robot.drive.setHeading(180);
                 int path = (int)robot.a;
                 double xOffset = path == 2 ? 0 : (path == 1 ? -robot.drive.TAG_CENTER_TO_CENTER : robot.drive.TAG_CENTER_TO_CENTER);
-                if(robot.pushPurplePlaceYellowPixelScoreV6(2,useArms)){
-                    if(robot.insideCycle(0,useArms,1)){
-                        robot.insideCycle(0,useArms,2);
-                    }
+                if(robot.pushPurplePlaceYellowPixelScoreV6(path,useArms)){
+                    if(robot.insideCycle(0,useArms,1))
+                        {robot.insideCycle(0,useArms,2);}
                 }
                 elapsedTime=System.currentTimeMillis()-startTime;
                 teamUtil.log("Elapsed Time: "+elapsedTime);
