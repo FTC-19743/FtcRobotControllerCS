@@ -242,16 +242,15 @@ public class testAutoPaths extends LinearOpMode {
                 teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-
                 robot.autoV5(2, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
             if(driverGamepad.wasBPressed()) {
-                teamUtil.SIDE=teamUtil.Side.SCORE;
+                teamUtil.SIDE=teamUtil.Side.WING;
                 robot.drive.setHeading(180);
                 startTime=System.currentTimeMillis();
-                robot.pushPurplePlaceYellowPixelScoreV5((int) robot.a, false);
+                robot.autoV5(3, useArms, 0,cycle,proximity);
                 elapsedTime=System.currentTimeMillis()-startTime;
 
             }
@@ -271,8 +270,8 @@ public class testAutoPaths extends LinearOpMode {
                 int path = (int)robot.a;
                 double xOffset = path == 2 ? 0 : (path == 1 ? -robot.drive.TAG_CENTER_TO_CENTER : robot.drive.TAG_CENTER_TO_CENTER);
                 if(robot.pushPurplePlaceYellowPixelScoreV6(path,useArms)){
-                    if(robot.insideCycle(0,useArms,1))
-                        {robot.insideCycle(0,useArms,2);}
+                    //if(robot.insideCycle(0,useArms,1))
+                        //{robot.insideCycle(0,useArms,2);}
                 }
                 elapsedTime=System.currentTimeMillis()-startTime;
                 teamUtil.log("Elapsed Time: "+elapsedTime);
