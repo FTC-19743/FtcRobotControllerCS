@@ -104,7 +104,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
     private int AREA_THRESHOLD = 25;
     private int LOW_THRESHOLD = CAMHEIGHT-3;
 
-    public double differenceFromAverageThreshold; //can be between 30 and 90
+    public double differenceFromAverageThreshold= 25; //can be between 30 and 90
     public int lineExposure = 10 ; // frame exposure in ms (use TestDrive opMode to calibrate)
     public int lineGain = 100; // Was 205
     public Rect cropRect = new  Rect(0,0,CAMWIDTH, (int)(CAMHEIGHT*.8075)); // hide pixel stack
@@ -139,7 +139,7 @@ public class OpenCVFindWhitePixel extends OpenCVProcesser {
 
         //double lowHSVValue = this.getAvgValue(frame,viewRect); // EGADS!  We were computing the average Value on a nonblurred RGB mat!
         double lowHSVValue = this.getAvgValue(blurredMat,viewRect); // Get average HSV "Value" for visible area
-        differenceFromAverageThreshold = 25; //(255-lowHSVValue)*0.3
+        //differenceFromAverageThreshold = 25; //(255-lowHSVValue)*0.3
         if (details) teamUtil.log("Average V: "+ lowHSVValue + " Threshold: "+ (lowHSVValue+differenceFromAverageThreshold));
         if (details) teamUtil.log("Calculated Threshold Difference: "+ differenceFromAverageThreshold);
         Scalar lowHSV = new Scalar(0, 0, lowHSVValue+differenceFromAverageThreshold); // compute the low threshold

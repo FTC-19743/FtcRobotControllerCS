@@ -192,14 +192,16 @@ public class Teleop extends LinearOpMode {
             }
 
 
-            if(armsGamepad.wasRightPressed()||armsGamepad.wasLeftPressed()){
-                robot.intake.teleopFlickOneNoWait();
-            }
+            //if(armsGamepad.wasRightPressed()||armsGamepad.wasLeftPressed()){
+                //robot.intake.teleopFlickOneNoWait();
+            //}
+
             if(gamepad2.right_trigger>0.5&&robot.output.loading.get()){
                 robot.intake.resetFlicker();
             }
+            
             if(armsGamepad.wasDownPressed()){
-                robot.intake.teleopGetOneNoWait();
+                robot.intake.teleopFlickOneNoWait();
             }
 
             if(armsGamepad.wasUpPressed()){

@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.Exposur
 import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.teamcode.assemblies.Drive;
 import org.firstinspires.ftc.teamcode.assemblies.OpenCVFindLine;
+import org.firstinspires.ftc.teamcode.assemblies.OpenCVFindWhitePixel;
 import org.firstinspires.ftc.teamcode.assemblies.OpenCVPropFinder;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
@@ -36,6 +37,7 @@ public class calibrateCV extends LinearOpMode
     //public OpenCVYellowPixelDetector findPixelProcesser;
 
     public OpenCVPropFinder findTeamPropProcesser;
+    public OpenCVFindWhitePixel findPixelProcesser;
 
     public double noAprilTag = 999.0;
     public float TAG_CENTER_TO_CENTER = 15.2f;
@@ -44,10 +46,11 @@ public class calibrateCV extends LinearOpMode
     boolean aprilTagProcessorRunning = false;
     boolean findLineProcessorRunning = false;
     boolean findTeamPropProcessorRunning = false;
+    boolean findPixelProcesserRunning = false;
     public WebcamName frontCam;
     public WebcamName backCam;
     public WebcamName sideCam;
-    public enum cvCam {NONE, REAR_APRILTAG, SIDE_PROP, FRONT_LINE};
+    public enum cvCam {NONE, REAR_APRILTAG, SIDE_PROP, FRONT_LINE, WHITE_PIXEL};
     public cvCam currentCam = cvCam.NONE;
     public double CMS_PER_INCH = 2.54;
 
@@ -150,6 +153,7 @@ public class calibrateCV extends LinearOpMode
         //findPixelProcesser = new OpenCVYellowPixelDetector();
         findLineProcesser = new OpenCVFindLine();
         findTeamPropProcesser = new OpenCVPropFinder();
+        findPixelProcesser = new OpenCVFindWhitePixel();
 
         backCam = hardwareMap.get(WebcamName.class, "Webcam Rear");
         frontCam = hardwareMap.get(WebcamName.class, "Webcam Front");
@@ -201,6 +205,7 @@ public class calibrateCV extends LinearOpMode
             frontBuilder.enableLiveView(false);
         }
         frontBuilder.addProcessor(findLineProcesser);
+        frontBuilder.addProcessor(findPixelProcesser);
         // Can also set resolution and stream format if we want to optimize resource usage.
         frontVisionPortal = frontBuilder.build();
         stopStreaming(frontVisionPortal);
@@ -227,6 +232,7 @@ public class calibrateCV extends LinearOpMode
         aprilTagProcessorRunning = false;
         findLineProcessorRunning = false;
         findTeamPropProcessorRunning = false;
+        findPixelProcesserRunning = false;
     }
     public void switchCV(cvCam newCam) {
         teamUtil.log("Switching CV to " + newCam);
@@ -236,8 +242,6 @@ public class calibrateCV extends LinearOpMode
                 rearVisionPortal.stopStreaming();
                 aprilTagProcessorRunning = false;
                 break;
-
-
 
             case FRONT_LINE:
 
@@ -250,7 +254,13 @@ public class calibrateCV extends LinearOpMode
                 sideVisionPortal.stopStreaming();
                 findTeamPropProcessorRunning = false;
                 break;
+            case WHITE_PIXEL:
+                teamUtil.log("Switching CV to "+ newCam);
+                frontVisionPortal.stopStreaming();
+                findPixelProcesserRunning = false;
+                break;
         }
+
         teamUtil.log("Starting " + newCam);
         switch (newCam) {
             case REAR_APRILTAG:
@@ -259,12 +269,21 @@ public class calibrateCV extends LinearOpMode
                 break;
             case FRONT_LINE:
                 frontVisionPortal.resumeStreaming();
+                frontVisionPortal.setProcessorEnabled(findPixelProcesser, false);
+                frontVisionPortal.setProcessorEnabled(findLineProcesser, true);
                 findLineProcessorRunning = true;
                 break;
             case SIDE_PROP:
                 sideVisionPortal.resumeStreaming();
                 findTeamPropProcessorRunning = true;
                 break;
+            case WHITE_PIXEL:
+                frontVisionPortal.resumeStreaming();
+                frontVisionPortal.setProcessorEnabled(findPixelProcesser, true);
+                frontVisionPortal.setProcessorEnabled(findLineProcesser, false);
+                findPixelProcesserRunning = true;
+                break;
+
         }
         currentCam = newCam;
         teamUtil.log("switchCV - Finished ");
@@ -274,22 +293,21 @@ public class calibrateCV extends LinearOpMode
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // Code specific to calibrateCV op mode
     int currentCamNum = 0;
-    private int[]     myExposure = new int[4] ;
-    private int[]     minExposure = new int[4] ;
-    private int[]     maxExposure = new int[4] ;
-    private int[]     myGain = new int[4]      ;
-    private int[]     minGain = new int[4]  ;
-    private int[]     maxGain = new int[4]  ;
+    private int[]     myExposure = new int[5] ;
+    private int[]     minExposure = new int[5] ;
+    private int[]     maxExposure = new int[5] ;
+    private int[]     myGain = new int[5]      ;
+    private int[]     minGain = new int[5]  ;
+    private int[]     maxGain = new int[5]  ;
     public void toggleCV() {
         currentCamNum++;
-        if (currentCamNum > 3) {
+        if (currentCamNum > 4) {
             currentCamNum = 1;
         }
         switch(currentCamNum) {
             case 1:
                 switchCV(cvCam.REAR_APRILTAG);
                 updateCVManualExposure(rearVisionPortal, 3, 255);
-
                 break;
 
             case 2:
@@ -300,7 +318,10 @@ public class calibrateCV extends LinearOpMode
             case 3:
                 switchCV(cvCam.SIDE_PROP);
                 updateCVManualExposure(sideVisionPortal, 10, 100);
-
+                break;
+            case 4:
+                switchCV(cvCam.WHITE_PIXEL);
+                updateCVManualExposure(frontVisionPortal, 10, 100);
                 break;
             default:
         }
@@ -325,6 +346,11 @@ public class calibrateCV extends LinearOpMode
         else if (findTeamPropProcessorRunning) {
             telemetry.addLine("SideCam:" + sideVisionPortal.getCameraState()+ " FPS:" + sideVisionPortal.getFps());
             findTeamPropProcesser.outputTelemetry();
+        }
+        else if (findPixelProcesserRunning) {
+            telemetry.addLine("FrontCam:" + frontVisionPortal.getCameraState()+ " FPS:" + frontVisionPortal.getFps());
+            telemetry.addLine("Threshold : " + findPixelProcesser.differenceFromAverageThreshold);
+            findPixelProcesser.outputTelemetry();
         }
     }
     @Override public void runOpMode()
@@ -392,16 +418,16 @@ public class calibrateCV extends LinearOpMode
                 updateCVManualExposure(currentCamNum==1 ? rearVisionPortal : currentCamNum==2 ? frontVisionPortal : sideVisionPortal, myExposure[currentCamNum], myGain[currentCamNum]);
             }
             if (gamepad.wasUpPressed()) {
-                if (currentCamNum==3) {
-                    // TODO: adjust saturation thresholds and maybe rectangles
+                if (currentCamNum==4) {
+                    findPixelProcesser.differenceFromAverageThreshold++;
                 }
                 if (currentCamNum==2) {
                     findLineProcesser.differenceFromAverageThreshold++;
                 }
             }
             if (gamepad.wasDownPressed()) {
-                if (currentCamNum==3) {
-                    // TODO: adjust saturation thresholds
+                if (currentCamNum==4) {
+                    findPixelProcesser.differenceFromAverageThreshold--;
                 }
                 if (currentCamNum==2) {
                     findLineProcesser.differenceFromAverageThreshold--;
@@ -425,6 +451,9 @@ public class calibrateCV extends LinearOpMode
                         setAutoExposure(sideVisionPortal);
 
                         break;
+                    case WHITE_PIXEL:
+                        setAutoExposure(frontVisionPortal);
+                        break;
                 }
             }
 
@@ -440,6 +469,7 @@ public class calibrateCV extends LinearOpMode
         teamUtil.log("Getting Front Camera Settings");
         frontVisionPortal.resumeStreaming();
         getCameraSettings(2,frontVisionPortal, findLineProcesser.lineExposure, findLineProcesser.lineGain);
+        getCameraSettings(4,frontVisionPortal, findPixelProcesser.lineExposure, findPixelProcesser.lineGain);
         frontVisionPortal.stopStreaming();
         teamUtil.log("Getting Side Camera Settings");
         sideVisionPortal.resumeStreaming();

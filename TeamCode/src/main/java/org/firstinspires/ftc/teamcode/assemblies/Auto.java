@@ -17,6 +17,7 @@ public class Auto extends LinearOpMode {
 
     int delay = 0;
     boolean cycle = true;
+    int cycleDelay = 0;
 
     boolean usingProximity = false;
 
@@ -71,6 +72,20 @@ public class Auto extends LinearOpMode {
             teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
             teamUtil.telemetry.update();
         }
+        while(!gamepad.wasAPressed()){
+            gamepad.loop();
+            if(gamepad.wasLeftPressed()){ if (cycleDelay > 0) cycleDelay--; }
+            if(gamepad.wasRightPressed()){ if (cycleDelay < 10) cycleDelay++;}
+
+            teamUtil.telemetry.addLine("Delay Seconds: " +delay);
+
+            teamUtil.telemetry.addLine("Cycle? (use Game Pad 1 DPad L/R)");
+            teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
+            teamUtil.telemetry.addLine("------------------------------------");
+            teamUtil.telemetry.addLine("Then press A on Game Pad 1 to move on");
+            teamUtil.telemetry.update();
+        }
         //Alliance
         while(!gamepad.wasAPressed()){
             gamepad.loop();
@@ -86,6 +101,7 @@ public class Auto extends LinearOpMode {
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("RED or BLUE? (use Game Pad 1 DPad L/R)");
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
@@ -101,6 +117,7 @@ public class Auto extends LinearOpMode {
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine("------------------------------------");
             teamUtil.telemetry.addLine("Score or Wing Side? (use Game Pad 1 DPad L/R)");
@@ -125,6 +142,7 @@ public class Auto extends LinearOpMode {
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine("Path: " + robot.drive.findTeamPropProcesser.getPropPosition());
@@ -151,6 +169,7 @@ public class Auto extends LinearOpMode {
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
@@ -180,6 +199,7 @@ public class Auto extends LinearOpMode {
 
             teamUtil.telemetry.addLine("Delay Seconds: " +delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             teamUtil.telemetry.addLine(teamUtil.alliance == teamUtil.Alliance.RED ? "RED Alliance" : "BLUE Alliance");
             teamUtil.telemetry.addLine(teamUtil.SIDE== teamUtil.Side.SCORE  ? "SCORE Side" : "WING Side");
             teamUtil.telemetry.addLine(robot.releaser.holding ? "Releaser Holding Purple Pixel" : "Releaser NOT holding Purple Pixel");
@@ -201,6 +221,7 @@ public class Auto extends LinearOpMode {
             telemetry.addLine("Ready to Go!");
             telemetry.addLine("Delay Seconds: "+delay);
             teamUtil.telemetry.addLine("Cycle: " +cycle);
+            teamUtil.telemetry.addLine("Cycle Delay Seconds: " +cycleDelay);
             telemetry.addLine("Alliance: "+teamUtil.alliance.toString());
             telemetry.addLine("Side: "+teamUtil.SIDE.toString());
             telemetry.addLine("Path: "+path);
@@ -231,9 +252,9 @@ public class Auto extends LinearOpMode {
          // Delay start if needed
         long startTime = System.currentTimeMillis();
         if(usingProximity){
-            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle,true);
+            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay, cycleDelay,cycle,true);
         }else{
-            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycle,false);
+            robot.autoV5 (robot.drive.findTeamPropProcesser.getPropPosition(), true,delay,cycleDelay,cycle,false);
         }
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime-startTime;
