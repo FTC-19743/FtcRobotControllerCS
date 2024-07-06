@@ -65,7 +65,6 @@ public class Drive {
     public DigitalChannel prxLeft = null, prxRight = null;
 
     // Image Processors and Cameras
-
     public VisionPortal rearVisionPortal, sideVisionPortal, frontVisionPortal;
 
     public AprilTagProcessor aprilTag;
@@ -170,6 +169,7 @@ public class Drive {
         setMotorsBrake();
         teamUtil.log("Initializing Drive - FINISHED");
     }
+
     //////////////////////////
     public void initCV(boolean enableLiveView) { //should be false for comp code
         teamUtil.log("Initializing CV: LiveView: "+enableLiveView);
@@ -194,7 +194,6 @@ public class Drive {
         // In order to build multiple VisionPortals, you must first set up a MultiPortalView, even if you don't plan to run them at the same time
         int[] visionPortalViewIDs = VisionPortal.makeMultiPortalView(3, VisionPortal.MultiPortalLayout.HORIZONTAL);
         //teamUtil.log("Multiportal: "+visionPortalViewIDs[0]+"/"+visionPortalViewIDs[1]+"/"+visionPortalViewIDs[2]);
-
 
         // Set up rear Camera
         teamUtil.log("Setting up rearVisionPortal");
@@ -232,6 +231,7 @@ public class Drive {
         if (!enableLiveView) {
             frontBuilder.enableLiveView(false);
         }
+
         frontBuilder.addProcessor(findWhitePixelProcessor);
         frontBuilder.addProcessor(findLineProcesser);
 
@@ -239,17 +239,14 @@ public class Drive {
         frontVisionPortal = frontBuilder.build();
         stopStreaming(frontVisionPortal);
 
+        // set up cam settings
         teamUtil.log("Updating Exposure Settings");
         switchCV(cvCam.REAR_APRILTAG);
         updateCVManualExposure(rearVisionPortal,aprilTagExposure,aprilTagGain);
-
         switchCV(cvCam.REAR_YELLOW_APRILTAG);
-
         switchCV(cvCam.FRONT_LINE);
         updateCVManualExposure(frontVisionPortal, findLineProcesser.lineExposure, findLineProcesser.lineGain);
         switchCV(cvCam.NONE);
-
-
         currentCam = Drive.cvCam.NONE;
 
         teamUtil.log("Initializing Drive CV - FINISHED");
@@ -261,6 +258,7 @@ public class Drive {
 
 
     private boolean updateCVManualExposure(VisionPortal portal, int exposureMS, int gain) {
+        // update cam exposure and gain
         teamUtil.log("Setting Manual Exposure");
         // Ensure Vision Portal has been setup.
         if (portal == null) {
@@ -277,8 +275,7 @@ public class Drive {
             telemetry.addData("Camera", "Ready");
             telemetry.update();
         }
-
-        // Set camera controls unless we are stopping.
+        // Set camera controls unless we are stopping the op mode
         if (!teamUtil.theOpMode.isStopRequested())
         {
             // Set exposure.  Make sure we are in Manual Mode for these values to take effect.
@@ -310,8 +307,8 @@ public class Drive {
     }
 
     public void setAutoExposure(VisionPortal portal) {
+        // set exposure for auto if it needs to be different
         teamUtil.log("Set Auto Exposure");
-
         // Wait for the camera to be STREAMING to use CameraControls (FTC SDK requirement)
         if (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
             while (portal.getCameraState() != VisionPortal.CameraState.STREAMING) {
@@ -350,6 +347,7 @@ public class Drive {
     }
 
     public void stopCV() {
+        // stop processors and cams
         teamUtil.log("Stopping any running Cams");
         if (rearVisionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
             teamUtil.log("Stopping Rear Cam");
@@ -366,6 +364,7 @@ public class Drive {
 
     }
     public void switchCV(Drive.cvCam newCam) {
+        // stop old cam processer and start a new one
         teamUtil.log("Switching CV to " + newCam);
         teamUtil.log("Stopping " + currentCam);
         switch (currentCam) {
@@ -387,10 +386,10 @@ public class Drive {
                 teamUtil.log("Switching CV to " + newCam);
                 frontVisionPortal.stopStreaming();
                 break;
-
-
         }
+        
         teamUtil.log("Starting " + newCam);
+
         switch (newCam) {
             case REAR_APRILTAG:
                 rearVisionPortal.resumeStreaming();
@@ -407,9 +406,11 @@ public class Drive {
                 frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, false);
                 frontVisionPortal.setProcessorEnabled(findLineProcesser, true);
                 break;
+
             case SIDE_PROP:
                 sideVisionPortal.resumeStreaming();
                 break;
+
             case PIXEL_STACK:
                 frontVisionPortal.resumeStreaming();
                 frontVisionPortal.setProcessorEnabled(findWhitePixelProcessor, true);
@@ -425,12 +426,14 @@ public class Drive {
 
 
     public double getUltrasonicDistance() {
+        // use formula to find ult distance
         double voltage = ultLeft.getVoltage();
         double distance = (260 / 3 * (voltage - .55) + 36) * 2.54; // based on real world distances measured
         return distance;
     }
 
     public boolean getProximity(boolean left) {
+        // if the proximity is triggered
         if (!left) {
             return !prxRight.getState();
         } else {
@@ -447,6 +450,7 @@ public class Drive {
     }
 
     public void backgroundProximityCheck(){
+        // contantly continue moving until both left and right prx have been triggered
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -467,16 +471,17 @@ public class Drive {
     }
 
     public void sensorTelemetry() {
-        //telemetry.addData("On Line:", " %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
-        //telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
-        //telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
-
         telemetry.addData("UltrasonicLeft Distance: ", "%.1f", getUltrasonicDistance());
         telemetry.addLine("Right proximity sensor: " + getProximity(false));
         telemetry.addLine("Left proximity sensor: " + getProximity(true));
+
+        //telemetry.addData("On Line:", " %b/%b", tapeSensor1.isOnTape(), tapeSensor2.isOnTape());
+        //telemetry.addData("Red Value: ", "%d/%d", tapeSensor1.redValue(), tapeSensor2.redValue());
+        //telemetry.addData("Blue Value: ", "%d/%d", tapeSensor1.blueValue(), tapeSensor2.blueValue());
     }
 
     public void visionTelemetry() {
+        // states and info about the cams and processors
         if (currentCam==cvCam.REAR_APRILTAG) {
             //findPixelProcesser.outputTelemetry();
             //telemetry.addLine("BackDrop Offset: " + getRobotBackdropXOffset());
@@ -533,6 +538,7 @@ public class Drive {
     }
 
     public void setMotorsActiveBrake() {
+        // hold a position using setPosition
         int flPosition = fl.getCurrentPosition();
         int frPosition = fr.getCurrentPosition();
         int blPosition = bl.getCurrentPosition();
@@ -592,6 +598,7 @@ public class Drive {
     }
 
     public void findMaxVelocity(int cmDistance) {
+        // set motors to 3000 (theoretical max) then see how far it actually has traveled
         long startTime = System.currentTimeMillis();
         teamUtil.log("Finding Forward Max Velocities...");
         resetAllDriveEncoders();
@@ -622,6 +629,7 @@ public class Drive {
     }
 
     public void findMaxStrafeVelocity(double distance){
+        // same as above
         setHeading(180);
         long startTime = System.currentTimeMillis();
         teamUtil.log("Finding Strafing Max Velocities...");
@@ -630,9 +638,6 @@ public class Drive {
         teamUtil.log("Travel Tics: " + travelTics);
         double ticStartPosition = fr.getCurrentPosition();
         driveMotorsHeadingsFR(270,180,3000);
-
-
-
         double flmax = 0, frmax = 0, blmax = 0, brmax = 0, v;
 
         while(fr.getCurrentPosition()<travelTics){
@@ -662,6 +667,7 @@ public class Drive {
     }
 
     public void driveMotorsHeadings(double driveHeading, double robotHeading, double velocity) {
+        // move robot based on a heading to face and a heading to drive to
         double flV, frV, blV, brV;
         double x, y, scale;
 
@@ -697,14 +703,14 @@ public class Drive {
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Set the velocity of all 4 motors based on a driveHeading RELATIVE TO FIELD and provided velocity
-    // Will rotate robot as needed to achieve and hold robotHeading RELATIVE TO FIELD
+    // Will rotate robot as needed to achieve and hold robotHeading RELATIVE TO FIELD by moving to a set target
     public void driveMotorsHeadingsFR(double driveHeading, double robotHeading, double velocity) {
         double RRDriveHeading = getHeadingError(driveHeading);
         driveMotorsHeadings(RRDriveHeading, robotHeading, velocity);
     }
 
     public double getHeadingError(double targetAngle) {
-
+        // distance from target
         double robotError;
 
         // calculate heading error in -179 to +180 range  (
@@ -720,13 +726,13 @@ public class Drive {
     }
 
     public double getHeading() {
+        // stows an offset to change the range and set the heading
         return adjustAngle(getRawHeading() - HEADING_OFFSET);
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Make the current heading 0.
     public void resetHeading() {
-
         HEADING_OFFSET = getRawHeading();
         heldHeading = getHeading();
     }
@@ -757,10 +763,11 @@ public class Drive {
     }
 
     class MotorData { // a helper class to allow for faster access to hub data
-        int eFL, eFR, eBL, eBR;
+        int eFL, eFR, eBL, eBR; // encoder values of each motor
     }
 
     public void getDriveMotorData(MotorData data) {
+        // update current motor positions
         data.eFL = fl.getCurrentPosition();
         data.eFR = fr.getCurrentPosition();
         data.eBL = bl.getCurrentPosition();
@@ -776,6 +783,7 @@ public class Drive {
      /************************************************************************************************************
      /************************************************************************************************************/
     public int getEncoderDistance(MotorData initialPositions) {
+        // use trig to find the hypotenuse of the side and front distances
         MotorData currentPositions = new MotorData();
         getDriveMotorData(currentPositions);
 
@@ -795,20 +803,24 @@ public class Drive {
         return (int) (Math.sqrt(Math.pow((ForwardVector * FORWARD_VECTOR_COEFFICIENT), 2) + (Math.pow((SideVector * SIDE_VECTOR_COEFFICIENT), 2))) / 4);
 
     }
-
+    
     public void moveCm(double centimeters, double driveHeading) {
+        // simplified parameters of moveCm
         moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), MIN_END_VELOCITY);
     }
 
     public void moveCm(double centimeters, double driveHeading, double endVelocity) {
+        // simplified parameters of moveCm
         moveCm(MAX_VELOCITY, centimeters, driveHeading, getHeading(), endVelocity);
     }
 
     public void moveCm(double maxVelocity, double centimeters, double driveHeading, double endVelocity) {
+        // simplified parameters of moveCm
         moveCm(maxVelocity, centimeters, driveHeading, getHeading(), endVelocity);
     }
 
     public void moveCm(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity) {
+        // move based on a cruise, end, and max velocity, distance, and headings
         teamUtil.log("MoveCM cms:" + centimeters + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
         details = false;
@@ -818,13 +830,13 @@ public class Drive {
         double velocityChangeNeededAccel;
         double velocityChangeNeededDecel;
         if (endVelocity < MIN_END_VELOCITY) {
-            endVelocity = MIN_END_VELOCITY;
+            endVelocity = MIN_END_VELOCITY; // simplify by setting min end to 0
         }
         // tics^2/s
-        if (lastVelocity == 0) {
+        if (lastVelocity == 0) { // at a stop
             velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
-        } else {
+        } else { // already moving
             velocityChangeNeededAccel = maxVelocity - lastVelocity;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
         }
@@ -834,7 +846,7 @@ public class Drive {
         double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
         double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
         double postCruiseTargetDistance = totalTics - decelerationDistance;
-        if (postCruiseTargetDistance < 0) {
+        if (postCruiseTargetDistance < 0) { // need to cut off the curve
             double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
             accelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
             decelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
@@ -852,7 +864,7 @@ public class Drive {
         while (distance < accelerationDistance) {
             distance = getEncoderDistance(data);
             if (lastVelocity == 0) {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY);
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY); // velocity moves by distance
             } else {
                 driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + lastVelocity);
             }
@@ -865,7 +877,7 @@ public class Drive {
         while (distance < postCruiseTargetDistance) {
 
             distance = getEncoderDistance(data);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity); // constant
         }
         if (details) {
             teamUtil.log("Heading:" + getHeading());
@@ -879,7 +891,7 @@ public class Drive {
         while (distance < totalTics) {
             distance = getEncoderDistance(data);
             ticsUntilEnd = totalTics - distance;
-            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + endVelocity);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + endVelocity); // lowers through tics to end
 
         }
         if (details) {
@@ -912,10 +924,10 @@ public class Drive {
             endVelocity = MIN_STRAFE_END_VELOCITY;
         }
         // tics^2/s
-        if (lastVelocity == 0) {
+        if (lastVelocity == 0) { // at stop
             velocityChangeNeededAccel = maxVelocity - MIN_STRAFE_START_VELOCITY;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
-        } else {
+        } else { // moving
             velocityChangeNeededAccel = maxVelocity - lastVelocity;
             velocityChangeNeededDecel = maxVelocity - endVelocity;
         }
@@ -957,7 +969,7 @@ public class Drive {
         while ((distanceRemaining > (totalTics-accelerationDistance))&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (lastVelocity == 0) {
-                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + MIN_STRAFE_START_VELOCITY;
+                currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + MIN_STRAFE_START_VELOCITY; // increases velocity
             } else {
                 currentVelocity = MAX_STRAFE_ACCELERATION * (Math.max(0,totalTics-distanceRemaining)) + lastVelocity;
             }
@@ -980,7 +992,7 @@ public class Drive {
         while ((distanceRemaining > decelerationDistance)&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             if (details) teamUtil.log("Cruising at Velocity: "+ maxVelocity + " Tics Remaining: " + distanceRemaining);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity); // constant
         }
         if (details) {
             teamUtil.log("Heading:" + getHeading());
@@ -999,8 +1011,8 @@ public class Drive {
         while ((distanceRemaining > 0)&&teamUtil.keepGoing(timeoutTime)) {
             distanceRemaining = driveHeading<180 ? strafeTarget - strafeEncoder.getCurrentPosition() : strafeEncoder.getCurrentPosition()-strafeTarget;
             currentVelocity = MAX_STRAFE_DECELERATION * distanceRemaining + endVelocity;
-            if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining);
-            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);
+            if (details) teamUtil.log("Decelerating at Velocity: "+ currentVelocity + " Tics Remaining: " + distanceRemaining); 
+            driveMotorsHeadingsFR(driveHeading, robotHeading, currentVelocity);// decreases
         }
         if (details) {
             teamUtil.log("distance after deceleration: " + distanceRemaining);
@@ -1025,6 +1037,7 @@ public class Drive {
     }
 
     public boolean strafeToTargetWithProximity(double maxVelocity, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+        // same as above but aborts if the prx is triggered
         teamUtil.log("strafeToTarget target: " + strafeTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         long startTime = System.currentTimeMillis();
@@ -1200,6 +1213,7 @@ public class Drive {
     }
 
     public void driveStraightToTarget(double maxVelocity, double forwardTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+        // same as movecm but reads distance from dead wheels
         teamUtil.log("driveToTarget target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         long startTime = System.currentTimeMillis();
@@ -1327,6 +1341,7 @@ public class Drive {
     }
 
     public boolean driveStraightToTargetWithStrafeEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+        // same as above but also includes the strafe encoder and the forwards encoder
         teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         long startTime = System.currentTimeMillis();
@@ -1474,6 +1489,7 @@ public class Drive {
     }
     //potential
     public void strafeToTargetWithForwardEncoderValue(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, long timeout) {
+    // same but strafes 
         teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         long startTime = System.currentTimeMillis();
@@ -1621,7 +1637,7 @@ public class Drive {
     }
 
     public void driveStraightToTargetWithStrafeEncoderAndGoToScore(double maxVelocity, double forwardTarget, double strafeTarget, double driveHeading, double robotHeading, double endVelocity, double goToScoreTarget, double rotatorPos, double straferPos, float level, long timeout, boolean operateArms) {
-        teamUtil.log("driveStraightToTargetWithStrafeEncoderValue target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
+        teamUtil.log("driveStraightToTargetWithStrafeEncoderValueAndGoToScore target: " + forwardTarget + " driveH: " + driveHeading + " robotH: " + robotHeading + " MaxV: " + maxVelocity + " EndV: " + endVelocity);
         details = false;
         boolean wentToScore = false;
         long startTime = System.currentTimeMillis();
@@ -1777,7 +1793,7 @@ public class Drive {
         }
         setBulkReadOff();
         lastVelocity = endVelocity;
-        teamUtil.log("driveStraightToTargetWithStrafeEncoderValue--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
+        teamUtil.log("driveStraightToTargetWithStrafeEncoderValueAndGoToScore--Finished.  Current Forward Encoder:" + forwardEncoder.getCurrentPosition());
 
     }
 
@@ -1797,6 +1813,7 @@ public class Drive {
         moveCm(MAX_VELOCITY,distance,heading,180,endVelocity);
     }
     public void moveStraightCmWithStrafeEncoder(double maxVelocity, double centimeters, int strafeTarget, double driveHeading, double robotHeading, double endVelocity) {
+        // movecm with strafe encoder for side vector
         teamUtil.log("Strafe Target" + strafeTarget);
         teamUtil.log("Strafe Start Value" + strafeEncoder.getCurrentPosition());
 
@@ -1903,6 +1920,7 @@ public class Drive {
     }
 
     public void moveStraightCmWithStrafeEncoderWithGoToScore(double maxVelocity, double centimeters, int strafeTarget,double cmsForLift, double driveHeading, double robotHeading, double endVelocity) {
+        // same but score
         teamUtil.log("MoveStraightCMwStrafeEnc cms:" + centimeters + " strafe:" + strafeTarget + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
 
         float strafeFactor = .02f; // convert strafe encoder error into heading declination
@@ -2007,6 +2025,8 @@ public class Drive {
     }
 
     public boolean waitForStall(long timeout){
+        // wait for the robot to slow down on the wall
+        // expects setPower
         boolean details = false;
         teamUtil.log("Waiting For Stall");
         long timeoutTime = System.currentTimeMillis()+timeout;
@@ -2036,6 +2056,7 @@ public class Drive {
      /************************************************************************************************************
      /************************************************************************************************************/
     public void spinToHeading(double heading) {
+        // moves at full speed then decelerates to spin
         double velocity = MAX_VELOCITY;
         boolean turningLeft;
         double startHeading = getHeading();
@@ -2043,7 +2064,7 @@ public class Drive {
         double leftCoefficient = 1;
         double rightCoefficient = 1;
         setMotorsWithEncoder();
-        if (heading > currentHeading) {
+        if (heading > currentHeading) { // fix direction
             if (heading - currentHeading < 180) {
                 leftCoefficient = -1;
             } else {
@@ -2153,92 +2174,7 @@ public class Drive {
         }
     }
 
-    // drive until either sensor sees some tape or we time out.
-    // Returns true if it was successful, false if it timed out
-    // Does NOT stop motors at end!
-    /*
-    public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout) {
-        teamUtil.log("Drive To Tape");
-        long timeOutTime = System.currentTimeMillis() + timeout;
-        if (tapeSensor1.isOnTape()) {
-            teamUtil.log("Drive To Tape-Saw 1, looking for 2");
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-            }
-        } else if (tapeSensor2.isOnTape()) {
-            teamUtil.log("Drive To Tape-Saw 2, looking for 1");
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-            }
-        } else {
-            teamUtil.log("Drive To Tape-Looking for either");
-            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
-                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-            }
-        }
-        if (System.currentTimeMillis() > timeOutTime) {
-            teamUtil.log("Drive To Tape-TIMED OUT!");
-        } else {
-            teamUtil.log("Drive To Tape-Finished");
-        }
-
-        return System.currentTimeMillis() < timeOutTime;
-    }
-
-    public boolean driveToTapeSetPower(float power, long timeout) {
-        teamUtil.log("Drive To Tape");
-        long timeOutTime = System.currentTimeMillis() + timeout;
-        setMotorPower(-power);
-        while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
-
-        }
-        setMotorPower(0);
-        if (System.currentTimeMillis() > timeOutTime) {
-            teamUtil.log("Drive To Tape-TIMED OUT!");
-        } else {
-            teamUtil.log("Drive To Tape-Finished");
-        }
-
-        return System.currentTimeMillis() < timeOutTime;
-    }
-
-    // drive until either color sensor is triggered, OR we are interrupted, OR we time out.
-    // Returns true if it was successful, false if it timed out
-    // Does NOT stop motors at end!
-    public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout) {
-        teamUtil.log("Drive To Tape");
-        long timeOutTime = System.currentTimeMillis() + timeout;
-        while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
-            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
-            //teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
-        }
-        stopMotors();
-        //setMotorsActiveBrake(); 
-        //teamUtil.pause(500);
-        setMotorsWithEncoder();
-        movingAutonomously.set(false);
-        return System.currentTimeMillis() < timeOutTime;
-    }
-
-    public void driveToTapeTelopNoWait(double driveHeading, double robotHeading, double velocity, long timeout) {
-        if (movingAutonomously.get()) { // Already in an autonomous operation
-            teamUtil.log("WARNING: Attempt to driveToTape while drive system is in autonomous operation--ignored");
-            return;
-        } else {
-            movingAutonomously.set(true); // signal that we are in an auto operation
-            manualInterrupt.set(false); // reset interrupt flag
-            teamUtil.log("Launching Thread to driveToTape");
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    driveToTapeTelop(driveHeading, robotHeading, velocity, timeout);
-                }
-            });
-            thread.start();
-        }
-    }
-
-     */
+    
 
 
     // drive until either rear proximity sensor is triggered, OR we are interrupted, OR we time out.
@@ -2750,6 +2686,7 @@ public class Drive {
     }
 
     public boolean strafeToStackDetection(double driveHeading, double robotHeading, double velocity, long timeout, int failsafeCms, Point location){
+        // strafe until there is a valid detection of the stack
         teamUtil.log("strafeToStackDetection Starting");
         long timeOutTime = System.currentTimeMillis() + timeout;
         details = false;
@@ -2795,6 +2732,7 @@ public class Drive {
 
 
     public void frontLineCameraDimensionTelemetry(){
+        // compute line distances
         boolean details = false;
         if (currentCam==cvCam.FRONT_LINE) {
             double xOffset = computeLineXOffset(findLineProcesser.lastValidMidPoint.get(), findLineProcesser.lastValidBottom.get());
@@ -2816,6 +2754,7 @@ public class Drive {
     }
 
     public double[] calculateAngle(double rightDist, double forwardsDist, double xOffset, double yOffset) {
+        // helper method to find the direction needed for original apriltag
         int quadrant; // the quad the goal point would be in if the current spot was the origin
         if (rightDist < xOffset && forwardsDist > yOffset) {
             quadrant = 1;
@@ -2833,7 +2772,7 @@ public class Drive {
 
 
     public double returnAprilTagIDOffset(int id, long timeout) {
-
+    // get distances from an apriltag
         long timeOutTime = System.currentTimeMillis() + timeout;
         while (teamUtil.keepGoing(timeOutTime)) {
             List<AprilTagDetection> detections = aprilTag.getDetections();
@@ -2855,6 +2794,7 @@ public class Drive {
     public enum YellowPixelPosition {NONE, LEFT, RIGHT,FAILED};
 
     public YellowPixelPosition findYellowPixel(int path, long timeout){
+        // detects and changes the state of the alliance parter's yellow
         boolean details = true;
         teamUtil.log("YellowPixelPosition");
         long timeoutTime = System.currentTimeMillis()+ timeout;
@@ -2883,43 +2823,10 @@ public class Drive {
         teamUtil.log("YellowPixelPosition--FINISHED");
         return YellowPixelPosition.NONE;
 
-        /*
-        teamUtil.log("Find Yellow Pixel Called");
-        //Both Processor Running on Rear Cam
-        List<AprilTagDetection> detections = aprilTag.getDetections();
-        float offsetTotal = 0;
-        int numTags = 0;
-        double aprilTagMidpoint=0;
-        double aprilTagDetectionNanoTime=0;
-
-        for (AprilTagDetection detection : detections) { // Average whatever readings we have
-            if ((path==1&&(detection.id == 1 || detection.id == 4))||
-                    (path==2&&(detection.id == 2 || detection.id == 5))||
-                    (path==3&&(detection.id == 3 || detection.id == 6))){
-                aprilTagMidpoint = detection.center.x;
-                aprilTagDetectionNanoTime = detection.frameAcquisitionNanoTime;
-            }
-        }
-        if(aprilTagMidpoint==0){
-            teamUtil.log("Find Yellow Pixel Failed Because No April Tag Detected");
-            return YellowPixelPosition.FAILED;
-        }
-        teamUtil.log("April Tag Midpoint"+aprilTagMidpoint);
-
-        if(findPixelProcesser.foundPixel.get()){
-            if(findPixelProcesser.getMidpoint()<aprilTagMidpoint){
-                return YellowPixelPosition.LEFT;
-            }else{
-                return YellowPixelPosition.RIGHT;
-            }
-        }else{
-            teamUtil.log("No Yellow Pixel Detected");
-
-            return YellowPixelPosition.NONE;
-        }
-*/
+        
     }
     public boolean getRobotBackdropOffset(org.opencv.core.Point p,boolean freshDetection) {
+        // distance to backdrop
         boolean details = false;
         if (details) teamUtil.log("getRobotBackdropOffset");
         if (currentCam!=cvCam.REAR_APRILTAG) {
@@ -3286,6 +3193,7 @@ public class Drive {
     }
 
     public boolean strafeToEncoder(double driveHeading, double robotHeading, double velocity, double targetEncoderValue, long timeout) {
+        // strafe to a strafe encoder value
         long timeOutTime = System.currentTimeMillis() + timeout;
         teamUtil.log("strafeToEncoder: Current: " + strafeEncoder.getCurrentPosition() + " Target: " + targetEncoderValue);
         float driftCms = 1;
@@ -3362,6 +3270,7 @@ public class Drive {
     // Uses a linear scale that starts at the edge of the dead band
     // Attempts to hold the last heading that was commanded via a turn
     public void driveJoyStick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast) {
+        // returns values to drive to the main loop
         boolean details = true;
 
         float DEADBAND = 0.1f;
@@ -3419,85 +3328,6 @@ public class Drive {
                 leftY = leftJoyStickY *SLOPE + (leftJoyStickY>0? -1.1f:1.1f);
             }
         }
-//
-//        if(leftJoyStickX>0){ // apply power curve to x value
-//            if(Math.abs(leftJoyStickX)<.5){
-//                leftX = SLOWSPEED;
-//            }
-//            else{
-//                if (isFast) {
-//                    leftX = leftJoyStickX * FASTSLOPE + (-.8f);
-//                }
-//                else{
-//                    leftX = leftJoyStickX *SLOPE + (-.3f);
-//                }
-//            }
-//
-//
-//        }
-//        else if (leftJoyStickX<0) {
-//            if(Math.abs(leftJoyStickX)<.5){
-//                leftX = -SLOWSPEED;
-//            }
-//            else{
-//                if (isFast) {
-//                    leftX = leftJoyStickX * FASTSLOPE + .8f;
-//                }
-//                else{
-//                    leftX = leftJoyStickX *SLOPE + .3f;
-//                }
-//            }
-//        }
-//        else{
-//            leftX = 0;
-//        }
-//
-//        if(leftJoyStickY>0){
-//            if(Math.abs(leftJoyStickY)<.5){
-//                leftY = SLOWSPEED;
-//            }
-//            else{
-//                if (isFast) {
-//                    leftY = leftJoyStickY * FASTSLOPE + (-.8f);
-//                }
-//                else{
-//                    leftY = leftJoyStickY *SLOPE + (-.3f);
-//                }
-//            }
-//
-//
-//        }
-//        else if (leftJoyStickY<0) {
-//            if(Math.abs(leftJoyStickY)<.5){
-//                leftY = -SLOWSPEED;
-//            }
-//            else{
-//                if (isFast) {
-//                    leftY = leftJoyStickY * FASTSLOPE + .8f;
-//                }
-//                else{
-//                    leftY = leftJoyStickY * SLOPE + .3f;
-//                }
-//            }
-//        }
-//        else{
-//            leftY = 0;
-//        }
-
-//        if (leftJoyStickX > 0) {
-//            leftX = (leftJoyStickX - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-//        } else if (leftJoyStickX < 0) {
-//            leftX = (leftJoyStickX + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-//        } else {
-//            leftX = 0;
-//        }
-//        if (leftJoyStickY > 0) {
-//            leftY = (leftJoyStickY - DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-//        } else if (leftJoyStickY < 0) {
-//            leftY = (leftJoyStickY + DEADBAND) * SLOPE * scaleAmount * POWERFACTOR;
-//        } else {
-//            leftY = 0;
-//        }
 
         final float MAXROTATIONFACTOR = 0.8f;
         if (Math.abs(rightJoyStickX) > DEADBAND) { // driver is turning the robot
@@ -3766,6 +3596,7 @@ public class Drive {
     }
 
     public void geoFenceDriveJoystick(float leftJoyStickX, float leftJoyStickY, float rightJoyStickX, boolean isFast, double robotHeading) {
+        // check if proximity sensors are triggered
         if (Math.abs(robotHeading - 180) < 10) { // TODO: Also maybe don't do this unless output is in score position?
             if ((getLeftProximity() || getRightProximity()) && leftJoyStickX > 0) {
                 leftJoyStickX = 0;
@@ -4152,3 +3983,124 @@ public void correctAndHug(int aprilTagID, double robotHeading) {
     log("CorrectAndHub - Finished");
 }
  */
+// drive until either sensor sees some tape or we time out.
+    // Returns true if it was successful, false if it timed out
+    // Does NOT stop motors at end!
+    /*
+    public boolean driveToTape(double driveHeading, double robotHeading, double velocity, long timeout) {
+        teamUtil.log("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        if (tapeSensor1.isOnTape()) {
+            teamUtil.log("Drive To Tape-Saw 1, looking for 2");
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor2.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            }
+        } else if (tapeSensor2.isOnTape()) {
+            teamUtil.log("Drive To Tape-Saw 2, looking for 1");
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            }
+        } else {
+            teamUtil.log("Drive To Tape-Looking for either");
+            while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            }
+        }
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("Drive To Tape-TIMED OUT!");
+        } else {
+            teamUtil.log("Drive To Tape-Finished");
+        }
+
+        return System.currentTimeMillis() < timeOutTime;
+    }
+
+    public boolean driveToTapeSetPower(float power, long timeout) {
+        teamUtil.log("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        setMotorPower(-power);
+        while (teamUtil.keepGoing(timeOutTime) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+
+        }
+        setMotorPower(0);
+        if (System.currentTimeMillis() > timeOutTime) {
+            teamUtil.log("Drive To Tape-TIMED OUT!");
+        } else {
+            teamUtil.log("Drive To Tape-Finished");
+        }
+
+        return System.currentTimeMillis() < timeOutTime;
+    }
+
+    // drive until either color sensor is triggered, OR we are interrupted, OR we time out.
+    // Returns true if it was successful, false if it timed out
+    // Does NOT stop motors at end!
+    public boolean driveToTapeTelop(double driveHeading, double robotHeading, double velocity, long timeout) {
+        teamUtil.log("Drive To Tape");
+        long timeOutTime = System.currentTimeMillis() + timeout;
+        while ((teamUtil.keepGoing(timeOutTime) && !manualInterrupt.get()) && !tapeSensor1.isOnTape() && !tapeSensor2.isOnTape()) {
+            driveMotorsHeadingsFR(driveHeading, robotHeading, velocity);
+            //teamUtil.log("Closing: " + manualInterrupt.get() + " "+ getLeftProximity()+"/"+ getRightProximity());
+        }
+        stopMotors();
+        //setMotorsActiveBrake(); 
+        //teamUtil.pause(500);
+        setMotorsWithEncoder();
+        movingAutonomously.set(false);
+        return System.currentTimeMillis() < timeOutTime;
+    }
+
+    public void driveToTapeTelopNoWait(double driveHeading, double robotHeading, double velocity, long timeout) {
+        if (movingAutonomously.get()) { // Already in an autonomous operation
+            teamUtil.log("WARNING: Attempt to driveToTape while drive system is in autonomous operation--ignored");
+            return;
+        } else {
+            movingAutonomously.set(true); // signal that we are in an auto operation
+            manualInterrupt.set(false); // reset interrupt flag
+            teamUtil.log("Launching Thread to driveToTape");
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    driveToTapeTelop(driveHeading, robotHeading, velocity, timeout);
+                }
+            });
+            thread.start();
+        }
+    }
+
+     */
+/*
+        teamUtil.log("Find Yellow Pixel Called");
+        //Both Processor Running on Rear Cam
+        List<AprilTagDetection> detections = aprilTag.getDetections();
+        float offsetTotal = 0;
+        int numTags = 0;
+        double aprilTagMidpoint=0;
+        double aprilTagDetectionNanoTime=0;
+
+        for (AprilTagDetection detection : detections) { // Average whatever readings we have
+            if ((path==1&&(detection.id == 1 || detection.id == 4))||
+                    (path==2&&(detection.id == 2 || detection.id == 5))||
+                    (path==3&&(detection.id == 3 || detection.id == 6))){
+                aprilTagMidpoint = detection.center.x;
+                aprilTagDetectionNanoTime = detection.frameAcquisitionNanoTime;
+            }
+        }
+        if(aprilTagMidpoint==0){
+            teamUtil.log("Find Yellow Pixel Failed Because No April Tag Detected");
+            return YellowPixelPosition.FAILED;
+        }
+        teamUtil.log("April Tag Midpoint"+aprilTagMidpoint);
+
+        if(findPixelProcesser.foundPixel.get()){
+            if(findPixelProcesser.getMidpoint()<aprilTagMidpoint){
+                return YellowPixelPosition.LEFT;
+            }else{
+                return YellowPixelPosition.RIGHT;
+            }
+        }else{
+            teamUtil.log("No Yellow Pixel Detected");
+
+            return YellowPixelPosition.NONE;
+        }
+*/
