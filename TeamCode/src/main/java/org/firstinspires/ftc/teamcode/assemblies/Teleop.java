@@ -108,7 +108,7 @@ public class Teleop extends LinearOpMode {
         }
         int loopRunNumber=0;
         waitForStart();
-        robot.intake.startIntake();
+        robot.intake.startIntakeTelop();
 
 
         while (opModeIsActive()){
@@ -188,7 +188,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasBackPressed()){
-                robot.intake.startIntake();
+                robot.intake.startIntakeTelop();
             }
 
 

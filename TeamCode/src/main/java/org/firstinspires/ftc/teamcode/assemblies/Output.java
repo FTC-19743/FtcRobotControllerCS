@@ -528,7 +528,7 @@ public class Output {
         elevLeft.setVelocity(0);
         elevRight.setVelocity(0);
         intake.closeLid();
-        intake.startIntake();
+        intake.startIntakeTelop();
         intake.ready();
         teamUtil.log("Go To Load-Finished");
         moving.set(false);

@@ -235,12 +235,16 @@ public class Intake {
         currentFlickerPos = 0;
         flicker.setPosition(flickerPos[currentFlickerPos]);
     }
-    public void startIntake(){
+    public void startIntake(){ // auto
         intakeRunning = true;
-        sweeper.setPower(0.3*sweeperDirection);
+        sweeper.setPower(0.6*sweeperDirection);
         kicker.setPower(1*kickerDirection);
     }
-
+    public void startIntakeTelop(){
+        intakeRunning = true;
+        sweeper.setPower(0.4*sweeperDirection);
+        kicker.setPower(1*kickerDirection);
+    }
     public void reverseIntake(){
         sweeper.setPower(-0.1*sweeperDirection);
         kicker.setPower(-1*kickerDirection);
