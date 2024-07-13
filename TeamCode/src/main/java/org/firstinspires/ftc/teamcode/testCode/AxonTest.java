@@ -38,11 +38,12 @@ public class AxonTest extends LinearOpMode {
             gamepad.loop();
 
             double voltage = axonPotentiometer.getVoltage();
-            double degrees = (260/3*(voltage-.55)+36)*2.54;
-            telemetry.addLine("voltage:  " + Double.toString(voltage));
-            //telemetry.addLine("degrees:  "+ Double.toString(degrees));
+            double potentiometerDegrees = (260/3*(voltage-.55)+36)*2.54;
+            telemetry.addLine("Voltage:  " + voltage);
+            telemetry.addLine("Degrees:  "+ potentiometerDegrees);
+            telemetry.addLine("Servo Position:  " + axon.getPosition());
             telemetry.update();
-            //log(""+distance);
+
 
             if(gamepad.wasUpPressed()){
                 axon.setPosition(0);
