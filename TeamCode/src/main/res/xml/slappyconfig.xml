@@ -11,9 +11,14 @@
 
             <Servo name="headServo" port="0" />
             <Servo name="hatchServo" port="1" />
+            <Servo name="servo" port="4" />
+
 
 
             <RevBlinkinLedDriver name="blinkin" port="5"/>
+
+            <AnalogInput name="sensor" port="0"/>
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

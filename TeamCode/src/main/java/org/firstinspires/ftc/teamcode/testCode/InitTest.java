@@ -22,7 +22,7 @@ public class InitTest extends LinearOpMode {
         armsGamepad.initilize(false);
 
 
-        String[] arr = { "Wing", "Red", "Win","Delay (Use Bumpers Below) (Press A To Exit Delay Change Mode)","5"};
+        String[] arr = { "Wing", "Red", "Win","Delay","5"};
         int cursorPos = 1;
         int underlinePos = cursorPos;
         int delayValue=0;
@@ -43,6 +43,14 @@ public class InitTest extends LinearOpMode {
                 }
             }
             if(cursorPos==5) {
+                delayValue=Integer.parseInt(arr[cursorPos-1]);
+
+                if(driverGamepad.wasRightPressed()||driverGamepad.wasLeftPressed()){
+                    if(driverGamepad.wasRightPressed()){
+                        telemetry.addLine("\n" + delayValue);
+                    }
+                }
+                /*
                 delayValue=Integer.parseInt(arr[cursorPos-1]);
                 while(!driverGamepad.wasAPressed()){
                     if(driverGamepad.wasRightBumperPressed()){
@@ -74,6 +82,8 @@ public class InitTest extends LinearOpMode {
                     //telemetry.update();
                 }
                 cursorPos=1;
+
+                 */
             }
             if(driverGamepad.wasRightPressed()||driverGamepad.wasLeftPressed()){
                 if(arr[cursorPos-1]=="Wing"){
@@ -88,12 +98,11 @@ public class InitTest extends LinearOpMode {
                     arr[cursorPos-1]="Loss";
                 }else if(arr[cursorPos-1]=="Loss"){
                     arr[cursorPos-1]="Win";
-                }else if(arr[cursorPos-1]=="Delay (Use Bumpers Below) (Press A To Exit Delay Change Mode)"){
-                }else if(cursorPos==5){
-
-
-
-
+                }else if(arr[cursorPos-1]=="Delay"){
+                }else if(Integer.parseInt(arr[cursorPos-1])>0||Integer.parseInt(arr[cursorPos-1])<0||Integer.parseInt(arr[cursorPos-1])==0){
+                    int newValue = Integer.parseInt(arr[cursorPos-1])+1;
+                    String newString = String.valueOf(newValue);
+                    arr[cursorPos-1]=newString;
                 }
             }
 

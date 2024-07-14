@@ -50,7 +50,8 @@ import java.util.concurrent.TimeUnit;
  * Displays the first pattern upon init.
  */
 @TeleOp(name="Test Blinkin", group = "Calibration")
-//@Disabled
+@Disabled
+
 public class TestBlinkin extends OpMode {
 
     /*
