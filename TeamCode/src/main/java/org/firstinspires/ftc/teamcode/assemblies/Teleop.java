@@ -179,7 +179,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if(armsGamepad.wasLeftTriggerPressed()){
-                robot.intake.ready();
+                robot.output.grabPixels();
             }
 
             if(gamepad2.back){
@@ -199,7 +199,7 @@ public class Teleop extends LinearOpMode {
             if(gamepad2.right_trigger>0.5&&robot.output.loading.get()){
                 robot.intake.resetFlicker();
             }
-            
+
             if(armsGamepad.wasDownPressed()){
                 robot.intake.teleopFlickOneNoWait();
             }
@@ -237,11 +237,7 @@ public class Teleop extends LinearOpMode {
 
             ////////// Output
             if(armsGamepad.wasAPressed()){ // Go to score with only one pixel
-                if(robot.intake.pixelsLoaded == 1){
-                    teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
-                    robot.output.goToScoreNoWait(robot.output.lastLevel,robot.output.GrabberRotatorLoad,robot.output.StraferLoad);
-                    robot.intake.resetFlicker();
-                }
+                robot.output.goToLoadNoWait();
 
             }
             if(armsGamepad.wasYPressed()){ // Send output system to scoring position
@@ -296,8 +292,7 @@ public class Teleop extends LinearOpMode {
                 robot.output.elevManualV2(-(armsGamepad.gamepad.left_stick_y));
             }
             if (armsGamepad.gamepad.right_trigger> 0.5&&!robot.output.loading.get()) { // TODO: Should this be a "right trigger pressed"?
-                robot.output.dropAndGoToLoadNoWait();
-                teamUtil.theBlinkin.setSignal(Blinkin.Signals.OFF);
+                robot.output.dropPixels();
             }
 
 
