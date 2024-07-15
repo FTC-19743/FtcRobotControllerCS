@@ -16,11 +16,11 @@ public class TestSpline extends LinearOpMode {
     Drive drive;
     double MIN_SPLINE_DISTANCE = 5;
 
-    public void runSpline(int maxVelocity, int robotHeading, double[] firstPosition, double[] secondPosition, double[] thirdPosition, double[] fourthPosition, long timeoutTime){
-        //drive.MotorData data = new robot.drive.MotorData();
-        //double initialPosition = robot.drive.getDriveMotorData(data); TODO: make positional data
-        // think of it as robot on the left moving right as x
-        // assume already at first point TODO: change this later
+    public void runSpline(int maxVelocity, double[] firstPosition, double[] secondPosition, double[] thirdPosition, double[] fourthPosition, boolean moveForwards, long timeoutTime){
+        double startHeading = robot.drive.getHeading(); // heading when slope = 0
+        if(!moveForwards){
+            startHeading = robot.drive.adjustAngle(startHeading-180);
+        }
         if(firstPosition[0] > secondPosition[0]){
             teamUtil.log("Spine points not in order");
             return;
@@ -96,15 +96,22 @@ public class TestSpline extends LinearOpMode {
         b = thirdRow[4] - secondRow[3];
         c = thirdRow[4] - secondRow[3];
 
-        double distance = 500; // make this work
-        while(teamUtil.keepGoing(timeoutTime) || distance <= MIN_SPLINE_DISTANCE){
+        double distance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2)); // in cms
+        while(teamUtil.keepGoing(timeoutTime) && distance >= MIN_SPLINE_DISTANCE){
+            distance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2));
             // strafe is dependant on forwards
             double forwardsPosition = robot.drive.forwardEncoder.getCurrentPosition()-xOffset;
-            // math i swear i understand that doesnt work
-            //double slope = 3*a*Math.pow(forwardsPosition, 2) + 2*b*forwardsPosition+c;
-            //double yValue = a*Math.pow(forwardsPosition, 3)+b*Math.pow(forwardsPosition, 2)+ c*forwardsPosition+d;
-            // y = slope(x - forwardsPostition) - yValue
+            // find slope, coords, and angle for unit circle
+            double slope = 3*a*Math.pow(forwardsPosition, 2) + 2*b*forwardsPosition+c;
+            double circleX = 1/(Math.sqrt(1+Math.pow(slope, 2)));
+            double circleY = slope/(Math.sqrt(1+Math.pow(slope, 2)));
+            double lineAngle = Math.atan(circleY/circleX); // angle from the x axis to the line
+            if(slope > 0){ // adjust turn direction
+                lineAngle *= -1;
+            }
+            robot.drive.driveMotorsHeadingsFR(robot.drive.adjustAngle(lineAngle+startHeading), robot.drive.adjustAngle(lineAngle+startHeading), maxVelocity);
         }
+        robot.drive.stopMotors();
     }
 
     @Override
