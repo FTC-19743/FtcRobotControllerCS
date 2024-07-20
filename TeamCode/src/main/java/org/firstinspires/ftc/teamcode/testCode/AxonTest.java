@@ -17,6 +17,26 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
 public class AxonTest extends LinearOpMode {
 
+
+    public double DEGREES_TO_VOLTAGE(double degrees){
+        return (-.00894848)*degrees+3.126;
+    }
+    public double DEGREES_TO_POSITION(double degrees){
+        return degrees/330;
+    }
+    public double VOLTAGE_TO_POSITION(double voltage){
+        return (-voltage/3.126)+1;
+    }
+    public double VOLTAGE_TO_DEGREES(double voltage){
+        return (voltage-3.126)/(-.00894848);
+    }
+    public double POSITION_TO_VOLTAGE(double position){
+        return (position-1)*3.126;
+    }
+    public double POSITION_TO_DEGREES(double position){
+        return position*330;
+    }
+
     public Servo axon;
     TeamGamepad gamepad;
     AnalogInput axonPotentiometer;
@@ -30,8 +50,13 @@ public class AxonTest extends LinearOpMode {
     public void runToPostitionWithStallDetect(double targetDegrees, int timeout){
         axonPotentiometer = hardwareMap.analogInput.get("sensor");
         axon = hardwareMap.servo.get("servo");
-        axon.setPosition(targetDegrees/330);
-        double targetVoltage = (-.00894848)*targetDegrees+3.126;
+
+        boolean positive;
+        if(axon.getPosition()-DEGREES_TO_POSITION(targetDegrees)>0){positive = false;}
+        else{positive = true;}
+
+        axon.setPosition(DEGREES_TO_POSITION(targetDegrees));
+        double targetVoltage = DEGREES_TO_VOLTAGE(targetDegrees);
         double lastVoltage = axonPotentiometer.getVoltage();
         double changeInVoltage = 0;
         double timeStalled = 0;
@@ -60,7 +85,13 @@ public class AxonTest extends LinearOpMode {
         if(timeStalled>timeout){
             teamUtil.log("SERVO STALLED");
             double safePosition = axonPotentiometer.getVoltage()*(-1/3.126)+1;
-            axon.setPosition(safePosition+0.1);
+            if(positive){
+                axon.setPosition(safePosition-0.1);
+            }
+            else{
+                axon.setPosition(safePosition+0.1);
+            }
+
         }
 
 
