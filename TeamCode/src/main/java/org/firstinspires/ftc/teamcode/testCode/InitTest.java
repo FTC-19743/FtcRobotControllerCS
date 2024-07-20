@@ -22,14 +22,19 @@ public class InitTest extends LinearOpMode {
         armsGamepad.initilize(false);
 
 
-        String[] arr = { "Wing", "Red", "Win","Delay","5"};
+        String[] arr = { "Wing", "Red", "Win", "5"};
+
         int cursorPos = 1;
         int underlinePos = cursorPos;
         int delayValue=0;
+        int delayNumber = Integer.parseInt(arr[3]);
+        String newDelayNumber;
         while (!opModeIsActive()) {
+
             driverGamepad.loop();
+
             if(driverGamepad.wasDownPressed()){
-                if(cursorPos<5){
+                if(cursorPos<4){
                     cursorPos+=1;
                 } else{
                     cursorPos=1;
@@ -39,53 +44,11 @@ public class InitTest extends LinearOpMode {
                 if(cursorPos>1){
                     cursorPos-=1;
                 }else{
-                    cursorPos=5;
+                    cursorPos=4;
                 }
             }
-            if(cursorPos==5) {
-                delayValue=Integer.parseInt(arr[cursorPos-1]);
 
-                if(driverGamepad.wasRightPressed()||driverGamepad.wasLeftPressed()){
-                    if(driverGamepad.wasRightPressed()){
-                        telemetry.addLine("\n" + delayValue);
-                    }
-                }
-                /*
-                delayValue=Integer.parseInt(arr[cursorPos-1]);
-                while(!driverGamepad.wasAPressed()){
-                    if(driverGamepad.wasRightBumperPressed()){
-                        delayValue+=1;
-                    }else if(driverGamepad.wasLeftBumperPressed()){
-                        delayValue-=1;
-                    }
-
-                    arr[cursorPos-1]=String.valueOf(delayValue);
-                    for (int i = 0; i < arr.length; i++) {
-                        int itemNumber = i+1;
-                        String selectionSymbol;
-                        if(itemNumber==cursorPos){
-                            selectionSymbol="✅";
-                        }else{
-                            selectionSymbol="";
-
-                        }
-                        telemetry.addLine(selectionSymbol+" "+arr[i]+" "+selectionSymbol);
-                    }
-                    telemetry.addLine("\n" + cursorPos);
-                    telemetry.addLine("\n" + delayValue);
-
-
-
-
-                    telemetry.update();
-                    //telemetry.addLine(""+delayValue);
-                    //telemetry.update();
-                }
-                cursorPos=1;
-
-                 */
-            }
-            if(driverGamepad.wasRightPressed()||driverGamepad.wasLeftPressed()){
+            if(driverGamepad.wasRightPressed()){
                 if(arr[cursorPos-1]=="Wing"){
                     arr[cursorPos-1]="Score";
                 }else if(arr[cursorPos-1]=="Score"){
@@ -99,26 +62,69 @@ public class InitTest extends LinearOpMode {
                 }else if(arr[cursorPos-1]=="Loss"){
                     arr[cursorPos-1]="Win";
                 }else if(arr[cursorPos-1]=="Delay"){
-                }else if(Integer.parseInt(arr[cursorPos-1])>0||Integer.parseInt(arr[cursorPos-1])<0||Integer.parseInt(arr[cursorPos-1])==0){
-                    int newValue = Integer.parseInt(arr[cursorPos-1])+1;
-                    String newString = String.valueOf(newValue);
-                    arr[cursorPos-1]=newString;
+                }else if(cursorPos==4){
+                    delayNumber+=1;
+                    newDelayNumber = Integer.toString(delayNumber);
+                    arr[cursorPos-1]=newDelayNumber;
                 }
             }
+            if(driverGamepad.wasLeftPressed()){
+                if(arr[cursorPos-1]=="Wing"){
+                    arr[cursorPos-1]="Score";
+                }else if(arr[cursorPos-1]=="Score"){
+                    arr[cursorPos-1]="Wing";
+                }else if(arr[cursorPos-1]=="Red"){
+                    arr[cursorPos-1]="Blue";
+                }else if(arr[cursorPos-1]=="Blue"){
+                    arr[cursorPos-1]="Red";
+                }else if(arr[cursorPos-1]=="Win"){
+                    arr[cursorPos-1]="Loss";
+                }else if(arr[cursorPos-1]=="Loss"){
+                    arr[cursorPos-1]="Win";
+                }else if(arr[cursorPos-1]=="Delay"){
+                }else if(cursorPos==4){
+                    delayNumber-=1;
+                    newDelayNumber = Integer.toString(delayNumber);
+                    arr[cursorPos-1]=newDelayNumber;
+                }
+            }
+            /*
+            if(driverGamepad.wasRightPressed()&&cursorPos==4){
+                delayNumber+=1;
+                newDelayNumber = Integer.toString(delayNumber);
+                arr[cursorPos-1]=newDelayNumber;
+
+            }
+            if(driverGamepad.wasLeftPressed()&&cursorPos==4){
+                delayNumber-=1;
+                newDelayNumber = Integer.toString(delayNumber);
+                arr[cursorPos-1]=newDelayNumber;
+
+            }
+
+             */
 
             for (int i = 0; i < arr.length; i++) {
                 int itemNumber = i+1;
                 String selectionSymbol;
+                String delay;
+                if(i==3){
+                    delay = "Delay: ";
+
+                }else{
+                    delay="";
+                }
                 if(itemNumber==cursorPos){
                     selectionSymbol="✅";
                 }else{
                     selectionSymbol="";
 
                 }
-                telemetry.addLine(selectionSymbol+" "+arr[i]+" "+selectionSymbol);
+                telemetry.addLine(delay+selectionSymbol+" "+arr[i]+" "+selectionSymbol);
             }
-            telemetry.addLine("\n" + cursorPos);
-            telemetry.addLine("\n" + delayValue);
+            //telemetry.addLine("\n" + cursorPos);
+
+
 
 
 

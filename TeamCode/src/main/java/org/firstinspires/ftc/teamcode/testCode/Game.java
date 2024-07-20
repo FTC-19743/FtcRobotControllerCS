@@ -44,66 +44,38 @@ public class Game extends LinearOpMode {
 
         int cursorX = 0;
         int cursorY = 0;
-        String empty = " ";
-        String speck = "\uD83C\uDFD8\n";
-        String printString;
-        String printHouse;
         Random randomNumberX;
         Random rand = new Random();
 
         // Generate random integers in range 0 to 94
-        int starX = rand.nextInt(93);
-        int starY = rand.nextInt(17);
+        int randX = rand.nextInt(9);
+        int randY = rand.nextInt(9);
+
+        String[][] board = new String [9][9];
+
+        // Generate random integers in range 0 to 94
 
 
 
 
         while (opModeIsActive()) {
 
-            String emptySpeckAmountX = new String(new char[4]).replace("\0", empty);
-            String emptySpeckAmountY = new String(new char[4]).replace("\0", "\n");
-            String emptyAmountX = new String(new char[cursorX]).replace("\0", empty);
-            String emptyAmountY = new String(new char[cursorY]).replace("\0", "\n");
-
-            String stickGuy = "\uD83D\uDE00";
-            driverGamepad.loop();
-            armsGamepad.loop();
-            if(driverGamepad.wasRightPressed()){
-                if(cursorX==94){
-
-                }else{
-                    cursorX+=1;
+            for(int y=0;y<9;y++){
+                for(int x=0;x<9;x++){
+                    board[x][y] = "?";
                 }
             }
-            if(driverGamepad.wasLeftPressed()){
-                if(cursorX==0){
-
-                }else{
-                    cursorX-=1;
+            for (int r = 0; r<9;r++){
+                String line = "";
+                for (int c = 0; c <9;c++){
+                    line+="["+board[c][r]+"]";
                 }
+                telemetry.addLine(line);
             }
-            if(driverGamepad.wasUpPressed()){
-                if(cursorY==0){
-
-                }
-                else{
-                    cursorY-=1;
-                }
-            }
-            if(driverGamepad.wasDownPressed()){
-                if(cursorY==18){
-
-                }else{
-
-                    cursorY+=1;
-
-                }
-            }
-            printString = emptyAmountY+emptyAmountX+stickGuy;
-            printHouse = emptySpeckAmountY+emptySpeckAmountX+speck;
-            telemetry.addLine(printString);
-            telemetry.addLine(printHouse);
             telemetry.update();
+
+
+
 
 
         }
