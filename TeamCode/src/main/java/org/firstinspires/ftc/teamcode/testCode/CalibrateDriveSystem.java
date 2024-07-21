@@ -35,7 +35,8 @@ public class CalibrateDriveSystem extends LinearOpMode {
         teamGamePad = new TeamGamepad();
         teamGamePad.initilize(true);
         drive = new Drive();
-        drive.initalize(null);
+//        drive.initalize(null);
+        drive.initalize();
         while(!teamGamePad.wasAPressed()){
             teamGamePad.loop();
             if(teamGamePad.wasLeftPressed()){ teamUtil.alliance = teamUtil.Alliance.RED;}

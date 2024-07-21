@@ -28,7 +28,8 @@ public class TestPIDAprilTagLocalization extends LinearOpMode {
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
         drive = new Drive();
-        drive.initalize(null);
+//        drive.initalize(null);
+        drive.initalize();
         drive.initCV(true);
         // set up motors
     }

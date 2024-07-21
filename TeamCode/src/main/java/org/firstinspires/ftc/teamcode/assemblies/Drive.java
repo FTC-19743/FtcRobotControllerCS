@@ -131,25 +131,25 @@ public class Drive {
         telemetry = teamUtil.theOpMode.telemetry;
     }
 
-    public void initalize(Output theOutput) {
+    public void initalize() { // Output theOutput
         teamUtil.log("Initializing Drive");
         //Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        output=theOutput;
+        //output=theOutput;
         fl = hardwareMap.get(DcMotorEx.class, "flm");
         fr = hardwareMap.get(DcMotorEx.class, "frm");
         bl = hardwareMap.get(DcMotorEx.class, "blm");
         br = hardwareMap.get(DcMotorEx.class, "brm");
-        strafeEncoder = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
-        forwardEncoder = hardwareMap.get(DcMotorEx.class, "sweeperAndForwardEncoder");
-        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        ultLeft = hardwareMap.analogInput.get("ult");
-        prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
-        prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
-        prxLeft.setMode(DigitalChannel.Mode.INPUT);
-        prxRight.setMode(DigitalChannel.Mode.INPUT);
+//        strafeEncoder = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
+//        forwardEncoder = hardwareMap.get(DcMotorEx.class, "sweeperAndForwardEncoder");
+//        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        ultLeft = hardwareMap.analogInput.get("ult");
+//        prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
+//        prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
+//        prxLeft.setMode(DigitalChannel.Mode.INPUT);
+//        prxRight.setMode(DigitalChannel.Mode.INPUT);
 
         // colorSensor.calibrate();
         fl.setDirection(DcMotor.Direction.REVERSE);

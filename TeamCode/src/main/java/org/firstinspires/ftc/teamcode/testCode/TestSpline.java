@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.testCode;
 
 
+import static java.lang.Math.toDegrees;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,11 +16,18 @@ public class TestSpline extends LinearOpMode {
     TeamGamepad gamepad;
     Robot robot;
     Drive drive;
-    double MIN_SPLINE_DISTANCE = 5;
+    double MIN_SPLINE_DISTANCE = 1;
 
-    public void runSpline(int maxVelocity, double[] firstPosition, double[] secondPosition, double[] thirdPosition, double[] fourthPosition, boolean moveForwards, long timeoutTime){
+    public void runSpline(double maxVelocity, double[] firstPosition, double[] secondPosition, double[] thirdPosition, double[] fourthPosition, boolean moveForwards, double endVelocity, long timeoutTime){
+        // positions are {forwards encoder tics, side encoder tics}
+        double decelVelocityChange = maxVelocity - endVelocity;
+        double decelCm = Math.abs(decelVelocityChange / robot.drive.MAX_DECELERATION)/robot.drive.COUNTS_PER_CENTIMETER; // covert tics to cm because inconsistent tics
+        double decelPerCm = decelVelocityChange/decelCm; // decel in cm because of inconsistent tics
         double startHeading = robot.drive.getHeading(); // heading when slope = 0
-        if(!moveForwards){
+        if(endVelocity < robot.drive.MIN_END_VELOCITY){
+            endVelocity = robot.drive.MIN_END_VELOCITY;
+        }
+        if(!moveForwards){ // account for direction
             startHeading = robot.drive.adjustAngle(startHeading-180);
         }
         if(firstPosition[0] > secondPosition[0]){
@@ -95,9 +104,10 @@ public class TestSpline extends LinearOpMode {
         a = secondRow[4] - secondRow[3];
         b = thirdRow[4] - secondRow[3];
         c = thirdRow[4] - secondRow[3];
-
+        teamUtil.log("a: "+a+" b: "+b+" c: "+c+" d: "+d);
+        double totalDistance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2)); // in cms;
         double distance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2)); // in cms
-        while(teamUtil.keepGoing(timeoutTime) && distance >= MIN_SPLINE_DISTANCE){
+        while(teamUtil.keepGoing(timeoutTime) && distance > decelCm){
             distance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2));
             // strafe is dependant on forwards
             double forwardsPosition = robot.drive.forwardEncoder.getCurrentPosition()-xOffset;
@@ -105,13 +115,28 @@ public class TestSpline extends LinearOpMode {
             double slope = 3*a*Math.pow(forwardsPosition, 2) + 2*b*forwardsPosition+c;
             double circleX = 1/(Math.sqrt(1+Math.pow(slope, 2)));
             double circleY = slope/(Math.sqrt(1+Math.pow(slope, 2)));
-            double lineAngle = Math.atan(circleY/circleX); // angle from the x axis to the line
+            double lineAngle = Math.toDegrees(Math.atan(circleY/circleX)); // angle from the x axis to the line
             if(slope > 0){ // adjust turn direction
                 lineAngle *= -1;
             }
             robot.drive.driveMotorsHeadingsFR(robot.drive.adjustAngle(lineAngle+startHeading), robot.drive.adjustAngle(lineAngle+startHeading), maxVelocity);
         }
+        while(teamUtil.keepGoing(timeoutTime) && distance >= MIN_SPLINE_DISTANCE){
+            distance = Math.sqrt(Math.pow((robot.drive.forwardEncoder.getCurrentPosition()-fourthPosition[0])/robot.drive.TICS_PER_CM_STRAIGHT_ENCODER, 2)+Math.pow((robot.drive.strafeEncoder.getCurrentPosition()-fourthPosition[1])/robot.drive.TICS_PER_CM_STRAFE_ENCODER, 2));
+            // strafe is dependant on forwards
+            double forwardsPosition = robot.drive.forwardEncoder.getCurrentPosition()-xOffset;
+            // find slope, coords for angle in unit circle
+            double slope = 3*a*Math.pow(forwardsPosition, 2) + 2*b*forwardsPosition+c;
+            double circleX = 1/(Math.sqrt(1+Math.pow(slope, 2)));
+            double circleY = slope/(Math.sqrt(1+Math.pow(slope, 2)));
+            double lineAngle = Math.toDegrees(Math.atan(circleY/circleX)); // angle from the x axis to the line
+            if(slope > 0){ // adjust turn direction
+                lineAngle *= -1;
+            }
+            robot.drive.driveMotorsHeadingsFR(robot.drive.adjustAngle(lineAngle+startHeading), robot.drive.adjustAngle(lineAngle+startHeading), (totalDistance-distance)*decelPerCm+robot.drive.MIN_END_VELOCITY);
+        }
         robot.drive.stopMotors();
+        robot.drive.lastVelocity = endVelocity;
     }
 
     @Override
@@ -124,7 +149,9 @@ public class TestSpline extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
-
+            if(gamepad.wasAPressed()){
+                runSpline(robot.drive.MAX_VELOCITY, new double[] {0,0},new double[] {0,0}, new double[] {0,0}, new double[] {0,0}, true, 0, 10000);
+            }
         }
     }
 }

@@ -96,7 +96,9 @@ public class testAutoPaths extends LinearOpMode {
         robot.output.initialize();
         robot.output.calibrate();
         robot.releaser.initialize();
-        robot.drive.initalize(robot.output);
+//        robot.drive.initalize(robot.output);
+        robot.drive.initalize();
+
 
         telemetry.addLine("Ready to start");
         telemetry.update();
