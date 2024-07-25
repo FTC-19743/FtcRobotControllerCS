@@ -13,18 +13,23 @@ import org.firstinspires.ftc.teamcode.libs.teamUtil;
 public class testNewDrive extends LinearOpMode {
     TeamGamepad gamepad;
     Drive drive;
-    @Override
+    //@Override
     public void runOpMode(){
         teamUtil.init(this);
         gamepad = new TeamGamepad();
         gamepad.initilize(true);
+        drive = new Drive();
         drive.initalize();
 
         waitForStart();
         while (opModeIsActive()) {
             gamepad.loop();
+            drive.newDriveMotorTelemetry();
             if (gamepad.gamepad.right_stick_button && gamepad.gamepad.left_stick_button) {
                 drive.setHeading(180);
+            }
+            if (gamepad.wasHomePressed()){
+
             }
             drive.universalDriveJoystickV2(
                     gamepad.gamepad.left_stick_y,
@@ -32,6 +37,7 @@ public class testNewDrive extends LinearOpMode {
                     gamepad.gamepad.right_stick_x,
                     gamepad.gamepad.right_trigger > .5,gamepad.gamepad.left_trigger > .5,
                     drive.getHeading());
+            telemetry.update();
         }
     }
 }

@@ -152,8 +152,11 @@ public class Drive {
 //        prxRight.setMode(DigitalChannel.Mode.INPUT);
 
         // colorSensor.calibrate();
-        fl.setDirection(DcMotor.Direction.REVERSE);
-        bl.setDirection(DcMotor.Direction.REVERSE);
+        //fl.setDirection(DcMotor.Direction.REVERSE);
+        fr.setDirection(DcMotor.Direction.REVERSE);
+        br.setDirection(DcMotor.Direction.REVERSE);
+
+        //bl.setDirection(DcMotor.Direction.REVERSE);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         //tapeSensor1 = new bottomColorSensor(hardwareMap.get(RevColorSensorV3.class, "bottomColor1"));
@@ -468,6 +471,11 @@ public class Drive {
     public void driveMotorTelemetry() {
         telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d strafe:%d forward:%d heading:%f ",
                 fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), strafeEncoder.getCurrentPosition(), forwardEncoder.getCurrentPosition(),getHeading());
+    }
+
+    public void newDriveMotorTelemetry() {
+        telemetry.addData("Drive ", "flm:%d frm:%d blm:%d brm:%d  heading:%f ",
+                fl.getCurrentPosition(), fr.getCurrentPosition(), bl.getCurrentPosition(), br.getCurrentPosition(), getHeading());
     }
 
     public void sensorTelemetry() {
@@ -905,6 +913,99 @@ public class Drive {
         }
         lastVelocity = endVelocity;
         teamUtil.log("MoveCM--Finished");
+
+    }
+    /////// Used Right Now for Testing Only
+    public void moveCmWithDecelAndBrake(double maxVelocity, double centimeters, double driveHeading, double robotHeading, double endVelocity) {
+        // move based on a cruise, end, and max velocity, distance, and headings
+        teamUtil.log("MoveCM cms:" + centimeters + " driveH:" + driveHeading + " robotH:" + robotHeading + " MaxV:" + maxVelocity + " EndV:" + endVelocity);
+
+        details = false;
+        MotorData data = new MotorData();
+        getDriveMotorData(data);
+
+        double velocityChangeNeededAccel;
+        double velocityChangeNeededDecel;
+        if (endVelocity < MIN_END_VELOCITY) {
+            endVelocity = MIN_END_VELOCITY; // simplify by setting min end to 0
+        }
+        // tics^2/s
+        if (lastVelocity == 0) { // at a stop
+            velocityChangeNeededAccel = maxVelocity - MIN_START_VELOCITY;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        } else { // already moving
+            velocityChangeNeededAccel = maxVelocity - lastVelocity;
+            velocityChangeNeededDecel = maxVelocity - endVelocity;
+        }
+        setMotorsWithEncoder();
+        // all are measured in tics
+        double totalTics = centimeters * COUNTS_PER_CENTIMETER;
+        double accelerationDistance = Math.abs(velocityChangeNeededAccel / MAX_ACCELERATION);
+        double decelerationDistance = Math.abs(velocityChangeNeededDecel / MAX_DECELERATION);
+        double postCruiseTargetDistance = totalTics - decelerationDistance;
+        if (postCruiseTargetDistance < 0) { // need to cut off the curve
+            double percentageToRemoveAccel = accelerationDistance / (accelerationDistance + decelerationDistance);
+            accelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            decelerationDistance += postCruiseTargetDistance * percentageToRemoveAccel;
+            postCruiseTargetDistance = 0;
+        }
+        double distance = 0;
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("Total tics: " + totalTics);
+            teamUtil.log("Acceleration distance: " + accelerationDistance);
+            teamUtil.log("Deceleration distance: " + decelerationDistance);
+            teamUtil.log("Post Cruise distance: " + postCruiseTargetDistance);
+        }
+//acceleration
+        while (distance < accelerationDistance) {
+            distance = getEncoderDistance(data);
+            if (lastVelocity == 0) {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + MIN_START_VELOCITY); // velocity moves by distance
+            } else {
+                driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_ACCELERATION * distance + lastVelocity);
+            }
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after acceleration: " + distance);
+        }
+//cruise
+        while (distance < postCruiseTargetDistance) {
+
+            distance = getEncoderDistance(data);
+            driveMotorsHeadingsFR(driveHeading, robotHeading, maxVelocity); // constant
+        }
+        if (details) {
+            teamUtil.log("Heading:" + getHeading());
+            teamUtil.log("distance after cruise: " + distance);
+        }
+
+
+//deceleration
+        double startDecelerationDistance = distance;
+        double ticsUntilEnd = totalTics - distance;
+        while (distance < totalTics) {
+            distance = getEncoderDistance(data);
+            ticsUntilEnd = totalTics - distance;
+            driveMotorsHeadingsFR(driveHeading, robotHeading, MAX_DECELERATION * ticsUntilEnd + endVelocity); // lowers through tics to end
+
+        }
+        if (details) {
+            teamUtil.log("distance after deceleration: " + distance);
+        }
+        if (endVelocity <= MIN_END_VELOCITY) {
+            stopMotors();
+            if (details) {
+                teamUtil.log("Went below or was min end velocity");
+            }
+        }
+        lastVelocity = endVelocity;
+        teamUtil.log("MoveCM--Finished");
+
+    }
+
+    public void brakeTest(){
 
     }
 
@@ -3526,6 +3627,15 @@ public class Drive {
             rotationAdjustment = rotationAdjustment * Math.min(Math.max(Math.abs(leftX), Math.abs(leftY)), 0.7f); // make it proportional to speed
             rotationAdjustment = MathUtils.clamp(rotationAdjustment, -MAXROTATIONFACTOR,MAXROTATIONFACTOR ); // clip rotation so it doesn't obliterate translation
         }
+        //old code from old motors
+        /*
+        frontLeft = -(leftY - leftX - rotationAdjustment);
+        frontRight = (-leftY - leftX - rotationAdjustment);
+        backRight = (-leftY + leftX - rotationAdjustment);
+        backLeft = -(leftY + leftX - rotationAdjustment);
+
+         */
+
 
         frontLeft = -(leftY - leftX - rotationAdjustment);
         frontRight = (-leftY - leftX - rotationAdjustment);
