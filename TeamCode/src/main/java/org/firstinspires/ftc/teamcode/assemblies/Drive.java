@@ -143,8 +143,8 @@ public class Drive {
         br = hardwareMap.get(DcMotorEx.class, "brm");
 //        strafeEncoder = hardwareMap.get(DcMotorEx.class, "liftAndStrafeEncoder");
 //        forwardEncoder = hardwareMap.get(DcMotorEx.class, "sweeperAndForwardEncoder");
-//        strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                forwardEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);strafeEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+////
 //        ultLeft = hardwareMap.analogInput.get("ult");
 //        prxLeft = hardwareMap.get(DigitalChannel.class, "prx_left");
 //        prxRight = hardwareMap.get(DigitalChannel.class, "prx_right");
@@ -153,8 +153,8 @@ public class Drive {
 
         // colorSensor.calibrate();
         //fl.setDirection(DcMotor.Direction.REVERSE);
-        fr.setDirection(DcMotor.Direction.REVERSE);
         br.setDirection(DcMotor.Direction.REVERSE);
+        bl.setDirection(DcMotor.Direction.REVERSE);
 
         //bl.setDirection(DcMotor.Direction.REVERSE);
 
@@ -3616,31 +3616,33 @@ public class Drive {
 
         final float MAXROTATIONFACTOR = 0.8f;
         if (Math.abs(rightJoyStickX) > DEADBAND) { // driver is turning the robot
-            rotationAdjustment = (float) (rightJoyStickX * 0.525 * scaleAmount);
+            //old code
+            //rotationAdjustment = (float) (rightJoyStickX * 0.525 * scaleAmount);
+            rotationAdjustment = (float) (rightJoyStickX * 1 * scaleAmount);
+
             holdingHeading = false;
         } else { // Need to automatically hold the current heading
             if (!holdingHeading) { // start to hold current heading
                 heldHeading = getHeading();
                 holdingHeading = true;
             }
-            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .05f; // auto rotate to held heading
+            // old code
+            //rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .05f; // auto rotate to held heading
+            rotationAdjustment = (float) getHeadingError(heldHeading) * -1f * .001f; // auto rotate to held heading
             rotationAdjustment = rotationAdjustment * Math.min(Math.max(Math.abs(leftX), Math.abs(leftY)), 0.7f); // make it proportional to speed
             rotationAdjustment = MathUtils.clamp(rotationAdjustment, -MAXROTATIONFACTOR,MAXROTATIONFACTOR ); // clip rotation so it doesn't obliterate translation
         }
         //old code from old motors
-        /*
-        frontLeft = -(leftY - leftX - rotationAdjustment);
-        frontRight = (-leftY - leftX - rotationAdjustment);
-        backRight = (-leftY + leftX - rotationAdjustment);
-        backLeft = -(leftY + leftX - rotationAdjustment);
-
-         */
-
 
         frontLeft = -(leftY - leftX - rotationAdjustment);
         frontRight = (-leftY - leftX - rotationAdjustment);
         backRight = (-leftY + leftX - rotationAdjustment);
         backLeft = -(leftY + leftX - rotationAdjustment);
+
+
+
+
+
 
         if (details) {
 
