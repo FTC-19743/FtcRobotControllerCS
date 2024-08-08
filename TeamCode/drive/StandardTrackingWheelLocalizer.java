@@ -27,10 +27,16 @@ import java.util.List;
  */
 @Config
 public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer {
-    public static double TICKS_PER_REV = 0;
-    public static double WHEEL_RADIUS = 2; // in
+    public static double SIDE_TICKS_PER_REV = 8192; // rev Bore value (side encoders)
+
+
+    public static double FRONT_TICKS_PER_REV = 2000; // gobilda encoder val (front Encoder)
+
+    public static double WHEEL_RADIUS = 0.944; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
 
+
+    //TODO: change lateral distance and forward offset
     public static double LATERAL_DISTANCE = 10; // in; distance between the left and right wheels
     public static double FORWARD_OFFSET = 4; // in; offset of the lateral wheel
 
@@ -55,8 +61,12 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
         // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
     }
 
-    public static double encoderTicksToInches(double ticks) {
-        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;
+    public static double sideEncoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / SIDE_TICKS_PER_REV;
+    }
+
+    public static double frontEncoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / FRONT_TICKS_PER_REV;
     }
 
     @NonNull
@@ -72,9 +82,9 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
         lastEncPositions.add(frontPos);
 
         return Arrays.asList(
-                encoderTicksToInches(leftPos),
-                encoderTicksToInches(rightPos),
-                encoderTicksToInches(frontPos)
+                sideEncoderTicksToInches(leftPos),
+                sideEncoderTicksToInches(rightPos),
+                frontEncoderTicksToInches(frontPos)
         );
     }
 
@@ -91,9 +101,9 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
         lastEncVels.add(frontVel);
 
         return Arrays.asList(
-                encoderTicksToInches(leftVel),
-                encoderTicksToInches(rightVel),
-                encoderTicksToInches(frontVel)
+                sideEncoderTicksToInches(leftVel),
+                sideEncoderTicksToInches(rightVel),
+                frontEncoderTicksToInches(frontVel)
         );
     }
 }
