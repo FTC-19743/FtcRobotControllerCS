@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.assemblies.Robot;
 import org.firstinspires.ftc.teamcode.libs.TeamGamepad;
 import org.firstinspires.ftc.teamcode.libs.teamUtil;
 
-@TeleOp(name = "SplineTest", group = "LinearOpMode")
+//@TeleOp(name = "SplineTest", group = "LinearOpMode")
 public class TestSpline extends LinearOpMode {
     TeamGamepad gamepad;
     Robot robot;
